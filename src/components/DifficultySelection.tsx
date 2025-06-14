@@ -33,7 +33,7 @@ const DifficultySelection: React.FC<DifficultySelectionProps> = ({
             variant="outline"
             className={`p-4 h-auto flex flex-col items-center text-center transition-all duration-150 ease-out will-change-transform ${
               selectedDifficulty === difficulty.id
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-lg transform-gpu'
+                ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-transparent shadow-lg transform-gpu'
                 : 'bg-white/10 text-white border-white/30 hover:bg-white/15 transform-gpu'
             }`}
           >

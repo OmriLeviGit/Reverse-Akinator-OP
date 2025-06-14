@@ -29,7 +29,7 @@ const FillerSettings: React.FC<FillerSettingsProps> = ({
             max={100}
             min={0}
             step={1}
-            className="w-full"
+            className="w-full [&_.slider-track]:bg-white [&_.slider-range]:bg-green-400 [&_.slider-thumb]:border-green-400"
           />
         </div>
       </div>
