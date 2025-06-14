@@ -78,7 +78,7 @@ const CharacterScores: React.FC = () => {
 
             {/* Search and Sort Controls */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 ship-shadow border border-white/20">
-              <div className="flex flex-col sm:flex-row gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <Input
                     type="text"
@@ -103,20 +103,16 @@ const CharacterScores: React.FC = () => {
                   >
                     Low to High
                   </Button>
+                  <Button
+                    onClick={() => setShowFillers(!showFillers)}
+                    className={showFillers 
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                      : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                    }
+                  >
+                    {showFillers ? 'Hide Fillers' : 'Show Fillers'}
+                  </Button>
                 </div>
-              </div>
-              
-              {/* Filler Toggle */}
-              <div className="flex justify-center">
-                <Button
-                  onClick={() => setShowFillers(!showFillers)}
-                  className={showFillers 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                    : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
-                  }
-                >
-                  {showFillers ? 'Hide Filler Characters' : 'Show Filler Characters'}
-                </Button>
               </div>
             </div>
 

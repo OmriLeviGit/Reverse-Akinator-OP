@@ -43,6 +43,10 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
       if (checkGuess(inputMessage)) {
         setTimeout(() => {
           addMessage(`Congratulations! You guessed correctly! It was ${currentCharacter?.name}!`, false);
+          // Navigate to reveal page after a short delay
+          setTimeout(() => {
+            onRevealCharacter();
+          }, 2000);
         }, 1000);
       } else {
         setTimeout(() => {
@@ -76,6 +80,10 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
     if (checkGuess(character)) {
       setTimeout(() => {
         addMessage(`Congratulations! You guessed correctly! It was ${currentCharacter?.name}!`, false);
+        // Navigate to reveal page after a short delay
+        setTimeout(() => {
+          onRevealCharacter();
+        }, 2000);
       }, 1000);
     } else {
       setTimeout(() => {

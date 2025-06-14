@@ -11,7 +11,7 @@ interface MessageAreaProps {
 const MessageArea: React.FC<MessageAreaProps> = ({ messages, messagesEndRef }) => {
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-4 ship-shadow border border-white/20 h-64 overflow-hidden">
-      <div className="h-full overflow-y-auto scrollbar-none">
+      <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent hover:scrollbar-thumb-white/30">
         <div ref={messagesEndRef} />
         {messages.map((message) => (
           <MessageBubble
