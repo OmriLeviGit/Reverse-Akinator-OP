@@ -136,33 +136,33 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
                 <Button
                   onClick={onPlayAgain}
-                  className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Play Again
                 </Button>
                 <Button
                   onClick={onReturnHome}
-                  className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Return to Home
                 </Button>
-              </div>
-
-              {/* Character Management */}
-              <div className="text-center">
                 <Button
                   onClick={handleIgnoreCharacter}
-                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-2"
+                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
-                  Don't show this character again
+                  Don't Show Again
                 </Button>
-                {showIgnoreConfirmation && (
-                  <p className="text-green-300 mt-2 text-sm">Character added to ignore list!</p>
-                )}
               </div>
+
+              {/* Confirmation Message */}
+              {showIgnoreConfirmation && (
+                <div className="text-center">
+                  <p className="text-green-300 text-sm">Character added to ignore list!</p>
+                </div>
+              )}
             </div>
           </div>
         </main>

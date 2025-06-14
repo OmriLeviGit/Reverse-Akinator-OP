@@ -58,27 +58,25 @@ const IgnoredCharacters: React.FC = () => {
 
             {/* Search Control */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 ship-shadow border border-white/20">
-              <div className="space-y-4">
-                <Input
-                  type="text"
-                  placeholder="Search ignored characters..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                />
-                
-                {/* Filler Toggle */}
-                <div className="flex justify-center">
-                  <Button
-                    onClick={() => setShowFillers(!showFillers)}
-                    className={showFillers 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                      : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
-                    }
-                  >
-                    {showFillers ? 'Hide Filler Characters' : 'Show Filler Characters'}
-                  </Button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    placeholder="Search ignored characters..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                  />
                 </div>
+                <Button
+                  onClick={() => setShowFillers(!showFillers)}
+                  className={showFillers 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                    : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                  }
+                >
+                  {showFillers ? 'Hide Fillers' : 'Show Fillers'}
+                </Button>
               </div>
             </div>
 
