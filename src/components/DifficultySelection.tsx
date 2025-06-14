@@ -31,14 +31,11 @@ const DifficultySelection: React.FC<DifficultySelectionProps> = ({
             key={difficulty.id}
             onClick={() => onDifficultyChange(difficulty.id)}
             variant="outline"
-            className={`p-4 h-auto flex flex-col items-center text-center
-              transition-all duration-200 ease-out transform-gpu
-              ${selectedDifficulty === difficulty.id
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-lg scale-105'
-                : `bg-white/10 text-white border-white/30 
-                   hover:bg-white/20 hover:border-white/50 hover:scale-105 hover:shadow-lg
-                   active:scale-95 active:bg-white/30 active:border-white/60 active:shadow-xl`
-              }`}
+            className={`p-4 h-auto flex flex-col items-center text-center transition-all duration-150 ease-out will-change-transform ${
+              selectedDifficulty === difficulty.id
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white border-transparent shadow-lg transform-gpu'
+                : 'bg-white/10 text-white border-white/30 hover:bg-white/15 transform-gpu'
+            }`}
           >
             <span className="font-semibold">{difficulty.label}</span>
             <span className="text-xs opacity-80 mt-1">{difficulty.description}</span>
