@@ -49,31 +49,25 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             <h3 className={`text-xl font-bold mb-1 ${isIgnored ? 'text-white/60' : 'text-white'}`}>
               {character.name}
             </h3>
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`text-xs px-2 py-1 rounded-full ${
-                character.firstAppeared.type === 'filler' 
-                  ? 'bg-purple-500/30 text-purple-200 border border-purple-400/30' 
-                  : 'bg-blue-500/30 text-blue-200 border border-blue-400/30'
-              }`}>
-                {character.firstAppeared.type === 'filler' ? 'Filler' : 'Canon'}
-              </div>
-              <a
-                href={character.wikiUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
-              >
-                View Wiki
-              </a>
+            <div className={`text-sm mb-1 ${isIgnored ? 'text-white/40' : 'text-white/60'}`}>
+              {character.firstAppeared.type === 'filler' ? 'Filler Character' : 'Canon Character'}
             </div>
+            <a
+              href={character.wikiUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
+            >
+              View Wiki
+            </a>
           </div>
         </div>
         
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-6 items-center">
           {/* Difficulty Rating */}
-          <div className="space-y-2">
-            <div className="text-white/90 text-sm font-medium text-center">Difficulty Rating</div>
+          <div className="space-y-3 text-center">
+            <div className="text-white/90 text-sm font-bold">Difficulty Rating</div>
             <div className="flex flex-wrap gap-2 justify-center">
               {Object.entries(ratingLabels).map(([rating, label]) => (
                 <Button
@@ -95,8 +89,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
           </div>
 
           {/* Ignore Toggle */}
-          <div className="space-y-2">
-            <div className="text-white/90 text-sm font-medium text-center">Ignore Status</div>
+          <div className="space-y-3 text-center">
+            <div className="text-white/90 text-sm font-bold">Ignore Status</div>
             <Button
               onClick={() => onIgnoreToggle(character.name, isIgnored)}
               className={isIgnored

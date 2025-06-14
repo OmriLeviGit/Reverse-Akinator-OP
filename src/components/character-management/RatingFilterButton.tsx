@@ -21,8 +21,8 @@ export const RatingFilterButton: React.FC<RatingFilterButtonProps> = ({
   onCycle
 }) => {
   return (
-    <div className="space-y-2">
-      <label className="text-white/90 text-sm font-medium">Difficulty Status</label>
+    <div className="space-y-3 text-center">
+      <label className="text-white/90 text-sm font-bold">Difficulty Status</label>
       <Button
         onClick={onCycle}
         className="w-full max-w-48 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200"
