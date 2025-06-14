@@ -1,13 +1,19 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogoClick = () => {
     console.log('Logo clicked - navigate to home');
     navigate('/');
+    
+    // If we're already on the home page, force a reload to reset any game state
+    if (location.pathname === '/') {
+      window.location.reload();
+    }
   };
 
   return (
