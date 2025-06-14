@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,20 +38,22 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* One Piece Custom Colors */
+    --ocean-blue: 199 89% 24%;
+    --ocean-light: 199 89% 35%;
+    --ocean-dark: 199 89% 15%;
+    --pirate-gold: 45 100% 51%;
+    --pirate-red: 0 84% 60%;
+    --sea-foam: 174 42% 47%;
+    --ship-brown: 25 45% 35%;
   }
 
   .dark {
@@ -100,4 +103,49 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Ocean Wave Animation */
+@keyframes wave {
+  0% {
+    transform: translateX(0) translateZ(0) scaleY(1);
+  }
+  50% {
+    transform: translateX(-25%) translateZ(0) scaleY(0.55);
+  }
+  100% {
+    transform: translateX(-50%) translateZ(0) scaleY(1);
+  }
+}
+
+.ocean-wave {
+  animation: wave 10s -3s linear infinite;
+  transform: translateX(0) translateZ(0) scaleY(1);
+}
+
+.ocean-wave:nth-child(2) {
+  animation: wave 18s linear reverse infinite;
+  opacity: 0.8;
+}
+
+.ocean-wave:nth-child(3) {
+  animation: wave 20s -1s linear infinite;
+  opacity: 0.5;
+}
+
+/* One Piece Themed Classes */
+.pirate-text {
+  @apply text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 bg-clip-text font-bold;
+}
+
+.ocean-gradient {
+  background: linear-gradient(180deg, 
+    hsl(var(--ocean-light)) 0%, 
+    hsl(var(--ocean-blue)) 50%, 
+    hsl(var(--ocean-dark)) 100%);
+}
+
+.ship-shadow {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3),
+              0 4px 10px -2px rgba(0, 0, 0, 0.2);
 }
