@@ -143,13 +143,6 @@ const Index = () => {
             </div>
           </div>
         </main>
-
-        {/* Footer */}
-        <footer className="py-6 text-center">
-          <p className="text-white/70 text-sm">
-            Set sail on your One Piece adventure!
-          </p>
-        </footer>
       </div>
     </div>
   );
