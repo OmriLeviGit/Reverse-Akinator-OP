@@ -47,14 +47,14 @@ const FillerSettings: React.FC<FillerSettingsProps> = ({
           />
           <label 
             htmlFor="non-tv-fillers" 
-            className={`text-white font-medium cursor-pointer ${
+            className={`text-white font-medium cursor-pointer self-center ${
               fillerPercentage === 0 ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
             Include Non-TV Show Fillers
           </label>
-          <div></div>
-          <p className={`text-sm text-blue-100 ${
+          <div className="self-center"></div>
+          <p className={`text-sm text-blue-100 self-center ${
             fillerPercentage === 0 ? 'opacity-50' : ''
           }`}>
             Characters from movies, games, and other non-TV content
