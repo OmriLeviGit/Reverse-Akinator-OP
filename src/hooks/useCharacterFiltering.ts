@@ -5,6 +5,8 @@ import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from '../types/
 
 interface Character {
   name: string;
+  image: string;
+  wikiUrl: string;
   firstAppeared: {
     type: string;
   };
