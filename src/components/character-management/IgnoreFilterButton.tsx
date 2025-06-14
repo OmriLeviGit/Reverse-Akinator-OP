@@ -1,0 +1,34 @@
+
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { IgnoreFilter } from '../../types/characterManagement';
+
+interface IgnoreFilterButtonProps {
+  ignoreFilter: IgnoreFilter;
+  onCycle: () => void;
+}
+
+const getIgnoreFilterLabel = (filter: IgnoreFilter) => {
+  switch (filter) {
+    case 'ignored-only': return 'Ignored Only';
+    case 'not-ignored-only': return 'Not Ignored Only';
+    case 'show-both': return 'Show Both';
+  }
+};
+
+export const IgnoreFilterButton: React.FC<IgnoreFilterButtonProps> = ({
+  ignoreFilter,
+  onCycle
+}) => {
+  return (
+    <div className="space-y-2">
+      <label className="text-white/90 text-sm font-medium">Ignore Status</label>
+      <Button
+        onClick={onCycle}
+        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+      >
+        {getIgnoreFilterLabel(ignoreFilter)}
+      </Button>
+    </div>
+  );
+};
