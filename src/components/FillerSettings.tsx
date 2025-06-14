@@ -35,13 +35,13 @@ const FillerSettings: React.FC<FillerSettingsProps> = ({
       </div>
       
       <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-[auto_1fr] gap-3">
           <Checkbox
             id="non-tv-fillers"
             checked={includeNonTVFillers}
             onCheckedChange={onIncludeNonTVFillersChange}
             disabled={fillerPercentage === 0}
-            className={`justify-self-start data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-white/50 ${
+            className={`justify-self-center self-center data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-white/50 ${
               fillerPercentage === 0 ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           />
