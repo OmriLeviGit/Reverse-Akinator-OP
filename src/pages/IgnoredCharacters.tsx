@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,11 +99,10 @@ const IgnoredCharacters: React.FC = () => {
                           href={character.wikiUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block mb-1"
+                          className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
                         >
                           View on One Piece Wiki
                         </a>
-                        <p className="text-white/70 text-sm">First appeared: {character.firstAppeared.chapter}, ({character.firstAppeared.type})</p>
                       </div>
                     </div>
                     
