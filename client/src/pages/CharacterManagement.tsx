@@ -1,60 +1,62 @@
-
-import React, { useState } from 'react';
-import Header from '../components/Header';
-import NavigationHeader from '../components/NavigationHeader';
-import { useGameContext } from '../contexts/GameContext';
-import { CharacterFilters } from '../components/character-management/CharacterFilters';
-import { CharacterCard } from '../components/character-management/CharacterCard';
-import { useCharacterFiltering } from '../hooks/useCharacterFiltering';
-import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from '../types/characterManagement';
+import React, { useState } from "react";
+import Header from "../components/Header";
+import NavigationHeader from "../components/NavigationHeader";
+import { useGameContext } from "../contexts/GameContext";
+import { CharacterFilters } from "../components/character-management/CharacterFilters";
+import { CharacterCard } from "../components/character-management/CharacterCard";
+import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
+import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 
 const CharacterManagement: React.FC = () => {
-  const { 
-    allCharacters, 
-    characterRatings, 
-    setCharacterRating, 
-    ignoredCharacters, 
-    addToIgnoredCharacters, 
-    removeFromIgnoredCharacters 
-  } = useGameContext();
+  const { allCharacters, characterRatings, setCharacterRating, ignoredCharacters, addToIgnoredCharacters, removeFromIgnoredCharacters } =
+    useGameContext();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>('show-both');
-  const [contentFilter, setContentFilter] = useState<ContentFilter>('canon-only');
-  const [ratingFilter, setRatingFilter] = useState<RatingFilter>('show-both');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("show-both");
+  const [contentFilter, setContentFilter] = useState<ContentFilter>("canon-only");
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>("show-both");
   const [includeNonTVContent, setIncludeNonTVContent] = useState(false);
-  const [sortOption, setSortOption] = useState<SortOption>('alphabetical-az');
+  const [sortOption, setSortOption] = useState<SortOption>("alphabetical-az");
 
   const cycleIgnoreFilter = () => {
-    setIgnoreFilter(prev => {
+    setIgnoreFilter((prev) => {
       switch (prev) {
-        case 'ignored-only': return 'not-ignored-only';
-        case 'not-ignored-only': return 'show-both';
-        case 'show-both': return 'ignored-only';
+        case "ignored-only":
+          return "not-ignored-only";
+        case "not-ignored-only":
+          return "show-both";
+        case "show-both":
+          return "ignored-only";
       }
     });
   };
 
   const cycleContentFilter = () => {
-    setContentFilter(prev => {
+    setContentFilter((prev) => {
       switch (prev) {
-        case 'canon-only': return 'canon-and-fillers';
-        case 'canon-and-fillers': return 'fillers-only';
-        case 'fillers-only': return 'canon-only';
+        case "canon-only":
+          return "canon-and-fillers";
+        case "canon-and-fillers":
+          return "fillers-only";
+        case "fillers-only":
+          return "canon-only";
       }
     });
     // Reset non-TV content when switching away from filters that support it
-    if (contentFilter === 'canon-only') {
+    if (contentFilter === "canon-only") {
       setIncludeNonTVContent(false);
     }
   };
 
   const cycleRatingFilter = () => {
-    setRatingFilter(prev => {
+    setRatingFilter((prev) => {
       switch (prev) {
-        case 'rated-only': return 'unrated-only';
-        case 'unrated-only': return 'show-both';
-        case 'show-both': return 'rated-only';
+        case "rated-only":
+          return "unrated-only";
+        case "unrated-only":
+          return "show-both";
+        case "show-both":
+          return "rated-only";
       }
     });
   };
@@ -84,7 +86,7 @@ const CharacterManagement: React.FC = () => {
     searchTerm,
     sortOption,
     ignoredCharacters,
-    characterRatings
+    characterRatings,
   });
 
   return (
@@ -102,7 +104,7 @@ const CharacterManagement: React.FC = () => {
       <div className="relative z-10 min-h-screen flex flex-col">
         <Header />
         <NavigationHeader />
-        
+
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="max-w-6xl mx-auto">
             {/* Page Header */}
@@ -132,7 +134,7 @@ const CharacterManagement: React.FC = () => {
               {filteredAndSortedCharacters.map((character) => {
                 const currentRating = characterRatings[character.name] || 0;
                 const isIgnored = ignoredCharacters.has(character.name);
-                
+
                 return (
                   <CharacterCard
                     key={character.name}
