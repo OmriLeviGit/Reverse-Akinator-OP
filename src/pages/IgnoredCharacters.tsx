@@ -10,17 +10,22 @@ import { fuzzySearch } from '../utils/fuzzySearch';
 const IgnoredCharacters: React.FC = () => {
   const { allCharacters, ignoredCharacters, removeFromIgnoredCharacters } = useGameContext();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFillers, setShowFillers] = useState(true);
 
   // Get ignored character objects
-  const ignoredCharacterObjects = ignoredCharacters
+  const ignoredCharacterObjects = Array.from(ignoredCharacters)
     .map(name => allCharacters.find(char => char.name === name))
     .filter(Boolean) as typeof allCharacters;
 
-  // Filter ignored characters based on search
+  // Filter ignored characters based on search and filler toggle
+  const filteredByFiller = ignoredCharacterObjects.filter(char => 
+    showFillers || char.firstAppeared.type !== 'filler'
+  );
+
   const filteredCharacters = fuzzySearch(
     searchTerm, 
-    ignoredCharacterObjects.map(char => char.name)
-  ).map(name => ignoredCharacterObjects.find(char => char.name === name)!)
+    filteredByFiller.map(char => char.name)
+  ).map(name => filteredByFiller.find(char => char.name === name)!)
    .filter(Boolean);
 
   const handleRemoveFromIgnored = (characterName: string) => {
@@ -53,13 +58,28 @@ const IgnoredCharacters: React.FC = () => {
 
             {/* Search Control */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 ship-shadow border border-white/20">
-              <Input
-                type="text"
-                placeholder="Search ignored characters..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-              />
+              <div className="space-y-4">
+                <Input
+                  type="text"
+                  placeholder="Search ignored characters..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                />
+                
+                {/* Filler Toggle */}
+                <div className="flex justify-center">
+                  <Button
+                    onClick={() => setShowFillers(!showFillers)}
+                    className={showFillers 
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                      : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                    }
+                  >
+                    {showFillers ? 'Hide Filler Characters' : 'Show Filler Characters'}
+                  </Button>
+                </div>
+              </div>
             </div>
 
             {/* Characters List */}
@@ -77,7 +97,15 @@ const IgnoredCharacters: React.FC = () => {
                       </div>
                       <div>
                         <h3 className="text-xl font-bold text-white mb-1">{character.name}</h3>
-                        <p className="text-white/70 text-sm">First appeared in manga: {character.firstAppeared.chapter}, ({character.firstAppeared.type})</p>
+                        <a
+                          href={character.wikiUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block mb-1"
+                        >
+                          View on One Piece Wiki
+                        </a>
+                        <p className="text-white/70 text-sm">First appeared: {character.firstAppeared.chapter}, ({character.firstAppeared.type})</p>
                       </div>
                     </div>
                     
@@ -92,7 +120,7 @@ const IgnoredCharacters: React.FC = () => {
               ))}
             </div>
 
-            {ignoredCharacters.length === 0 && (
+            {ignoredCharacters.size === 0 && (
               <div className="text-center py-12">
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
                   <p className="text-white/70 text-lg mb-2">No characters are currently ignored.</p>
@@ -101,7 +129,7 @@ const IgnoredCharacters: React.FC = () => {
               </div>
             )}
 
-            {ignoredCharacters.length > 0 && filteredCharacters.length === 0 && searchTerm && (
+            {ignoredCharacters.size > 0 && filteredCharacters.length === 0 && searchTerm && (
               <div className="text-center py-12">
                 <p className="text-white/70 text-lg">No ignored characters found matching your search.</p>
               </div>

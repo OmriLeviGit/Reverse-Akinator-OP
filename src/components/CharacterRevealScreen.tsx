@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import Header from './Header';
 import NavigationHeader from './NavigationHeader';
@@ -14,19 +14,22 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
   onPlayAgain, 
   onReturnHome 
 }) => {
-  const { currentCharacter, setCharacterRating, addToIgnoredCharacters } = useGameContext();
+  const { currentCharacter, characterRatings, setCharacterRating, addToIgnoredCharacters } = useGameContext();
+  const [showIgnoreConfirmation, setShowIgnoreConfirmation] = useState(false);
 
   if (!currentCharacter) {
     return <div>No character data available</div>;
   }
 
-  const ratingOptions = [
-    { value: 1, label: 'Very Easy' },
-    { value: 2, label: 'Easy' },
-    { value: 3, label: 'Medium' },
-    { value: 4, label: 'Hard' },
-    { value: 5, label: 'Really Hard' }
-  ];
+  const ratingLabels = {
+    1: 'Very Easy',
+    2: 'Easy',
+    3: 'Medium',
+    4: 'Hard',
+    5: 'Really Hard'
+  };
+
+  const currentRating = characterRatings[currentCharacter.name];
 
   const handleRating = (rating: number) => {
     setCharacterRating(currentCharacter.name, rating);
@@ -34,6 +37,8 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
 
   const handleIgnoreCharacter = () => {
     addToIgnoredCharacters(currentCharacter.name);
+    setShowIgnoreConfirmation(true);
+    setTimeout(() => setShowIgnoreConfirmation(false), 3000);
   };
 
   return (
@@ -84,53 +89,54 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
                 </p>
               </div>
 
-              {/* Character Information */}
-              <div className="bg-white/20 rounded-xl p-4 mb-6">
-                <p className="text-white text-center mb-2">
-                  First appeared in manga: {currentCharacter.firstAppeared.chapter}, ({currentCharacter.firstAppeared.type})
-                </p>
-                <div className="text-center">
-                  <a
-                    href={currentCharacter.wikiUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-300 hover:text-blue-200 underline transition-colors"
-                  >
-                    View on One Piece Wiki
-                  </a>
+              {/* Current Rating Display */}
+              {currentRating && (
+                <div className="text-center mb-4">
+                  <p className="text-white/90 text-lg">
+                    Current Difficulty: <span className="font-semibold text-yellow-300">{ratingLabels[currentRating as keyof typeof ratingLabels]}</span>
+                  </p>
                 </div>
+              )}
+
+              {/* Character Information */}
+              <div className="text-left mb-6 space-y-1">
+                <p className="text-white/70 text-sm">
+                  First appeared: {currentCharacter.firstAppeared.chapter}, ({currentCharacter.firstAppeared.type})
+                </p>
+                <a
+                  href={currentCharacter.wikiUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block"
+                >
+                  View on One Piece Wiki
+                </a>
               </div>
 
               {/* Difficulty Rating System */}
-              <div className="mb-6">
+              <div className="mb-8">
                 <h4 className="text-lg font-semibold text-white text-center mb-4">
                   How difficult was this character to guess?
                 </h4>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {ratingOptions.map((option) => (
+                  {Object.entries(ratingLabels).map(([rating, label]) => (
                     <Button
-                      key={option.value}
-                      onClick={() => handleRating(option.value)}
-                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold px-4 py-2 text-sm"
+                      key={rating}
+                      onClick={() => handleRating(parseInt(rating))}
+                      variant={currentRating === parseInt(rating) ? 'default' : 'outline'}
+                      className={currentRating === parseInt(rating) 
+                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
+                        : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                      }
                     >
-                      {option.label}
+                      {label}
                     </Button>
                   ))}
                 </div>
               </div>
 
-              {/* Character Management */}
-              <div className="mb-6 text-center">
-                <Button
-                  onClick={handleIgnoreCharacter}
-                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-2"
-                >
-                  Don't show this character again
-                </Button>
-              </div>
-
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
                 <Button
                   onClick={onPlayAgain}
                   className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
@@ -143,6 +149,19 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
                 >
                   Return to Home
                 </Button>
+              </div>
+
+              {/* Character Management */}
+              <div className="text-center">
+                <Button
+                  onClick={handleIgnoreCharacter}
+                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-2"
+                >
+                  Don't show this character again
+                </Button>
+                {showIgnoreConfirmation && (
+                  <p className="text-green-300 mt-2 text-sm">Character added to ignore list!</p>
+                )}
               </div>
             </div>
           </div>

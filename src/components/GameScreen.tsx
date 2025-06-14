@@ -98,7 +98,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
     if (!currentCharacter) return;
     
     const hints = [
-      `This character first appeared in manga chapter ${currentCharacter.firstAppeared.chapter}.`,
+      `This character first appeared in chapter ${currentCharacter.firstAppeared.chapter}.`,
       'This character is known for their incredible strength and has a special connection to the sea.',
       'This character has a unique fighting style that sets them apart from others.',
       'This character is part of an important crew in the One Piece world.'
@@ -161,9 +161,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
             </div>
           </div>
 
-          {/* Messages Area */}
+          {/* Messages Area - Hidden scrollbar */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-4 ship-shadow border border-white/20 h-64 overflow-hidden">
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto scrollbar-hide">
               <div ref={messagesEndRef} />
               {messages.map((message) => (
                 <MessageBubble
@@ -207,6 +207,16 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
           onClose={() => setShowCharacterSearch(false)}
         />
       )}
+
+      <style jsx>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   );
 };

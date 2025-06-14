@@ -17,10 +17,11 @@ interface GameContextType {
   setCurrentCharacter: (character: CharacterData | null) => void;
   characterRatings: Record<string, number>;
   setCharacterRating: (characterName: string, rating: number) => void;
-  ignoredCharacters: string[];
+  ignoredCharacters: Set<string>;
   addToIgnoredCharacters: (characterName: string) => void;
   removeFromIgnoredCharacters: (characterName: string) => void;
   allCharacters: CharacterData[];
+  getAvailableCharacters: (difficulty: string) => CharacterData[];
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -67,18 +68,50 @@ const sampleCharacters: CharacterData[] = [
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentCharacter, setCurrentCharacter] = useState<CharacterData | null>(null);
   const [characterRatings, setCharacterRatings] = useState<Record<string, number>>({});
-  const [ignoredCharacters, setIgnoredCharacters] = useState<string[]>([]);
+  const [ignoredCharacters, setIgnoredCharacters] = useState<Set<string>>(new Set());
 
   const setCharacterRating = (characterName: string, rating: number) => {
     setCharacterRatings(prev => ({ ...prev, [characterName]: rating }));
   };
 
   const addToIgnoredCharacters = (characterName: string) => {
-    setIgnoredCharacters(prev => [...prev, characterName]);
+    setIgnoredCharacters(prev => new Set([...prev, characterName]));
   };
 
   const removeFromIgnoredCharacters = (characterName: string) => {
-    setIgnoredCharacters(prev => prev.filter(name => name !== characterName));
+    setIgnoredCharacters(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(characterName);
+      return newSet;
+    });
+  };
+
+  const getAvailableCharacters = (difficulty: string): CharacterData[] => {
+    // Filter out ignored characters first
+    const nonIgnoredCharacters = sampleCharacters.filter(char => !ignoredCharacters.has(char.name));
+    
+    // Apply difficulty filtering
+    switch (difficulty) {
+      case 'easy':
+        return nonIgnoredCharacters.filter(char => {
+          const rating = characterRatings[char.name];
+          return rating && rating >= 1 && rating <= 2;
+        });
+      case 'medium':
+        return nonIgnoredCharacters.filter(char => {
+          const rating = characterRatings[char.name];
+          return rating && rating >= 2 && rating <= 4;
+        });
+      case 'hard':
+        return nonIgnoredCharacters.filter(char => {
+          const rating = characterRatings[char.name];
+          return rating && rating >= 3 && rating <= 5;
+        });
+      case 'not-rated':
+        return nonIgnoredCharacters.filter(char => !characterRatings[char.name]);
+      default:
+        return nonIgnoredCharacters;
+    }
   };
 
   return (
@@ -90,7 +123,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ignoredCharacters,
       addToIgnoredCharacters,
       removeFromIgnoredCharacters,
-      allCharacters: sampleCharacters
+      allCharacters: sampleCharacters,
+      getAvailableCharacters
     }}>
       {children}
     </GameContext.Provider>

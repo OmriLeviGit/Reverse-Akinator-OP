@@ -19,7 +19,7 @@ const Index = () => {
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
 
-  const { allCharacters, setCurrentCharacter } = useGameContext();
+  const { setCurrentCharacter, getAvailableCharacters } = useGameContext();
 
   const handleFillerPercentageChange = (value: number[]) => {
     const newValue = value[0];
@@ -39,8 +39,16 @@ const Index = () => {
       selectedDifficulty
     });
 
-    // Select a random character for the game
-    const randomCharacter = allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    // Get available characters based on difficulty and ignore list
+    const availableCharacters = getAvailableCharacters(selectedDifficulty);
+    
+    if (availableCharacters.length === 0) {
+      alert("No characters available for this difficulty level");
+      return;
+    }
+
+    // Select a random character from available ones
+    const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
     setCurrentCharacter(randomCharacter);
     
     setGameState('playing');
@@ -51,8 +59,17 @@ const Index = () => {
   };
 
   const handlePlayAgain = () => {
+    // Get available characters for new game
+    const availableCharacters = getAvailableCharacters(selectedDifficulty);
+    
+    if (availableCharacters.length === 0) {
+      alert("No characters available for this difficulty level");
+      setGameState('home');
+      return;
+    }
+
     // Select a new random character
-    const randomCharacter = allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
     setCurrentCharacter(randomCharacter);
     setGameState('playing');
   };
@@ -102,10 +119,12 @@ const Index = () => {
             {/* Settings Card */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
               <div className="space-y-8">
-                <DifficultySelection
-                  selectedDifficulty={selectedDifficulty}
-                  onDifficultyChange={setSelectedDifficulty}
-                />
+                <div className="transform transition-all duration-300">
+                  <DifficultySelection
+                    selectedDifficulty={selectedDifficulty}
+                    onDifficultyChange={setSelectedDifficulty}
+                  />
+                </div>
 
                 <div className="border-t border-white/20 pt-6">
                   <ArcSelection 

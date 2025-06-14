@@ -11,8 +11,10 @@ const CharacterScores: React.FC = () => {
   const { allCharacters, characterRatings, setCharacterRating } = useGameContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'high-to-low' | 'low-to-high'>('high-to-low');
+  const [showFillers, setShowFillers] = useState(true);
 
   const ratingLabels = {
+    0: 'No Score',
     1: 'Very Easy',
     2: 'Easy', 
     3: 'Medium',
@@ -20,8 +22,11 @@ const CharacterScores: React.FC = () => {
     5: 'Really Hard'
   };
 
-  // Filter characters based on search
-  const characterNames = allCharacters.map(char => char.name);
+  // Filter characters based on search and filler toggle
+  const characterNames = allCharacters
+    .filter(char => showFillers || char.firstAppeared.type !== 'filler')
+    .map(char => char.name);
+  
   const filteredCharacters = fuzzySearch(searchTerm, characterNames)
     .map(name => allCharacters.find(char => char.name === name)!)
     .filter(Boolean);
@@ -39,7 +44,12 @@ const CharacterScores: React.FC = () => {
   });
 
   const handleRatingChange = (characterName: string, rating: number) => {
-    setCharacterRating(characterName, rating);
+    if (rating === 0) {
+      // Remove rating
+      setCharacterRating(characterName, 0);
+    } else {
+      setCharacterRating(characterName, rating);
+    }
   };
 
   return (
@@ -95,19 +105,40 @@ const CharacterScores: React.FC = () => {
                   </Button>
                 </div>
               </div>
+              
+              {/* Filler Toggle */}
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setShowFillers(!showFillers)}
+                  className={showFillers 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                    : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
+                  }
+                >
+                  {showFillers ? 'Hide Filler Characters' : 'Show Filler Characters'}
+                </Button>
+              </div>
             </div>
 
             {/* Characters List */}
             <div className="space-y-4">
               {sortedCharacters.map((character) => {
-                const currentRating = characterRatings[character.name];
+                const currentRating = characterRatings[character.name] || 0;
                 return (
                   <div key={character.name} className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 ship-shadow border border-white/20">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div>
                         <h3 className="text-xl font-bold text-white mb-1">{character.name}</h3>
-                        <p className="text-white/70">
-                          Current Rating: {currentRating ? ratingLabels[currentRating as keyof typeof ratingLabels] : 'Not Rated'}
+                        <a
+                          href={character.wikiUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block mb-1"
+                        >
+                          View on One Piece Wiki
+                        </a>
+                        <p className="text-white/70 text-sm">
+                          First appeared: {character.firstAppeared.chapter}, ({character.firstAppeared.type})
                         </p>
                       </div>
                       
@@ -119,7 +150,9 @@ const CharacterScores: React.FC = () => {
                             variant={currentRating === parseInt(rating) ? 'default' : 'outline'}
                             size="sm"
                             className={currentRating === parseInt(rating) 
-                              ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
+                              ? (parseInt(rating) === 0 
+                                ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
+                                : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white')
                               : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
                             }
                           >
