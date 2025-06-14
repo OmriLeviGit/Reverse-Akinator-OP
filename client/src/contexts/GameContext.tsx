@@ -1,131 +1,252 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+// src/contexts/GameContext.tsx
+import React, { createContext, useContext, ReactNode } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { characterApi, userApi, gameApi } from "../services/api";
 
 interface CharacterData {
+  id: string;
   name: string;
   description: string;
   image: string;
-  firstAppeared: {
-    chapter: number;
-    type: 'canon' | 'filler';
-  };
-  wikiUrl: string;
+  chapter: number;
+  fillerStatus: "canon" | "filler";
+  wikiLink: string;
+  currentRating?: number;
+  isIgnored?: boolean;
+}
+
+interface GameSession {
+  gameSessionId: string;
+  gameState: string;
+  currentCharacter?: CharacterData;
 }
 
 interface GameContextType {
-  currentCharacter: CharacterData | null;
-  setCurrentCharacter: (character: CharacterData | null) => void;
-  characterRatings: Record<string, number>;
-  setCharacterRating: (characterName: string, rating: number) => void;
-  ignoredCharacters: Set<string>;
-  addToIgnoredCharacters: (characterName: string) => void;
-  removeFromIgnoredCharacters: (characterName: string) => void;
+  // Game Session
+  currentGameSession: GameSession | null;
+  currentCharacter: CharacterData | null; // Add this line
+  startGame: (settings: GameSettings) => Promise<void>;
+
+  // Character Data
   allCharacters: CharacterData[];
-  getAvailableCharacters: (difficulty: string) => CharacterData[];
+  isLoadingCharacters: boolean;
+  characterError: Error | null;
+
+  // Character Ratings
+  characterRatings: Record<string, number>;
+  setCharacterRating: (characterId: string, rating: number) => void;
+  isUpdatingRating: boolean;
+
+  // Ignored Characters
+  ignoredCharacters: Set<string>;
+  addToIgnoredCharacters: (characterId: string) => void;
+  removeFromIgnoredCharacters: (characterId: string) => void;
+  isUpdatingIgnoreList: boolean;
+
+  // Game Actions
+  askQuestion: (question: string) => Promise<any>;
+  getHint: () => Promise<any>;
+  revealCharacter: () => Promise<any>;
+  makeGuess: (guess: string) => Promise<any>;
+}
+
+interface GameSettings {
+  arcSelection: string;
+  fillerPercentage: number;
+  includeNonTVFillers: boolean;
+  difficultyLevel: string;
+}
+
+// Define interfaces for API responses
+interface IgnoredCharacterResponse {
+  ignoredCharacters: Array<{ id: string; characterId?: string }>;
+}
+
+interface CharacterRating {
+  characterId: string;
+  rating: number;
+}
+
+interface CharacterRatingsResponse {
+  ratings: CharacterRating[];
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-// Sample character data
-const sampleCharacters: CharacterData[] = [
-  {
-    name: "Monkey D. Luffy",
-    description: "The main protagonist of One Piece and captain of the Straw Hat Pirates. Known for his rubber powers from the Gomu Gomu no Mi devil fruit and his unwavering determination to become the Pirate King.",
-    image: "/placeholder.svg",
-    firstAppeared: { chapter: 1, type: 'canon' },
-    wikiUrl: "https://onepiece.fandom.com/wiki/Monkey_D._Luffy"
-  },
-  {
-    name: "Roronoa Zoro",
-    description: "The swordsman of the Straw Hat Pirates, known for his three-sword fighting style and his dream to become the world's greatest swordsman.",
-    image: "/placeholder.svg",
-    firstAppeared: { chapter: 3, type: 'canon' },
-    wikiUrl: "https://onepiece.fandom.com/wiki/Roronoa_Zoro"
-  },
-  {
-    name: "Nami",
-    description: "The navigator of the Straw Hat Pirates, known for her exceptional skills in navigation and weather prediction.",
-    image: "/placeholder.svg",
-    firstAppeared: { chapter: 8, type: 'canon' },
-    wikiUrl: "https://onepiece.fandom.com/wiki/Nami"
-  },
-  {
-    name: "Usopp",
-    description: "The sniper of the Straw Hat Pirates, known for his incredible marksmanship and his dream to become a brave warrior of the sea.",
-    image: "/placeholder.svg",
-    firstAppeared: { chapter: 23, type: 'canon' },
-    wikiUrl: "https://onepiece.fandom.com/wiki/Usopp"
-  },
-  {
-    name: "Sanji",
-    description: "The cook of the Straw Hat Pirates, known for his powerful kicks and his dream to find the All Blue.",
-    image: "/placeholder.svg",
-    firstAppeared: { chapter: 43, type: 'canon' },
-    wikiUrl: "https://onepiece.fandom.com/wiki/Sanji"
-  }
-];
-
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [currentCharacter, setCurrentCharacter] = useState<CharacterData | null>(null);
-  const [characterRatings, setCharacterRatings] = useState<Record<string, number>>({});
-  const [ignoredCharacters, setIgnoredCharacters] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
+  const [currentGameSession, setCurrentGameSession] = React.useState<GameSession | null>(null);
 
-  const setCharacterRating = (characterName: string, rating: number) => {
-    setCharacterRatings(prev => ({ ...prev, [characterName]: rating }));
+  // Fetch all characters with status
+  const {
+    data: charactersData,
+    isLoading: isLoadingCharacters,
+    error: characterError,
+  } = useQuery({
+    queryKey: ["allCharacters"],
+    queryFn: characterApi.getAllCharactersWithStatus,
+  });
+
+  // Fetch character ratings
+  const { data: ratingsData } = useQuery<CharacterRatingsResponse>({
+    queryKey: ["characterRatings"],
+    queryFn: userApi.getCharacterRatings,
+  });
+
+  // Fetch ignored characters
+  const { data: ignoredData } = useQuery<IgnoredCharacterResponse>({
+    queryKey: ["ignoredCharacters"],
+    queryFn: userApi.getIgnoredCharacters,
+  });
+
+  // Start game mutation
+  const startGameMutation = useMutation({
+    mutationFn: gameApi.startGame,
+    onSuccess: (data) => {
+      setCurrentGameSession({
+        gameSessionId: data.gameSessionId,
+        gameState: data.gameState,
+      });
+    },
+  });
+
+  // Character rating mutation
+  const ratingMutation = useMutation({
+    mutationFn: ({ characterId, rating }: { characterId: string; rating: number }) => userApi.rateCharacter(characterId, rating),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["characterRatings"] });
+      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
+    },
+  });
+
+  // Ignore character mutations
+  const ignoreMutation = useMutation({
+    mutationFn: userApi.ignoreCharacter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ignoredCharacters"] });
+      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
+    },
+  });
+
+  const unignoreMutation = useMutation({
+    mutationFn: userApi.unignoreCharacter,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ignoredCharacters"] });
+      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
+    },
+  });
+
+  // Game action mutations
+  const questionMutation = useMutation({
+    mutationFn: (questionText: string) => gameApi.askQuestion(currentGameSession!.gameSessionId, questionText),
+  });
+
+  const hintMutation = useMutation({
+    mutationFn: () => gameApi.getHint(currentGameSession!.gameSessionId),
+  });
+
+  const revealMutation = useMutation({
+    mutationFn: () => gameApi.revealCharacter(currentGameSession!.gameSessionId),
+    onSuccess: (data) => {
+      setCurrentGameSession((prev) =>
+        prev
+          ? {
+              ...prev,
+              currentCharacter: data.character,
+              gameState: data.gameState,
+            }
+          : null
+      );
+    },
+  });
+
+  const guessMutation = useMutation({
+    mutationFn: (guess: string) => gameApi.makeGuess(currentGameSession!.gameSessionId, guess),
+  });
+
+  // Helper functions to process API data
+  const allCharacters = charactersData?.characters || [];
+
+  const characterRatings = React.useMemo(() => {
+    if (!ratingsData?.ratings) return {};
+    return ratingsData.ratings.reduce((acc: Record<string, number>, rating: CharacterRating) => {
+      acc[rating.characterId] = rating.rating;
+      return acc;
+    }, {});
+  }, [ratingsData]);
+
+  const ignoredCharacters = React.useMemo(() => {
+    if (!ignoredData?.ignoredCharacters) return new Set<string>();
+
+    // Handle both possible response formats (id or characterId)
+    const ignoredIds = ignoredData.ignoredCharacters
+      .map((item) => (typeof item === "string" ? item : item.id || item.characterId || ""))
+      .filter(Boolean);
+
+    return new Set<string>(ignoredIds);
+  }, [ignoredData]);
+
+  // Add currentCharacter computed value
+  const currentCharacter = currentGameSession?.currentCharacter || null;
+
+  const startGame = async (settings: GameSettings) => {
+    await startGameMutation.mutateAsync(settings);
   };
 
-  const addToIgnoredCharacters = (characterName: string) => {
-    setIgnoredCharacters(prev => new Set([...prev, characterName]));
+  const setCharacterRating = (characterId: string, rating: number) => {
+    ratingMutation.mutate({ characterId, rating });
   };
 
-  const removeFromIgnoredCharacters = (characterName: string) => {
-    setIgnoredCharacters(prev => {
-      const newSet = new Set(prev);
-      newSet.delete(characterName);
-      return newSet;
-    });
+  const addToIgnoredCharacters = (characterId: string) => {
+    ignoreMutation.mutate(characterId);
   };
 
-  const getAvailableCharacters = (difficulty: string): CharacterData[] => {
-    // Filter out ignored characters first
-    const nonIgnoredCharacters = sampleCharacters.filter(char => !ignoredCharacters.has(char.name));
-    
-    // Apply difficulty filtering
-    switch (difficulty) {
-      case 'easy':
-        return nonIgnoredCharacters.filter(char => {
-          const rating = characterRatings[char.name];
-          return rating && rating >= 1 && rating <= 2;
-        });
-      case 'medium':
-        return nonIgnoredCharacters.filter(char => {
-          const rating = characterRatings[char.name];
-          return rating && rating >= 2 && rating <= 4;
-        });
-      case 'hard':
-        return nonIgnoredCharacters.filter(char => {
-          const rating = characterRatings[char.name];
-          return rating && rating >= 3 && rating <= 5;
-        });
-      case 'not-rated':
-        return nonIgnoredCharacters.filter(char => !characterRatings[char.name]);
-      default:
-        return nonIgnoredCharacters;
-    }
+  const removeFromIgnoredCharacters = (characterId: string) => {
+    unignoreMutation.mutate(characterId);
+  };
+
+  const askQuestion = async (question: string) => {
+    if (!currentGameSession) throw new Error("No active game session");
+    return await questionMutation.mutateAsync(question);
+  };
+
+  const getHint = async () => {
+    if (!currentGameSession) throw new Error("No active game session");
+    return await hintMutation.mutateAsync();
+  };
+
+  const revealCharacter = async () => {
+    if (!currentGameSession) throw new Error("No active game session");
+    return await revealMutation.mutateAsync();
+  };
+
+  const makeGuess = async (guess: string) => {
+    if (!currentGameSession) throw new Error("No active game session");
+    return await guessMutation.mutateAsync(guess);
   };
 
   return (
-    <GameContext.Provider value={{
-      currentCharacter,
-      setCurrentCharacter,
-      characterRatings,
-      setCharacterRating,
-      ignoredCharacters,
-      addToIgnoredCharacters,
-      removeFromIgnoredCharacters,
-      allCharacters: sampleCharacters,
-      getAvailableCharacters
-    }}>
+    <GameContext.Provider
+      value={{
+        currentGameSession,
+        currentCharacter, // Add this line
+        startGame,
+        allCharacters,
+        isLoadingCharacters,
+        characterError: characterError as Error | null,
+        characterRatings,
+        setCharacterRating,
+        isUpdatingRating: ratingMutation.isPending,
+        ignoredCharacters,
+        addToIgnoredCharacters,
+        removeFromIgnoredCharacters,
+        isUpdatingIgnoreList: ignoreMutation.isPending || unignoreMutation.isPending,
+        askQuestion,
+        getHint,
+        revealCharacter,
+        makeGuess,
+      }}
+    >
       {children}
     </GameContext.Provider>
   );
@@ -134,7 +255,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useGameContext = () => {
   const context = useContext(GameContext);
   if (context === undefined) {
-    throw new Error('useGameContext must be used within a GameProvider');
+    throw new Error("useGameContext must be used within a GameProvider");
   }
   return context;
 };

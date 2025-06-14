@@ -1,22 +1,22 @@
+// src/components/character-management/CharacterCard.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ratingLabels } from "../../types/characterManagement";
 
 interface Character {
+  id: string;
   name: string;
   image: string;
-  wikiUrl: string;
-  firstAppeared: {
-    type: string;
-  };
+  wikiLink: string;
+  fillerStatus: "canon" | "filler";
 }
 
 interface CharacterCardProps {
   character: Character;
   currentRating: number;
   isIgnored: boolean;
-  onRatingChange: (characterName: string, rating: number) => void;
-  onIgnoreToggle: (characterName: string, isCurrentlyIgnored: boolean) => void;
+  onRatingChange: (characterId: string, rating: number) => void;
+  onIgnoreToggle: (characterId: string, isCurrentlyIgnored: boolean) => void;
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ character, currentRating, isIgnored, onRatingChange, onIgnoreToggle }) => {
@@ -27,7 +27,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
       }`}
     >
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        {/* Character Info */}
+        {/** Character Info **/}
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30">
             <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
@@ -35,29 +35,24 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
           <div>
             <h3 className={`text-xl font-bold mb-1 ${isIgnored ? "text-white/60" : "text-white"}`}>{character.name}</h3>
             <div className={`text-sm mb-1 ${isIgnored ? "text-white/40" : "text-white/60"}`}>
-              {character.firstAppeared.type === "filler" ? "Filler" : "Canon"}
+              {character.fillerStatus === "filler" ? "Filler" : "Canon"}
             </div>
-            <a
-              href={character.wikiUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
-            >
-              View Wiki
-            </a>
+            href={character.wikiLink}
+            target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
+            <a>View Wiki</a>
           </div>
         </div>
 
-        {/* Actions */}
+        {/** Actions **/}
         <div className="flex flex-col sm:flex-row gap-6 items-center">
-          {/* Difficulty Rating */}
+          {/** Difficulty Rating **/}
           <div className="space-y-3 text-center">
             <div className="text-white/90 text-sm font-bold">Difficulty Rating</div>
             <div className="flex flex-wrap gap-2 justify-center">
               {Object.entries(ratingLabels).map(([rating, label]) => (
                 <Button
                   key={rating}
-                  onClick={() => onRatingChange(character.name, parseInt(rating))}
+                  onClick={() => onRatingChange(character.id, parseInt(rating))}
                   variant={currentRating === parseInt(rating) ? "default" : "outline"}
                   size="sm"
                   className={
@@ -74,12 +69,12 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
             </div>
           </div>
 
-          {/* Ignore Toggle */}
+          {/** Ignore Toggle **/}
           <div className="space-y-3 text-center">
             <div className="text-white/90 text-sm font-bold">Ignore Status</div>
             <div className="flex flex-wrap gap-2 justify-center">
               <Button
-                onClick={() => onIgnoreToggle(character.name, isIgnored)}
+                onClick={() => onIgnoreToggle(character.id, isIgnored)}
                 variant="outline"
                 size="sm"
                 className={

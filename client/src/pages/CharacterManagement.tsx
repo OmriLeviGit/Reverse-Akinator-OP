@@ -1,4 +1,6 @@
+// src/pages/CharacterManagement.tsx
 import React, { useState } from "react";
+import { toast } from "sonner";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
 import { useGameContext } from "../contexts/GameContext";
@@ -8,8 +10,18 @@ import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 
 const CharacterManagement: React.FC = () => {
-  const { allCharacters, characterRatings, setCharacterRating, ignoredCharacters, addToIgnoredCharacters, removeFromIgnoredCharacters } =
-    useGameContext();
+  const {
+    allCharacters,
+    characterRatings,
+    setCharacterRating,
+    ignoredCharacters,
+    addToIgnoredCharacters,
+    removeFromIgnoredCharacters,
+    isLoadingCharacters,
+    characterError,
+    isUpdatingRating,
+    isUpdatingIgnoreList,
+  } = useGameContext();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("show-both");
@@ -65,20 +77,34 @@ const CharacterManagement: React.FC = () => {
     setIncludeNonTVContent(checked === true);
   };
 
-  const handleRatingChange = (characterName: string, rating: number) => {
-    setCharacterRating(characterName, rating);
+  const handleRatingChange = (characterId: string, rating: number) => {
+    setCharacterRating(characterId, rating);
+    toast.success("Rating updated successfully!");
   };
 
-  const handleIgnoreToggle = (characterName: string, isCurrentlyIgnored: boolean) => {
+  const handleIgnoreToggle = (characterId: string, isCurrentlyIgnored: boolean) => {
     if (isCurrentlyIgnored) {
-      removeFromIgnoredCharacters(characterName);
+      removeFromIgnoredCharacters(characterId);
+      toast.success("Character removed from ignore list");
     } else {
-      addToIgnoredCharacters(characterName);
+      addToIgnoredCharacters(characterId);
+      toast.success("Character added to ignore list");
     }
   };
 
+  // Convert new character structure to old structure for compatibility with useCharacterFiltering
+  const compatibleCharacters = allCharacters.map((character) => ({
+    ...character,
+    name: character.name, // Keep name for compatibility
+    firstAppeared: {
+      chapter: character.chapter,
+      type: character.fillerStatus as "canon" | "filler",
+    },
+    wikiUrl: character.wikiLink, // Map wikiLink to wikiUrl for compatibility
+  }));
+
   const filteredAndSortedCharacters = useCharacterFiltering({
-    allCharacters,
+    allCharacters: compatibleCharacters,
     ignoreFilter,
     contentFilter,
     ratingFilter,
@@ -88,6 +114,28 @@ const CharacterManagement: React.FC = () => {
     ignoredCharacters,
     characterRatings,
   });
+
+  if (characterError) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        <div className="absolute inset-0 ocean-gradient"></div>
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <Header />
+          <NavigationHeader />
+          <main className="flex-1 container mx-auto px-4 py-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center py-12">
+                <div className="bg-red-500/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-red-500/20">
+                  <p className="text-red-400 text-lg mb-2">Failed to load characters</p>
+                  <p className="text-red-300/70">Please try refreshing the page.</p>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -113,48 +161,67 @@ const CharacterManagement: React.FC = () => {
               <p className="text-white/80">Manage character difficulty ratings and ignore settings</p>
             </div>
 
-            {/* Filters and Controls */}
-            <CharacterFilters
-              ignoreFilter={ignoreFilter}
-              contentFilter={contentFilter}
-              ratingFilter={ratingFilter}
-              includeNonTVContent={includeNonTVContent}
-              searchTerm={searchTerm}
-              sortOption={sortOption}
-              onIgnoreFilterCycle={cycleIgnoreFilter}
-              onContentFilterCycle={cycleContentFilter}
-              onRatingFilterCycle={cycleRatingFilter}
-              onNonTVContentChange={handleNonTVContentChange}
-              onSearchChange={setSearchTerm}
-              onSortChange={setSortOption}
-            />
-
-            {/* Characters List */}
-            <div className="space-y-4">
-              {filteredAndSortedCharacters.map((character) => {
-                const currentRating = characterRatings[character.name] || 0;
-                const isIgnored = ignoredCharacters.has(character.name);
-
-                return (
-                  <CharacterCard
-                    key={character.name}
-                    character={character}
-                    currentRating={currentRating}
-                    isIgnored={isIgnored}
-                    onRatingChange={handleRatingChange}
-                    onIgnoreToggle={handleIgnoreToggle}
-                  />
-                );
-              })}
-            </div>
-
-            {filteredAndSortedCharacters.length === 0 && (
+            {/* Loading State */}
+            {isLoadingCharacters && (
               <div className="text-center py-12">
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
-                  <p className="text-white/70 text-lg mb-2">No characters found with current filters.</p>
-                  <p className="text-white/50">Try adjusting your filters or search terms.</p>
+                  <p className="text-white/70 text-lg">Loading characters...</p>
                 </div>
               </div>
+            )}
+
+            {!isLoadingCharacters && (
+              <>
+                {/* Filters and Controls */}
+                <CharacterFilters
+                  ignoreFilter={ignoreFilter}
+                  contentFilter={contentFilter}
+                  ratingFilter={ratingFilter}
+                  includeNonTVContent={includeNonTVContent}
+                  searchTerm={searchTerm}
+                  sortOption={sortOption}
+                  onIgnoreFilterCycle={cycleIgnoreFilter}
+                  onContentFilterCycle={cycleContentFilter}
+                  onRatingFilterCycle={cycleRatingFilter}
+                  onNonTVContentChange={handleNonTVContentChange}
+                  onSearchChange={setSearchTerm}
+                  onSortChange={setSortOption}
+                />
+
+                {/* Characters List */}
+                <div className="space-y-4">
+                  {allCharacters.map((character) => {
+                    const currentRating = characterRatings[character.id] || 0;
+                    const isIgnored = ignoredCharacters.has(character.id);
+
+                    return (
+                      <CharacterCard
+                        key={character.id}
+                        character={character}
+                        currentRating={currentRating}
+                        isIgnored={isIgnored}
+                        onRatingChange={handleRatingChange}
+                        onIgnoreToggle={handleIgnoreToggle}
+                      />
+                    );
+                  })}
+                </div>
+                {/* Loading indicator for updates */}
+                {(isUpdatingRating || isUpdatingIgnoreList) && (
+                  <div className="fixed bottom-4 right-4 bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20">
+                    <p className="text-white/70 text-sm">Updating...</p>
+                  </div>
+                )}
+
+                {filteredAndSortedCharacters.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
+                      <p className="text-white/70 text-lg mb-2">No characters found with current filters.</p>
+                      <p className="text-white/50">Try adjusting your filters or search terms.</p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>

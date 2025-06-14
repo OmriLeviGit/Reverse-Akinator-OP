@@ -1,14 +1,13 @@
-
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const NavigationHeader: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/character-management', label: 'Character Management' }
+    { path: "/", label: "Home" },
+    { path: "/character-management", label: "Character Management" },
   ];
 
   return (
@@ -21,8 +20,8 @@ const NavigationHeader: React.FC = () => {
                 variant={location.pathname === item.path ? "default" : "ghost"}
                 className={`${
                   location.pathname === item.path
-                    ? 'bg-white/20 text-white hover:bg-white/30'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                    ? "bg-white/20 text-white hover:bg-white/30"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
                 } transition-all duration-200`}
               >
                 {item.label}

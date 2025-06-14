@@ -1,18 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import Header from './Header';
-import NavigationHeader from './NavigationHeader';
-import { useGameContext } from '../contexts/GameContext';
+import Header from "./Header";
+import NavigationHeader from "./NavigationHeader";
+import { useGameContext } from "../contexts/GameContext";
 
 interface CharacterRevealScreenProps {
   onPlayAgain: () => void;
   onReturnHome: () => void;
 }
 
-const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ 
-  onPlayAgain, 
-  onReturnHome 
-}) => {
+const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAgain, onReturnHome }) => {
   const { currentCharacter, characterRatings, setCharacterRating, addToIgnoredCharacters } = useGameContext();
   const [showIgnoreConfirmation, setShowIgnoreConfirmation] = useState(false);
 
@@ -21,14 +18,15 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
   }
 
   const ratingLabels = {
-    1: 'Very Easy',
-    2: 'Easy',
-    3: 'Medium',
-    4: 'Hard',
-    5: 'Really Hard'
+    0: "No Score", // Added No Score option
+    1: "Very Easy",
+    2: "Easy",
+    3: "Medium",
+    4: "Hard",
+    5: "Really Hard",
   };
 
-  const currentRating = characterRatings[currentCharacter.name];
+  const currentRating = characterRatings[currentCharacter.name] || 0;
 
   const handleRating = (rating: number) => {
     setCharacterRating(currentCharacter.name, rating);
@@ -49,7 +47,7 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
       <div className="relative z-10 min-h-screen flex flex-col">
         <Header />
         <NavigationHeader />
-        
+
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
             {/* Character Reveal Card */}
@@ -62,73 +60,58 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
               {/* Character Image */}
               <div className="flex justify-center mb-6">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/30 ship-shadow">
-                  <img
-                    src={currentCharacter.image}
-                    alt={currentCharacter.name}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={currentCharacter.image} alt={currentCharacter.name} className="w-full h-full object-cover" />
                 </div>
               </div>
 
               {/* Character Name */}
-              <h3 className="text-2xl font-bold text-center pirate-text mb-4">
-                {currentCharacter.name}
-              </h3>
+              <h3 className="text-2xl font-bold text-center pirate-text mb-4">{currentCharacter.name}</h3>
 
               {/* Character Description */}
               <div className="bg-white/20 rounded-xl p-4 mb-4">
-                <p className="text-white leading-relaxed text-center">
-                  {currentCharacter.description}
+                <p className="text-white leading-relaxed text-center">{currentCharacter.description}</p>
+              </div>
+
+              {/* Current Difficulty Display - clear and visible */}
+              <div className="text-center mb-4">
+                <p className="text-white/90 text-lg">
+                  Difficulty:{" "}
+                  <span className="font-semibold text-yellow-300">{ratingLabels[currentRating as keyof typeof ratingLabels]}</span>
                 </p>
               </div>
 
-              {/* Current Rating Display */}
-              {currentRating && (
-                <div className="text-center mb-4">
-                  <p className="text-white/90 text-lg">
-                    Current Difficulty: <span className="font-semibold text-yellow-300">{ratingLabels[currentRating as keyof typeof ratingLabels]}</span>
-                  </p>
-                </div>
-              )}
-
-              {/* Character Information */}
+              {/* Character Information - left-justified, secondary styling */}
               <div className="text-left mb-6 space-y-1">
-                <p className="text-white/70 text-sm">
-                  First appeared: {currentCharacter.firstAppeared.chapter}, ({currentCharacter.firstAppeared.type})
-                </p>
-                <a
-                  href={currentCharacter.wikiUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block"
-                >
-                  View on One Piece Wiki
-                </a>
+                href={currentCharacter.wikiLink}
+                target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm
+                block"
+                <a>View on wiki</a>
               </div>
 
-              {/* Difficulty Rating System */}
+              {/* Difficulty Rating System - removed "No Score" from this page */}
               <div className="mb-8">
-                <h4 className="text-lg font-semibold text-white text-center mb-4">
-                  How difficult was this character to guess?
-                </h4>
+                <h4 className="text-lg font-semibold text-white text-center mb-4">How difficult was this character to guess?</h4>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {Object.entries(ratingLabels).map(([rating, label]) => (
-                    <Button
-                      key={rating}
-                      onClick={() => handleRating(parseInt(rating))}
-                      variant={currentRating === parseInt(rating) ? 'default' : 'outline'}
-                      className={currentRating === parseInt(rating) 
-                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white' 
-                        : 'bg-white/10 text-white border-white/30 hover:bg-white/20'
-                      }
-                    >
-                      {label}
-                    </Button>
-                  ))}
+                  {Object.entries(ratingLabels)
+                    .filter(([rating]) => parseInt(rating) !== 0) // Remove "No Score" option
+                    .map(([rating, label]) => (
+                      <Button
+                        key={rating}
+                        onClick={() => handleRating(parseInt(rating))}
+                        variant={currentRating === parseInt(rating) ? "default" : "outline"}
+                        className={
+                          currentRating === parseInt(rating)
+                            ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
+                            : "bg-white/10 text-white border-white/30 hover:bg-white/20"
+                        }
+                      >
+                        {label}
+                      </Button>
+                    ))}
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Action Buttons - updated order: Play Again, Return Home, then Don't Show Again */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
                 <Button
                   onClick={onPlayAgain}
@@ -142,11 +125,15 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
                 >
                   Return to Home
                 </Button>
+              </div>
+
+              {/* Don't Show Again Button - moved below other action buttons */}
+              <div className="flex justify-center mb-4">
                 <Button
                   onClick={handleIgnoreCharacter}
                   className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
-                  Don't Show Again
+                  Don't show this character again
                 </Button>
               </div>
 
@@ -162,9 +149,7 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
 
         {/* Footer */}
         <footer className="py-6 text-center">
-          <p className="text-white/70 text-sm">
-            Thanks for playing the One Piece Character Guessing Game!
-          </p>
+          <p className="text-white/70 text-sm">Thanks for playing the One Piece Character Guessing Game!</p>
         </footer>
       </div>
     </div>

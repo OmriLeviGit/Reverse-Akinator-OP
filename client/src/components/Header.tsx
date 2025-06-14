@@ -1,17 +1,15 @@
-
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogoClick = () => {
-    console.log('Logo clicked - navigate to home');
-    navigate('/');
-    
+    console.log("Logo clicked - navigate to home");
+    navigate("/");
+
     // If we're already on the home page, force a reload to reset any game state
-    if (location.pathname === '/') {
+    if (location.pathname === "/") {
       window.location.reload();
     }
   };
@@ -19,13 +17,11 @@ const Header = () => {
   return (
     <header className="relative z-10 py-8">
       <div className="container mx-auto px-4">
-        <button 
+        <button
           onClick={handleLogoClick}
           className="block mx-auto transition-transform duration-300 hover:scale-105 focus:outline-none rounded-lg select-none"
         >
-          <h1 className="text-6xl md:text-8xl font-black pirate-text text-center tracking-wider select-none">
-            ONE PIECE
-          </h1>
+          <h1 className="text-6xl md:text-8xl font-black pirate-text text-center tracking-wider select-none">ONE PIECE</h1>
           <p className="text-xl md:text-2xl text-white text-center font-semibold mt-2 drop-shadow-lg select-none">
             Character Guessing Game
           </p>
