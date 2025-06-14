@@ -13,7 +13,9 @@ const CharacterManagement: React.FC = () => {
     allCharacters, 
     characterRatings, 
     setCharacterRating, 
-    ignoredCharacters
+    ignoredCharacters, 
+    addToIgnoredCharacters, 
+    removeFromIgnoredCharacters 
   } = useGameContext();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +67,14 @@ const CharacterManagement: React.FC = () => {
     setCharacterRating(characterName, rating);
   };
 
+  const handleIgnoreToggle = (characterName: string, isCurrentlyIgnored: boolean) => {
+    if (isCurrentlyIgnored) {
+      removeFromIgnoredCharacters(characterName);
+    } else {
+      addToIgnoredCharacters(characterName);
+    }
+  };
+
   const filteredAndSortedCharacters = useCharacterFiltering({
     allCharacters,
     ignoreFilter,
@@ -98,7 +108,7 @@ const CharacterManagement: React.FC = () => {
             {/* Page Header */}
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold pirate-text mb-2">Character Management</h2>
-              <p className="text-white/80">Manage character difficulty ratings</p>
+              <p className="text-white/80">Manage character difficulty ratings and ignore settings</p>
             </div>
 
             {/* Filters and Controls */}
@@ -121,13 +131,16 @@ const CharacterManagement: React.FC = () => {
             <div className="space-y-4">
               {filteredAndSortedCharacters.map((character) => {
                 const currentRating = characterRatings[character.name] || 0;
+                const isIgnored = ignoredCharacters.has(character.name);
                 
                 return (
                   <CharacterCard
                     key={character.name}
                     character={character}
                     currentRating={currentRating}
+                    isIgnored={isIgnored}
                     onRatingChange={handleRatingChange}
+                    onIgnoreToggle={handleIgnoreToggle}
                   />
                 );
               })}
