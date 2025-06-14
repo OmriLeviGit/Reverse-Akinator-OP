@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -164,6 +163,10 @@ const CharacterManagement: React.FC = () => {
     }
   };
 
+  const handleNonTVContentChange = (checked: boolean | "indeterminate") => {
+    setIncludeNonTVContent(checked === true);
+  };
+
   const showNonTVCheckbox = contentFilter === 'canon-and-fillers' || contentFilter === 'fillers-only';
 
   return (
@@ -217,7 +220,7 @@ const CharacterManagement: React.FC = () => {
                       <Checkbox
                         id="include-non-tv"
                         checked={includeNonTVContent}
-                        onCheckedChange={setIncludeNonTVContent}
+                        onCheckedChange={handleNonTVContentChange}
                         className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                       />
                       <label htmlFor="include-non-tv" className="text-white/80 text-sm">
