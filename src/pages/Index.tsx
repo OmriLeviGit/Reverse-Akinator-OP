@@ -4,8 +4,13 @@ import Header from '../components/Header';
 import ArcSelection from '../components/ArcSelection';
 import FillerSettings from '../components/FillerSettings';
 import StartButton from '../components/StartButton';
+import GameScreen from '../components/GameScreen';
+import CharacterRevealScreen from '../components/CharacterRevealScreen';
+
+type GameState = 'home' | 'playing' | 'reveal';
 
 const Index = () => {
+  const [gameState, setGameState] = useState<GameState>('home');
   const [selectedArc, setSelectedArc] = useState('all');
   const [fillerPercentage, setFillerPercentage] = useState(0);
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
@@ -26,9 +31,41 @@ const Index = () => {
       fillerPercentage,
       includeNonTVFillers
     });
-    // Game start logic will be added later
+    setGameState('playing');
   };
 
+  const handleRevealCharacter = () => {
+    setGameState('reveal');
+  };
+
+  const handlePlayAgain = () => {
+    setGameState('playing');
+  };
+
+  const handleReturnHome = () => {
+    setGameState('home');
+  };
+
+  // Render different screens based on game state
+  if (gameState === 'playing') {
+    return (
+      <GameScreen 
+        onRevealCharacter={handleRevealCharacter}
+        onReturnHome={handleReturnHome}
+      />
+    );
+  }
+
+  if (gameState === 'reveal') {
+    return (
+      <CharacterRevealScreen 
+        onPlayAgain={handlePlayAgain}
+        onReturnHome={handleReturnHome}
+      />
+    );
+  }
+
+  // Home screen
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Ocean Background with Animated Waves */}
