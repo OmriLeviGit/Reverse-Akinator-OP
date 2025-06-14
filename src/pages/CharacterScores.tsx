@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ const CharacterScores: React.FC = () => {
   const { allCharacters, characterRatings, setCharacterRating } = useGameContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'high-to-low' | 'low-to-high'>('high-to-low');
-  const [showFillers, setShowFillers] = useState(true);
+  const [showFillers, setShowFillers] = useState(false);
 
   const ratingLabels = {
     0: 'No Score',

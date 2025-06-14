@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { fuzzySearch } from '../utils/fuzzySearch';
 const IgnoredCharacters: React.FC = () => {
   const { allCharacters, ignoredCharacters, removeFromIgnoredCharacters } = useGameContext();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showFillers, setShowFillers] = useState(true);
+  const [showFillers, setShowFillers] = useState(false);
 
   // Get ignored character objects
   const ignoredCharacterObjects = Array.from(ignoredCharacters)
