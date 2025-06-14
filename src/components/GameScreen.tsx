@@ -3,8 +3,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Header from './Header';
+import NavigationHeader from './NavigationHeader';
 import MessageBubble from './MessageBubble';
 import CharacterSearch from './CharacterSearch';
+import { useGameContext } from '../contexts/GameContext';
+import { fuzzySearch } from '../utils/fuzzySearch';
 
 interface Message {
   id: string;
@@ -19,6 +22,7 @@ interface GameScreenProps {
 }
 
 const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome }) => {
+  const { currentCharacter, allCharacters } = useGameContext();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -41,29 +45,46 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
     scrollToTop();
   }, [messages]);
 
+  const addMessage = (text: string, isUser: boolean) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text,
+      isUser,
+      timestamp: new Date()
+    };
+    setMessages(prev => [newMessage, ...prev]);
+  };
+
+  const checkGuess = (guess: string): boolean => {
+    if (!currentCharacter) return false;
+    
+    const guessLower = guess.toLowerCase().trim();
+    const characterNameLower = currentCharacter.name.toLowerCase();
+    
+    // Exact match
+    if (guessLower === characterNameLower) return true;
+    
+    // Fuzzy match using our utility
+    const matches = fuzzySearch(guess, [currentCharacter.name]);
+    return matches.length > 0;
+  };
+
   const handleSendMessage = () => {
     if (inputMessage.trim()) {
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: inputMessage,
-        isUser: true,
-        timestamp: new Date()
-      };
+      addMessage(inputMessage, true);
       
-      // Add new message at the beginning (top) of the array
-      setMessages(prev => [newMessage, ...prev]);
+      // Check if it's a correct guess
+      if (checkGuess(inputMessage)) {
+        setTimeout(() => {
+          addMessage(`Congratulations! You guessed correctly! It was ${currentCharacter?.name}!`, false);
+        }, 1000);
+      } else {
+        setTimeout(() => {
+          addMessage('That\'s not quite right. Try asking for a hint or make another guess!', false);
+        }, 1000);
+      }
+      
       setInputMessage('');
-      
-      // Simulate game response
-      setTimeout(() => {
-        const gameResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          text: 'Interesting guess! Try asking for a hint or make another guess.',
-          isUser: false,
-          timestamp: new Date()
-        };
-        setMessages(prev => [gameResponse, ...prev]);
-      }, 1000);
     }
   };
 
@@ -74,35 +95,33 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
   };
 
   const handleHint = () => {
-    const hintMessage: Message = {
-      id: Date.now().toString(),
-      text: 'Here\'s a hint: This character is known for their incredible strength and has a special connection to the sea.',
-      isUser: false,
-      timestamp: new Date()
-    };
-    setMessages(prev => [hintMessage, ...prev]);
+    if (!currentCharacter) return;
+    
+    const hints = [
+      `This character first appeared in manga chapter ${currentCharacter.firstAppeared.chapter}.`,
+      'This character is known for their incredible strength and has a special connection to the sea.',
+      'This character has a unique fighting style that sets them apart from others.',
+      'This character is part of an important crew in the One Piece world.'
+    ];
+    
+    const randomHint = hints[Math.floor(Math.random() * hints.length)];
+    addMessage(randomHint, false);
   };
 
   const handleCharacterSelect = (character: string) => {
-    const guessMessage: Message = {
-      id: Date.now().toString(),
-      text: `I guess it's ${character}!`,
-      isUser: true,
-      timestamp: new Date()
-    };
-    setMessages(prev => [guessMessage, ...prev]);
+    addMessage(`I guess it's ${character}!`, true);
     setShowCharacterSearch(false);
     
-    // Simulate game response
-    setTimeout(() => {
-      const responseMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: `Good guess! ${character} is a great character, but that's not who I was thinking of. Try again!`,
-        isUser: false,
-        timestamp: new Date()
-      };
-      setMessages(prev => [responseMessage, ...prev]);
-    }, 1000);
+    // Check if it's correct
+    if (checkGuess(character)) {
+      setTimeout(() => {
+        addMessage(`Congratulations! You guessed correctly! It was ${currentCharacter?.name}!`, false);
+      }, 1000);
+    } else {
+      setTimeout(() => {
+        addMessage(`Good guess! ${character} is a great character, but that's not who I was thinking of. Try again!`, false);
+      }, 1000);
+    }
   };
 
   return (
@@ -119,6 +138,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         <Header />
+        <NavigationHeader />
         
         <main className="flex-1 container mx-auto px-4 py-4 max-w-4xl">
           {/* Input Bar */}

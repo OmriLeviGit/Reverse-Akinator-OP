@@ -1,11 +1,14 @@
 
 import React, { useState } from 'react';
 import Header from '../components/Header';
+import NavigationHeader from '../components/NavigationHeader';
 import ArcSelection from '../components/ArcSelection';
 import FillerSettings from '../components/FillerSettings';
+import DifficultySelection from '../components/DifficultySelection';
 import StartButton from '../components/StartButton';
 import GameScreen from '../components/GameScreen';
 import CharacterRevealScreen from '../components/CharacterRevealScreen';
+import { useGameContext } from '../contexts/GameContext';
 
 type GameState = 'home' | 'playing' | 'reveal';
 
@@ -14,6 +17,9 @@ const Index = () => {
   const [selectedArc, setSelectedArc] = useState('all');
   const [fillerPercentage, setFillerPercentage] = useState(0);
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+
+  const { allCharacters, setCurrentCharacter } = useGameContext();
 
   const handleFillerPercentageChange = (value: number[]) => {
     const newValue = value[0];
@@ -29,8 +35,14 @@ const Index = () => {
     console.log('Starting game with settings:', {
       selectedArc,
       fillerPercentage,
-      includeNonTVFillers
+      includeNonTVFillers,
+      selectedDifficulty
     });
+
+    // Select a random character for the game
+    const randomCharacter = allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    setCurrentCharacter(randomCharacter);
+    
     setGameState('playing');
   };
 
@@ -39,6 +51,9 @@ const Index = () => {
   };
 
   const handlePlayAgain = () => {
+    // Select a new random character
+    const randomCharacter = allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    setCurrentCharacter(randomCharacter);
     setGameState('playing');
   };
 
@@ -80,16 +95,24 @@ const Index = () => {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         <Header />
+        <NavigationHeader />
         
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
             {/* Settings Card */}
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
               <div className="space-y-8">
-                <ArcSelection 
-                  selectedArc={selectedArc}
-                  onArcChange={setSelectedArc}
+                <DifficultySelection
+                  selectedDifficulty={selectedDifficulty}
+                  onDifficultyChange={setSelectedDifficulty}
                 />
+
+                <div className="border-t border-white/20 pt-6">
+                  <ArcSelection 
+                    selectedArc={selectedArc}
+                    onArcChange={setSelectedArc}
+                  />
+                </div>
                 
                 <div className="border-t border-white/20 pt-6">
                   <FillerSettings

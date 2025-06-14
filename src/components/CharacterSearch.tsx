@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useGameContext } from '../contexts/GameContext';
+import { fuzzySearch } from '../utils/fuzzySearch';
 
 interface CharacterSearchProps {
   onCharacterSelect: (character: string) => void;
@@ -10,30 +12,11 @@ interface CharacterSearchProps {
 }
 
 const CharacterSearch: React.FC<CharacterSearchProps> = ({ onCharacterSelect, onClose }) => {
+  const { allCharacters } = useGameContext();
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Placeholder character data
-  const characters = [
-    'Monkey D. Luffy',
-    'Roronoa Zoro',
-    'Nami',
-    'Usopp',
-    'Sanji',
-    'Tony Tony Chopper',
-    'Nico Robin',
-    'Franky',
-    'Brook',
-    'Jinbe',
-    'Portgas D. Ace',
-    'Sabo',
-    'Trafalgar Law',
-    'Eustass Kid',
-    'Boa Hancock'
-  ];
-
-  const filteredCharacters = characters.filter(character =>
-    character.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const characterNames = allCharacters.map(char => char.name);
+  const filteredCharacters = fuzzySearch(searchTerm, characterNames);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -65,6 +48,12 @@ const CharacterSearch: React.FC<CharacterSearchProps> = ({ onCharacterSelect, on
             ))}
           </div>
         </ScrollArea>
+        
+        {filteredCharacters.length === 0 && searchTerm && (
+          <div className="text-center py-4 text-gray-500">
+            No characters found matching your search.
+          </div>
+        )}
       </div>
     </div>
   );

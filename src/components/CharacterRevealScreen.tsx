@@ -2,6 +2,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import Header from './Header';
+import NavigationHeader from './NavigationHeader';
+import { useGameContext } from '../contexts/GameContext';
 
 interface CharacterRevealScreenProps {
   onPlayAgain: () => void;
@@ -12,11 +14,26 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
   onPlayAgain, 
   onReturnHome 
 }) => {
-  // Placeholder character data
-  const character = {
-    name: "Monkey D. Luffy",
-    image: "/placeholder.svg",
-    description: "The main protagonist of One Piece and captain of the Straw Hat Pirates. Known for his rubber powers from the Gomu Gomu no Mi devil fruit and his unwavering determination to become the Pirate King. Luffy is characterized by his optimistic personality, love for adventure, and fierce loyalty to his friends."
+  const { currentCharacter, setCharacterRating, addToIgnoredCharacters } = useGameContext();
+
+  if (!currentCharacter) {
+    return <div>No character data available</div>;
+  }
+
+  const ratingOptions = [
+    { value: 1, label: 'Very Easy' },
+    { value: 2, label: 'Easy' },
+    { value: 3, label: 'Medium' },
+    { value: 4, label: 'Hard' },
+    { value: 5, label: 'Really Hard' }
+  ];
+
+  const handleRating = (rating: number) => {
+    setCharacterRating(currentCharacter.name, rating);
+  };
+
+  const handleIgnoreCharacter = () => {
+    addToIgnoredCharacters(currentCharacter.name);
   };
 
   return (
@@ -33,6 +50,7 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         <Header />
+        <NavigationHeader />
         
         <main className="flex-1 container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto">
@@ -47,8 +65,8 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
               <div className="flex justify-center mb-6">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/30 ship-shadow">
                   <img
-                    src={character.image}
-                    alt={character.name}
+                    src={currentCharacter.image}
+                    alt={currentCharacter.name}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -56,14 +74,59 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({
 
               {/* Character Name */}
               <h3 className="text-2xl font-bold text-center pirate-text mb-4">
-                {character.name}
+                {currentCharacter.name}
               </h3>
 
               {/* Character Description */}
-              <div className="bg-white/20 rounded-xl p-4 mb-6">
+              <div className="bg-white/20 rounded-xl p-4 mb-4">
                 <p className="text-white leading-relaxed text-center">
-                  {character.description}
+                  {currentCharacter.description}
                 </p>
+              </div>
+
+              {/* Character Information */}
+              <div className="bg-white/20 rounded-xl p-4 mb-6">
+                <p className="text-white text-center mb-2">
+                  First appeared in manga: {currentCharacter.firstAppeared.chapter}, ({currentCharacter.firstAppeared.type})
+                </p>
+                <div className="text-center">
+                  <a
+                    href={currentCharacter.wikiUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-300 hover:text-blue-200 underline transition-colors"
+                  >
+                    View on One Piece Wiki
+                  </a>
+                </div>
+              </div>
+
+              {/* Difficulty Rating System */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-white text-center mb-4">
+                  How difficult was this character to guess?
+                </h4>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {ratingOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      onClick={() => handleRating(option.value)}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold px-4 py-2 text-sm"
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Character Management */}
+              <div className="mb-6 text-center">
+                <Button
+                  onClick={handleIgnoreCharacter}
+                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-2"
+                >
+                  Don't show this character again
+                </Button>
               </div>
 
               {/* Action Buttons */}
