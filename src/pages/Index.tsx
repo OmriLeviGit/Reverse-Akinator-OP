@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import NavigationHeader from '../components/NavigationHeader';
@@ -100,14 +99,8 @@ const Index = () => {
   // Home screen
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Ocean Background with Animated Waves */}
-      <div className="absolute inset-0 ocean-gradient">
-        <div className="absolute inset-0">
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent"></div>
-        </div>
-      </div>
+      {/* Ocean Background without Animation */}
+      <div className="absolute inset-0 ocean-gradient"></div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">

@@ -105,34 +105,6 @@
   }
 }
 
-/* Ocean Wave Animation */
-@keyframes wave {
-  0% {
-    transform: translateX(0) translateZ(0) scaleY(1);
-  }
-  50% {
-    transform: translateX(-25%) translateZ(0) scaleY(0.55);
-  }
-  100% {
-    transform: translateX(-50%) translateZ(0) scaleY(1);
-  }
-}
-
-.ocean-wave {
-  animation: wave 10s -3s linear infinite;
-  transform: translateX(0) translateZ(0) scaleY(1);
-}
-
-.ocean-wave:nth-child(2) {
-  animation: wave 18s linear reverse infinite;
-  opacity: 0.8;
-}
-
-.ocean-wave:nth-child(3) {
-  animation: wave 20s -1s linear infinite;
-  opacity: 0.5;
-}
-
 /* One Piece Themed Classes */
 .pirate-text {
   @apply text-transparent bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 bg-clip-text font-bold;
