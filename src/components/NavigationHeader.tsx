@@ -21,7 +21,7 @@ const NavigationHeader: React.FC = () => {
                 variant={location.pathname === item.path ? "default" : "ghost"}
                 className={`${
                   location.pathname === item.path
-                    ? 'bg-white/20 text-white'
+                    ? 'bg-white/20 text-white hover:bg-white/30'
                     : 'text-white/80 hover:text-white hover:bg-white/10'
                 } transition-all duration-200`}
               >

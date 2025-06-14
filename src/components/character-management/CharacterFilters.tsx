@@ -37,8 +37,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
 }) => {
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6 ship-shadow border border-white/20">
-      {/* Top Row: Triple Toggle Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {/* Top Row: Triple Toggle Filters with reduced spacing */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-6">
         <IgnoreFilterButton
           ignoreFilter={ignoreFilter}
           onCycle={onIgnoreFilterCycle}

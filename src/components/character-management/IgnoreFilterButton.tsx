@@ -16,6 +16,17 @@ const getIgnoreFilterLabel = (filter: IgnoreFilter) => {
   }
 };
 
+const getIgnoreFilterStyles = (filter: IgnoreFilter) => {
+  switch (filter) {
+    case 'ignored-only':
+      return 'bg-orange-500/20 hover:bg-orange-500/30 text-white border border-orange-400/40 hover:border-orange-400/60';
+    case 'not-ignored-only':
+    case 'show-both':
+    default:
+      return 'bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40';
+  }
+};
+
 export const IgnoreFilterButton: React.FC<IgnoreFilterButtonProps> = ({
   ignoreFilter,
   onCycle
@@ -25,7 +36,7 @@ export const IgnoreFilterButton: React.FC<IgnoreFilterButtonProps> = ({
       <label className="text-white/90 text-base font-bold">Ignore Status</label>
       <Button
         onClick={onCycle}
-        className="w-40 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200"
+        className={`w-40 transition-all duration-200 ${getIgnoreFilterStyles(ignoreFilter)}`}
       >
         {getIgnoreFilterLabel(ignoreFilter)}
       </Button>
