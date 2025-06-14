@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import NavigationHeader from '../components/NavigationHeader';
@@ -67,14 +66,6 @@ const CharacterManagement: React.FC = () => {
     setCharacterRating(characterName, rating);
   };
 
-  const handleIgnoreToggle = (characterName: string, isCurrentlyIgnored: boolean) => {
-    if (isCurrentlyIgnored) {
-      removeFromIgnoredCharacters(characterName);
-    } else {
-      addToIgnoredCharacters(characterName);
-    }
-  };
-
   const filteredAndSortedCharacters = useCharacterFiltering({
     allCharacters,
     ignoreFilter,
@@ -140,7 +131,6 @@ const CharacterManagement: React.FC = () => {
                     currentRating={currentRating}
                     isIgnored={isIgnored}
                     onRatingChange={handleRatingChange}
-                    onIgnoreToggle={handleIgnoreToggle}
                   />
                 );
               })}

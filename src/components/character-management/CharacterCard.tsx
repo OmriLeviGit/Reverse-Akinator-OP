@@ -17,15 +17,13 @@ interface CharacterCardProps {
   currentRating: number;
   isIgnored: boolean;
   onRatingChange: (characterName: string, rating: number) => void;
-  onIgnoreToggle: (characterName: string, isCurrentlyIgnored: boolean) => void;
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({
   character,
   currentRating,
   isIgnored,
-  onRatingChange,
-  onIgnoreToggle
+  onRatingChange
 }) => {
   return (
     <div 
@@ -63,9 +61,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
           </div>
         </div>
         
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-6 items-center">
-          {/* Difficulty Rating */}
+        {/* Actions - Only Difficulty Rating */}
+        <div className="flex justify-center">
           <div className="space-y-3 text-center">
             <div className="text-white/90 text-sm font-bold">Difficulty Rating</div>
             <div className="flex flex-wrap gap-2 justify-center">
@@ -77,8 +74,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                   size="sm"
                   className={currentRating === parseInt(rating) 
                     ? (parseInt(rating) === 0 
-                      ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white text-xs px-2 py-1'
-                      : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1')
+                      ? 'bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 text-xs px-2 py-1'
+                      : 'bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white text-xs px-2 py-1 border-0')
                     : 'bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs px-2 py-1'
                   }
                 >
@@ -86,20 +83,6 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                 </Button>
               ))}
             </div>
-          </div>
-
-          {/* Ignore Toggle */}
-          <div className="space-y-3 text-center">
-            <div className="text-white/90 text-sm font-bold">Ignore Status</div>
-            <Button
-              onClick={() => onIgnoreToggle(character.name, isIgnored)}
-              className={isIgnored
-                ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-2'
-                : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold px-6 py-2'
-              }
-            >
-              {isIgnored ? 'Unignore' : 'Ignore'}
-            </Button>
           </div>
         </div>
       </div>
