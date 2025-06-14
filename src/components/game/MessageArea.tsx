@@ -11,7 +11,7 @@ interface MessageAreaProps {
 const MessageArea: React.FC<MessageAreaProps> = ({ messages, messagesEndRef }) => {
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-4 mb-4 ship-shadow border border-white/20 h-64 overflow-hidden">
-      <div className="h-full overflow-y-auto scrollbar-hide">
+      <div className="h-full overflow-y-auto scrollbar-none">
         <div ref={messagesEndRef} />
         {messages.map((message) => (
           <MessageBubble
@@ -22,15 +22,6 @@ const MessageArea: React.FC<MessageAreaProps> = ({ messages, messagesEndRef }) =
           />
         ))}
       </div>
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 };
