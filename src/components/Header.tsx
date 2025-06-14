@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,7 +7,7 @@ const Header = () => {
 
   const handleLogoClick = () => {
     console.log('Logo clicked - navigate to home');
-    window.location.href = '/';
+    navigate('/');
   };
 
   return (
