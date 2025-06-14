@@ -35,13 +35,13 @@ const FillerSettings: React.FC<FillerSettingsProps> = ({
       </div>
       
       <div className="space-y-3">
-        <div className="flex items-start space-x-3">
+        <div className="flex items-center space-x-3">
           <Checkbox
             id="non-tv-fillers"
             checked={includeNonTVFillers}
             onCheckedChange={onIncludeNonTVFillersChange}
             disabled={fillerPercentage === 0}
-            className={`mt-0.5 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-white/50 ${
+            className={`data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 border-white/50 ${
               fillerPercentage === 0 ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           />
