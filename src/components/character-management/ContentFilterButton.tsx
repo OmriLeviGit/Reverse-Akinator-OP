@@ -28,7 +28,7 @@ export const ContentFilterButton: React.FC<ContentFilterButtonProps> = ({
   const showNonTVCheckbox = contentFilter === 'canon-and-fillers' || contentFilter === 'fillers-only';
 
   return (
-    <div className="flex flex-col items-center space-y-3">
+    <div className="flex flex-col items-center space-y-2">
       <label className="text-white/90 text-base font-bold">Content Type</label>
       <Button
         onClick={onCycle}
@@ -37,7 +37,7 @@ export const ContentFilterButton: React.FC<ContentFilterButtonProps> = ({
         {getContentFilterLabel(contentFilter)}
       </Button>
       {showNonTVCheckbox && (
-        <div className="flex items-center gap-2 mt-2 justify-center">
+        <div className="flex items-center gap-2 mt-1 justify-center">
           <Checkbox
             id="include-non-tv"
             checked={includeNonTVContent}

@@ -32,7 +32,7 @@ export const IgnoreFilterButton: React.FC<IgnoreFilterButtonProps> = ({
   onCycle
 }) => {
   return (
-    <div className="flex flex-col items-center space-y-3">
+    <div className="flex flex-col items-center space-y-2">
       <label className="text-white/90 text-base font-bold">Ignore Status</label>
       <Button
         onClick={onCycle}
