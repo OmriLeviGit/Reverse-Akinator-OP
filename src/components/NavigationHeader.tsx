@@ -8,8 +8,7 @@ const NavigationHeader: React.FC = () => {
 
   const navItems = [
     { path: '/', label: 'Home' },
-    { path: '/character-scores', label: 'Character Scores' },
-    { path: '/ignored-characters', label: 'Ignored Characters' }
+    { path: '/character-management', label: 'Character Management' }
   ];
 
   return (
