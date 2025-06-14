@@ -138,11 +138,10 @@ const Index = () => {
                   />
                 </div>
               </div>
-            </div>
-
-            {/* Start Button */}
-            <div className="mt-8 flex justify-center">
-              <StartButton onStart={handleStart} />
+              {/* Start Button */}
+              <div className="mt-8 flex justify-center">
+                <StartButton onStart={handleStart} />
+              </div>
             </div>
 
             {/* Loading indicator */}

@@ -1,8 +1,7 @@
-
-import React from 'react';
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SortOption } from '../../types/characterManagement';
+import { SortOption } from "../../types/characterManagement";
 
 interface SearchAndSortProps {
   searchTerm: string;
@@ -11,12 +10,7 @@ interface SearchAndSortProps {
   onSortChange: (value: SortOption) => void;
 }
 
-export const SearchAndSort: React.FC<SearchAndSortProps> = ({
-  searchTerm,
-  sortOption,
-  onSearchChange,
-  onSortChange
-}) => {
+export const SearchAndSort: React.FC<SearchAndSortProps> = ({ searchTerm, sortOption, onSearchChange, onSortChange }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
@@ -37,10 +31,18 @@ export const SearchAndSort: React.FC<SearchAndSortProps> = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-gray-800 border-gray-600">
-            <SelectItem value="alphabetical-az" className="text-white hover:bg-gray-700">Alphabetical (A-Z)</SelectItem>
-            <SelectItem value="alphabetical-za" className="text-white hover:bg-gray-700">Alphabetical (Z-A)</SelectItem>
-            <SelectItem value="difficulty-easy-hard" className="text-white hover:bg-gray-700">Difficulty (Easy to Hard)</SelectItem>
-            <SelectItem value="difficulty-hard-easy" className="text-white hover:bg-gray-700">Difficulty (Hard to Easy)</SelectItem>
+            <SelectItem value="alphabetical-az" className="text-white hover:bg-gray-700">
+              Alphabetical (A-Z)
+            </SelectItem>
+            <SelectItem value="alphabetical-za" className="text-white hover:bg-gray-700">
+              Alphabetical (Z-A)
+            </SelectItem>
+            <SelectItem value="difficulty-easy-hard" className="text-white hover:bg-gray-700">
+              Difficulty (Easy to Hard)
+            </SelectItem>
+            <SelectItem value="difficulty-hard-easy" className="text-white hover:bg-gray-700">
+              Difficulty (Hard to Easy)
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
