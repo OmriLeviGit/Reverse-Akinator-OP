@@ -22,10 +22,10 @@ export const RatingFilterButton: React.FC<RatingFilterButtonProps> = ({
 }) => {
   return (
     <div className="space-y-2">
-      <label className="text-white/90 text-sm font-medium">Rating Status</label>
+      <label className="text-white/90 text-sm font-medium">Difficulty Status</label>
       <Button
         onClick={onCycle}
-        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+        className="w-full max-w-48 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200"
       >
         {getRatingFilterLabel(ratingFilter)}
       </Button>

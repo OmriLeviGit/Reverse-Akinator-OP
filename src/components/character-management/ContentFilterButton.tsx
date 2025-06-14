@@ -32,7 +32,7 @@ export const ContentFilterButton: React.FC<ContentFilterButtonProps> = ({
       <label className="text-white/90 text-sm font-medium">Content Type</label>
       <Button
         onClick={onCycle}
-        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+        className="w-full max-w-48 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200"
       >
         {getContentFilterLabel(contentFilter)}
       </Button>
@@ -42,7 +42,7 @@ export const ContentFilterButton: React.FC<ContentFilterButtonProps> = ({
             id="include-non-tv"
             checked={includeNonTVContent}
             onCheckedChange={onNonTVContentChange}
-            className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
+            className="data-[state=checked]:bg-white/30 data-[state=checked]:border-white/40"
           />
           <label htmlFor="include-non-tv" className="text-white/80 text-sm">
             Include Non-TV Content
