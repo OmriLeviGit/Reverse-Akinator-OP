@@ -1,115 +1,53 @@
 from schemas.character_schemas import (
-    Character, CharactersResponse,
-    IgnoreCharacterRequest, IgnoreCharacterResponse,
-    UnignoreCharacterResponse,
-    RateCharacterRequest, RateCharacterResponse, CharacterByIDResponse
+    CharactersResponse,
+    ToggleCharacterRequest, ToggleCharacterResponse,
+    ChangeCharacterRatingRequest, ChangeCharacterRatingResponse, Character
 )
+from mockData import mock_characters
 
 
 class CharacterController:
-    def __init__(self):
-        # Mock One Piece character data with all fields
-        self.mock_characters = [
-            Character(
-                id="char_001",
-                name="Monkey D. Luffy",
-                description="The main protagonist and captain of the Straw Hat Pirates",
-                image=None,
-                arc="East Blue",
-                chapter=1,
-                episode=1,
-                fillerStatus="canon",
-                source="manga",
-                difficulty=2,
-                isIgnored=False,
-                wikiLink="https://onepiece.fandom.com/wiki/Monkey_D._Luffy"
-            ),
-            Character(
-                id="char_004",
-                name="Condoriano",
-                description="A mysterious inspector from the G-8 arc",
-                image=None,
-                arc="G-8",
-                chapter=None,
-                episode=196,
-                fillerStatus="filler",
-                source="anime",
-                difficulty=1,
-                isIgnored=False,
-                wikiLink="https://onepiece.fandom.com/wiki/Condoriano"
-            ),
-            Character(
-                id="char_005",
-                name="Shiki",
-                description="The Golden Lion, captain of the Flying Pirates",
-                image=None,
-                arc="Strong World",
-                chapter=None,
-                episode=None,
-                fillerStatus="canon",
-                source="movie",
-                difficulty=3,
-                isIgnored=False,
-                wikiLink="https://onepiece.fandom.com/wiki/Shiki"
-            ),
-        ]
-        # Mock user preferences storage
-        self.ignored_characters = set()
-        self.character_ratings = {}
 
     def get_all_characters(self) -> CharactersResponse:
         """Get all characters"""
-        return CharactersResponse(characters=self.mock_characters)
+        return CharactersResponse(characters=mock_characters)
 
-    def get_character_by_id(self, character_id: str) -> CharacterByIDResponse | None:
+    def get_character_by_id(self, character_id: str) -> Character | None:
         """Get a specific character by ID"""
-        for character in self.mock_characters:
+        for character in mock_characters:
             if character.id == character_id:
-                return CharacterByIDResponse(character=character)
+                return character
         return None
 
-    def ignore_character(self, request: IgnoreCharacterRequest) -> IgnoreCharacterResponse:
+    def toggle_ignore_character(self, request: ToggleCharacterRequest) -> ToggleCharacterResponse:
         """Add character to ignored list"""
-        character = self.get_character_by_id(request.character_id)
+        character = self.get_character_by_id(request.characterId)
         if not character:
-            raise ValueError(f"Character with ID {request.character_id} not found")
+            raise ValueError(f"Character with ID {request.characterId} not found")
 
-        self.ignored_characters.add(request.character_id)
-        return IgnoreCharacterResponse(
+        character.isIgnored = not character.isIgnored
+        print("character is ", character.isIgnored)
+        return ToggleCharacterResponse(
             message="Character ignored successfully",
-            character_id=request.character_id
+            characterId=request.characterId
         )
 
-    def unignore_character(self, character_id: str) -> UnignoreCharacterResponse:
-        """Remove character from ignored list"""
-        character = self.get_character_by_id(character_id)
-        if not character:
-            raise ValueError(f"Character with ID {character_id} not found")
-
-        self.ignored_characters.discard(character_id)
-        return UnignoreCharacterResponse(
-            message="Character unignored successfully",
-            character_id=character_id
-        )
-
-    def rate_character(self, request: RateCharacterRequest) -> RateCharacterResponse:
+    def rate_character(self, request: ChangeCharacterRatingRequest) -> ChangeCharacterRatingResponse:
         """Rate a character's difficulty (0 = unrated, 1-5 = difficulty scale)"""
-        character = self.get_character_by_id(request.character_id)
+        character = self.get_character_by_id(request.characterId)
         if not character:
-            raise ValueError(f"Character with ID {request.character_id} not found")
+            raise ValueError(f"Character with ID {request.characterId} not found")
 
         if not (0 <= request.difficulty <= 5):
             raise ValueError("Difficulty must be between 0 (unrated) and 5")
 
-        self.character_ratings[request.character_id] = request.difficulty
+        character.difficulty = request.difficulty
 
-        if request.difficulty == 0:
-            message = "Character difficulty rating removed (set to unrated)"
-        else:
-            message = "Character difficulty rated successfully"
+        message = "Updated character difficulty rating"
 
-        return RateCharacterResponse(
+        response = ChangeCharacterRatingResponse(
             message=message,
-            character_id=request.character_id,
+            characterId=request.characterId,
             difficulty=request.difficulty
         )
+        return response

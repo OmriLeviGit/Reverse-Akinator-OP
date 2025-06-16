@@ -2,6 +2,8 @@ import json
 
 from fastapi import APIRouter, HTTPException
 from character_controller import CharacterController
+from game_controller import GameController
+
 from schemas.game_schemas import (
    GameStartRequest, GameStartResponse,
    GameQuestionRequest, GameQuestionResponse,
@@ -10,19 +12,20 @@ from schemas.game_schemas import (
    GameGuessRequest, GameGuessResponse,
 )
 from schemas.character_schemas import (
-    CharactersResponse, IgnoreCharacterResponse, IgnoreCharacterRequest, UnignoreCharacterResponse,
-    RateCharacterResponse, RateCharacterRequest
+    CharactersResponse, ToggleCharacterResponse, ToggleCharacterRequest,
+    ChangeCharacterRatingResponse, ChangeCharacterRatingRequest
 )
 from schemas.data_schemas import (
     DataResponse
 )
 
 
-def create_routers(game_controller):
+def create_routers(config):
     game_router = APIRouter(prefix="/api/game", tags=["game"])
     characters_router = APIRouter(prefix="/api/characters", tags=["characters"])
     data_router = APIRouter(prefix="/api/data", tags=["data"])
 
+    game_controller = GameController(config=config)
     character_controller = CharacterController()
 
     @game_router.post("/start", response_model=GameStartResponse)
@@ -50,22 +53,15 @@ def create_routers(game_controller):
     def get_characters():
         return character_controller.get_all_characters()
 
-    @characters_router.post("/ignore-character", response_model=IgnoreCharacterResponse)
-    def ignore_character(request: IgnoreCharacterRequest):
+    @characters_router.post("/toggle-ignore", response_model=ToggleCharacterResponse)
+    def toggle_ignore_character(request: ToggleCharacterRequest):
         try:
-            return character_controller.ignore_character(request)
+            return character_controller.toggle_ignore_character(request)
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
-    @characters_router.delete("/ignore-character/{character_id}", response_model=UnignoreCharacterResponse)
-    def unignore_character(character_id: str):
-        try:
-            return character_controller.unignore_character(character_id)
-        except ValueError as e:
-            raise HTTPException(status_code=404, detail=str(e))
-
-    @characters_router.post("/rate-character", response_model=RateCharacterResponse)
-    def rate_character(request: RateCharacterRequest):
+    @characters_router.post("/rate-character", response_model=ChangeCharacterRatingResponse)
+    def rate_character(request: ChangeCharacterRatingRequest):
         try:
             return character_controller.rate_character(request)
         except ValueError as e:

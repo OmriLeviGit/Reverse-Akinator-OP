@@ -13,6 +13,7 @@ from schemas.game_schemas import (
     GameGuessRequest, GameGuessResponse,
 )
 from schemas.character_schemas import Character
+from mockData import mock_characters
 
 
 class GameController:
@@ -189,20 +190,8 @@ class GameController:
             # character = self._get_character_by_id(character_id)
 
             # For now using mock data, later replace with actual character lookup
-            character = Character(
-                id="char_001",
-                name="Monkey D. Luffy",
-                description="The main protagonist and captain of the Straw Hat Pirates",
-                image=None,
-                arc="East Blue",
-                chapter=1,
-                episode=1,
-                fillerStatus="canon",
-                source="manga",
-                difficulty=2,
-                isIgnored=False,
-                wikiLink="https://onepiece.fandom.com/wiki/Monkey_D._Luffy"
-            )
+            character = mock_characters[0]
+
 
             # # End game
             # game['status'] = 'revealed'
@@ -252,20 +241,7 @@ class GameController:
         """Select a random character based on criteria"""
         # This is where you'll integrate your data_fetcher logic
         # For now, returning a mock character
-        return Character(
-                id="char_001",
-                name="Monkey D. Luffy",
-                description="The main protagonist and captain of the Straw Hat Pirates",
-                image=None,
-                arc="East Blue",
-                chapter=1,
-                episode=1,
-                fillerStatus="canon",
-                source="manga",
-                difficulty=2,
-                isIgnored=False,
-                wikiLink="https://onepiece.fandom.com/wiki/Monkey_D._Luffy"
-            )
+        return mock_characters[0]
 
     def _create_game_prompt(self, character: Character):
         """Create the initial prompt for the LLM"""

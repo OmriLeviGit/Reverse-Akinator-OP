@@ -27,9 +27,7 @@ interface GameContextType {
   isUpdatingRating: boolean;
 
   // Ignored Characters
-  ignoredCharacters: Set<string>;
-  addToIgnoredCharacters: (characterId: string) => void;
-  removeFromIgnoredCharacters: (characterId: string) => void;
+  toggleIgnoreCharacter: (characterId: string) => void;
   isUpdatingIgnoreList: boolean;
 
   // Game Actions
@@ -62,12 +60,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     queryFn: characterApi.getCharacters,
   });
 
-  // Fetch ignored characters
-  const { data: ignoredCharactersData } = useQuery({
-    queryKey: ["ignoredCharacters"],
-    queryFn: characterApi.getIgnoredCharacters,
-  });
-
   // Start game mutation
   const startGameMutation = useMutation({
     mutationFn: gameApi.startGame,
@@ -83,25 +75,55 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const ratingMutation = useMutation({
     mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: number }) =>
       characterApi.rateCharacter(characterId, difficulty),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
+    onMutate: async ({ characterId, difficulty }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
+
+      // Snapshot the previous value
+      const previousCharacters = queryClient.getQueryData(["allCharacters"]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(["allCharacters"], (old: any) => {
+        if (!old || !old.characters) return old;
+
+        return {
+          ...old,
+          characters: old.characters.map((char: Character) => (char.id === characterId ? { ...char, difficulty } : char)),
+        };
+      });
+
+      // Return context for rollback
+      return { previousCharacters };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousCharacters) {
+        queryClient.setQueryData(["allCharacters"], context.previousCharacters);
+      }
     },
   });
 
-  // Ignore character mutations
-  const ignoreMutation = useMutation({
-    mutationFn: characterApi.ignoreCharacter,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ignoredCharacters"] });
-      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
-    },
-  });
+  // Toggle ignore character mutation with optimistic updates
+  const toggleIgnoreMutation = useMutation({
+    mutationFn: characterApi.toggleIgnoreCharacter, // You'll need to add this to your API
+    onMutate: async (characterId: string) => {
+      await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
+      const previousCharacters = queryClient.getQueryData(["allCharacters"]);
 
-  const unignoreMutation = useMutation({
-    mutationFn: characterApi.unignoreCharacter,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ignoredCharacters"] });
-      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
+      queryClient.setQueryData(["allCharacters"], (old: any) => {
+        if (!old || !old.characters) return old;
+        return {
+          ...old,
+          characters: old.characters.map((char: Character) => (char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char)),
+        };
+      });
+
+      return { previousCharacters };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousCharacters) {
+        queryClient.setQueryData(["allCharacters"], context.previousCharacters);
+      }
     },
   });
 
@@ -139,40 +161,29 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const characterRatings = React.useMemo(() => {
     const difficulties: Record<string, number> = {};
     allCharacters.forEach((character) => {
-      // Set to difficulty if it exists, otherwise 0
       difficulties[character.id] = character.difficulty;
     });
     return difficulties;
   }, [allCharacters]);
 
-  const ignoredCharacters = React.useMemo(() => {
-    // Use the ignored characters from the separate API call
-    const ignored = new Set<string>();
-    if (ignoredCharactersData?.ignoredCharacterIds) {
-      ignoredCharactersData.ignoredCharacterIds.forEach((id: string) => {
-        ignored.add(id);
-      });
-    }
-    return ignored;
-  }, [ignoredCharactersData]);
-
   // Add currentCharacter computed value
-  const currentCharacter = currentGameSession?.currentCharacter || null;
+  const currentCharacter = React.useMemo(() => {
+    if (!currentGameSession?.currentCharacter?.id) return null;
+
+    // Find the updated character from allCharacters, fall back to session character
+    return allCharacters.find((char) => char.id === currentGameSession.currentCharacter.id) || currentGameSession.currentCharacter;
+  }, [currentGameSession?.currentCharacter?.id, allCharacters]);
 
   const startGame = async (settings: GameSettings) => {
     await startGameMutation.mutateAsync(settings);
   };
 
-  const setCharacterRating = (characterId: string, rating: number) => {
-    ratingMutation.mutate({ characterId, difficulty: rating });
+  const setCharacterRating = (characterId: string, difficulty: number) => {
+    ratingMutation.mutate({ characterId, difficulty });
   };
 
-  const addToIgnoredCharacters = (characterId: string) => {
-    ignoreMutation.mutate(characterId);
-  };
-
-  const removeFromIgnoredCharacters = (characterId: string) => {
-    unignoreMutation.mutate(characterId);
+  const toggleIgnoreCharacter = (characterId: string) => {
+    toggleIgnoreMutation.mutate(characterId);
   };
 
   const askQuestion = async (question: string) => {
@@ -207,10 +218,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         characterRatings,
         setCharacterRating,
         isUpdatingRating: ratingMutation.isPending,
-        ignoredCharacters,
-        addToIgnoredCharacters,
-        removeFromIgnoredCharacters,
-        isUpdatingIgnoreList: ignoreMutation.isPending || unignoreMutation.isPending,
+        toggleIgnoreCharacter,
+        isUpdatingIgnoreList: toggleIgnoreMutation.isPending,
         askQuestion,
         getHint,
         revealCharacter,

@@ -14,7 +14,6 @@ interface UseCharacterFilteringProps {
   ignoredCharacters: Set<string>;
   characterRatings: Record<string, number>;
 }
-
 export const useCharacterFiltering = ({
   allCharacters,
   ignoreFilter,
@@ -55,15 +54,13 @@ export const useCharacterFiltering = ({
       filtered = filtered.filter((char) => !characterRatings[char.id] || characterRatings[char.id] === 0);
     }
 
-    // Create Fuse instance (put this outside the filtering logic, preferably as a useMemo)
-    const fuse = useMemo(() => {
-      return new Fuse(filtered, {
-        keys: ["name"], // Search by character name
-        threshold: 0.3,
-        includeScore: true,
-        minMatchCharLength: 1,
-      });
-    }, [filtered]);
+    // Create Fuse instance (without useMemo)
+    const fuse = new Fuse(filtered, {
+      keys: ["name"],
+      threshold: 0.3,
+      includeScore: true,
+      minMatchCharLength: 1,
+    });
 
     // Apply search
     if (searchTerm.trim()) {
@@ -79,12 +76,12 @@ export const useCharacterFiltering = ({
         case "alphabetical-za":
           return b.name.localeCompare(a.name);
         case "difficulty-easy-hard":
-          const ratingA = characterRatings[a.id] || 0;
-          const ratingB = characterRatings[b.id] || 0;
+          const ratingA = characterRatings[a.id];
+          const ratingB = characterRatings[b.id];
           return ratingA - ratingB;
         case "difficulty-hard-easy":
-          const ratingA2 = characterRatings[a.id] || 0;
-          const ratingB2 = characterRatings[b.id] || 0;
+          const ratingA2 = characterRatings[a.id];
+          const ratingB2 = characterRatings[b.id];
           return ratingB2 - ratingA2;
         default:
           return 0;

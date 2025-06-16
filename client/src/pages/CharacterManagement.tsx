@@ -14,13 +14,9 @@ const CharacterManagement: React.FC = () => {
     allCharacters,
     characterRatings,
     setCharacterRating,
-    ignoredCharacters,
-    addToIgnoredCharacters,
-    removeFromIgnoredCharacters,
+    toggleIgnoreCharacter, // Changed from addToIgnoredCharacters/removeFromIgnoredCharacters
     isLoadingCharacters,
     characterError,
-    isUpdatingRating,
-    isUpdatingIgnoreList,
   } = useGameContext();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,7 +26,6 @@ const CharacterManagement: React.FC = () => {
   const [includeNonTVContent, setIncludeNonTVContent] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical-az");
 
-  // ... all your existing functions
   const cycleIgnoreFilter = () => {
     setIgnoreFilter((prev) => {
       switch (prev) {
@@ -88,14 +83,25 @@ const CharacterManagement: React.FC = () => {
   };
 
   const handleIgnoreToggle = (characterId: string, isCurrentlyIgnored: boolean) => {
+    toggleIgnoreCharacter(characterId);
+    // Dynamic toast message based on current state
     if (isCurrentlyIgnored) {
-      removeFromIgnoredCharacters(characterId);
       toast.success("Character removed from ignore list");
     } else {
-      addToIgnoredCharacters(characterId);
       toast.success("Character added to ignore list");
     }
   };
+
+  // Create ignoredCharacters Set directly from character data for filtering hook
+  const ignoredCharacters = React.useMemo(() => {
+    const ignored = new Set<string>();
+    allCharacters.forEach((character) => {
+      if (character.isIgnored) {
+        ignored.add(character.id);
+      }
+    });
+    return ignored;
+  }, [allCharacters]);
 
   const filteredAndSortedCharacters = useCharacterFiltering({
     allCharacters,
@@ -148,7 +154,6 @@ const CharacterManagement: React.FC = () => {
         <Header />
 
         {/* Sticky Title and Filters Section */}
-
         <div className="sticky top-0 z-40 border-white/10 ">
           <NavigationHeader />
           <div className="container mx-auto px-4 py-6">
@@ -197,9 +202,8 @@ const CharacterManagement: React.FC = () => {
                 {/* Characters List */}
                 <div className="space-y-4">
                   {filteredAndSortedCharacters.map((character) => {
-                    const currentRating = characterRatings[character.id] || 0;
-                    const isIgnored = ignoredCharacters.has(character.id);
-
+                    const currentRating = characterRatings[character.id];
+                    const isIgnored = character.isIgnored;
                     return (
                       <CharacterCard
                         key={character.id}
@@ -226,13 +230,6 @@ const CharacterManagement: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Loading indicator for updates */}
-      {(isUpdatingRating || isUpdatingIgnoreList) && (
-        <div className="fixed bottom-4 right-4 bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20 z-50">
-          <p className="text-white/70 text-sm">Updating...</p>
-        </div>
-      )}
     </div>
   );
 };

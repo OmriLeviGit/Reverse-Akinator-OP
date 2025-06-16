@@ -5,12 +5,12 @@ import { toast } from "sonner";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
 import { useGameContext } from "../contexts/GameContext";
+import { DifficultyRating } from "@/components/DifficultyRating";
 
 const CharacterRevealScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCharacter, characterRatings, setCharacterRating, addToIgnoredCharacters, startGame, currentGameSession } =
-    useGameContext();
-  const [showIgnoreConfirmation, setShowIgnoreConfirmation] = useState(false);
+  const { currentCharacter, characterRatings, setCharacterRating, toggleIgnoreCharacter, startGame, currentGameSession } = useGameContext();
+  const [showConfirmation, setShowConfirmation] = useState<"added" | "removed" | null>(null);
 
   // Redirect to home if no current character or game session
   useEffect(() => {
@@ -25,32 +25,35 @@ const CharacterRevealScreen: React.FC = () => {
     return null;
   }
 
-  const ratingLabels = {
-    0: "No Score",
-    1: "Very Easy",
-    2: "Easy",
-    3: "Medium",
-    4: "Hard",
-    5: "Really Hard",
-  };
-
-  const currentRating = characterRatings[currentCharacter.name] || 0;
+  const currentRating = characterRatings[currentCharacter.id];
 
   const handleRating = (rating: number) => {
-    setCharacterRating(currentCharacter.name, rating);
+    setCharacterRating(currentCharacter.id, rating);
+    toast.success("Rating updated successfully!");
   };
 
   const handleIgnoreCharacter = () => {
-    addToIgnoredCharacters(currentCharacter.name);
-    setShowIgnoreConfirmation(true);
-    setTimeout(() => setShowIgnoreConfirmation(false), 3000);
+    const wasIgnored = currentCharacter.isIgnored;
+
+    toggleIgnoreCharacter(currentCharacter.id);
+
+    // Show appropriate message and confirmation based on previous state
+    if (wasIgnored) {
+      toast.success("Character removed from ignore list!");
+      setShowConfirmation("removed");
+    } else {
+      toast.success("Character added to ignore list!");
+      setShowConfirmation("added");
+    }
+
+    // Hide confirmation after 3 seconds
+    setTimeout(() => setShowConfirmation(null), 3000);
   };
 
   const handlePlayAgain = async () => {
     try {
-      // Get the last game settings from the current session or use defaults
       const gameSettings = {
-        arcSelection: "all", // You might want to store these in context
+        arcSelection: "all",
         fillerPercentage: 0,
         includeNonTVFillers: false,
         difficultyLevel: "easy",
@@ -64,10 +67,6 @@ const CharacterRevealScreen: React.FC = () => {
       toast.error("Failed to start new game. Returning to home.");
       navigate("/");
     }
-  };
-
-  const handleReturnHome = () => {
-    navigate("/");
   };
 
   return (
@@ -119,22 +118,7 @@ const CharacterRevealScreen: React.FC = () => {
               {/* Difficulty Rating System */}
               <div className="mb-8">
                 <h4 className="text-lg font-semibold text-white text-center mb-4">How difficult was this character to guess?</h4>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {Object.entries(ratingLabels).map(([rating, label]) => (
-                    <Button
-                      key={rating}
-                      onClick={() => handleRating(parseInt(rating))}
-                      variant={currentRating === parseInt(rating) ? "default" : "outline"}
-                      className={
-                        currentRating === parseInt(rating)
-                          ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
-                          : "bg-white/10 text-white border-white/30 hover:bg-white/20"
-                      }
-                    >
-                      {label}
-                    </Button>
-                  ))}
-                </div>
+                <DifficultyRating currentRating={currentRating} onRatingChange={handleRating} />
               </div>
 
               {/* Action Buttons */}
@@ -147,22 +131,21 @@ const CharacterRevealScreen: React.FC = () => {
                 </Button>
                 <Button
                   onClick={handleIgnoreCharacter}
-                  className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
+                  className={`font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
+                    currentCharacter.isIgnored
+                      ? "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
+                      : "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white"
+                  }`}
                 >
-                  Remove
-                </Button>
-                <Button
-                  onClick={handleReturnHome}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  Home
+                  {currentCharacter.isIgnored ? "Remove from Ignore List" : "Add to Ignore List"}
                 </Button>
               </div>
 
-              {/* Confirmation Message */}
-              {showIgnoreConfirmation && (
+              {/* Confirmation Messages */}
+              {showConfirmation && (
                 <div className="text-center">
-                  <p className="text-green-300 text-sm">Character added to ignore list!</p>
+                  {showConfirmation === "added" && <p className="text-green-300 text-sm">Character added to ignore list!</p>}
+                  {showConfirmation === "removed" && <p className="text-red-300 text-sm">Character removed from ignore list!</p>}
                 </div>
               )}
             </div>

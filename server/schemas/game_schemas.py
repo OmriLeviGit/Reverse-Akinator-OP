@@ -17,6 +17,9 @@ class GameQuestionRequest(BaseModel):
 class GameHintRequest(BaseModel):
    gameSessionId: str
 
+class GameHintResponse(BaseModel):
+   hint: str
+
 class GameRevealRequest(BaseModel):
    gameSessionId: str
 
@@ -31,9 +34,6 @@ class GameStartResponse(BaseModel):
 
 class GameQuestionResponse(BaseModel):
    answer: str
-
-class GameHintResponse(BaseModel):
-   hint: str
 
 class GameRevealResponse(BaseModel):
    character: Character

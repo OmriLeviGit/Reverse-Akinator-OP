@@ -65,10 +65,12 @@ export const characterApi = {
     const response = await api.get("/characters");
     return response.data;
   },
+
   getCharacterById: async (id: string) => {
     const response = await api.get(`/characters/${id}`);
     return response.data;
   },
+
   searchCharacters: async (params: { query?: string; arc?: string; filler?: string; difficulty?: string }) => {
     const response = await api.get("/characters/search", { params });
     return response.data;
@@ -79,18 +81,13 @@ export const characterApi = {
     return response.data;
   },
 
-  ignoreCharacter: async (characterId: string) => {
-    const response = await api.post("/characters/ignore-character", { characterId });
+  toggleIgnoreCharacter: async (characterId: string) => {
+    const response = await api.post("/characters/toggle-ignore", { characterId });
     return response.data;
   },
 
-  unignoreCharacter: async (characterId: string) => {
-    const response = await api.delete(`/characters/ignore-character/${characterId}`);
-    return response.data;
-  },
-
-  rateCharacter: async (characterId: string, rating: number | null) => {
-    const response = await api.post("/characters/rate-character", { characterId, rating });
+  rateCharacter: async (characterId: string, difficulty: number) => {
+    const response = await api.post("/characters/rate-character", { characterId, difficulty });
     return response.data;
   },
 };

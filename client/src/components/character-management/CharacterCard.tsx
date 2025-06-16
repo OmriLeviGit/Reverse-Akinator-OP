@@ -1,14 +1,14 @@
 // src/components/character-management/CharacterCard.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ratingLabels } from "../../types/characterManagement";
 import { Character } from "../../types/character";
+import { DifficultyRating } from "@/components/DifficultyRating";
 
 interface CharacterCardProps {
   character: Character;
-  currentRating: number; // This comes from the context's characterRatings
+  currentRating: number;
   isIgnored: boolean;
-  onRatingChange: (characterId: string, rating: number) => void;
+  onRatingChange: (characterId: string, rating: number) => void; // Remove Promise<void>
   onIgnoreToggle: (characterId: string, isCurrentlyIgnored: boolean) => void;
 }
 
@@ -45,31 +45,11 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
         <div className="flex flex-col sm:flex-row gap-6 items-center">
           {/** Difficulty Rating **/}
           <div className="space-y-3 text-center">
-            <div className="text-white/90 text-sm font-bold">Difficulty Rating</div>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {Object.entries(ratingLabels).map(([rating, label]) => (
-                <Button
-                  key={rating}
-                  onClick={() => onRatingChange(character.id, parseInt(rating))}
-                  variant={currentRating === parseInt(rating) ? "default" : "outline"}
-                  size="sm"
-                  className={
-                    currentRating === parseInt(rating)
-                      ? parseInt(rating) === 0
-                        ? "bg-white/20 hover:bg-white/30 text-white border border-white/40 text-xs px-2 py-1"
-                        : "bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1"
-                      : "bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs px-2 py-1"
-                  }
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
+            <DifficultyRating currentRating={currentRating} onRatingChange={(rating) => onRatingChange(character.id, rating)} />
           </div>
 
           {/** Ignore Toggle **/}
           <div className="space-y-3 text-center">
-            <div className="text-white/90 text-sm font-bold">Ignore Status</div>
             <div className="flex flex-wrap gap-2 justify-center">
               <Button
                 onClick={() => onIgnoreToggle(character.id, isIgnored)}

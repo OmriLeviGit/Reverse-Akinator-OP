@@ -7,11 +7,9 @@ import GameInput from "../components/game/GameInput";
 import MessageArea from "../components/game/MessageArea";
 import GameActions from "../components/game/GameActions";
 import CharacterSearch from "../components/CharacterSearch";
-import CharacterReveal from "./CharacterRevealScreen";
 import { useGameMessages } from "../hooks/useGameMessages";
 import { useGameContext } from "../contexts/GameContext";
-
-const API_BASE_URL = "http://localhost:3001/api";
+import { gameApi } from "../services/api"; // Add this import
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
@@ -37,22 +35,7 @@ const GameScreen: React.FC = () => {
 
   const askQuestion = async (question: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/game/question`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          game_session_id: currentGameSession.gameSessionId,
-          question_text: question,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await gameApi.askQuestion(currentGameSession.gameSessionId, question);
       return data.answer;
     } catch (error) {
       console.error("Error asking question:", error);
@@ -62,21 +45,7 @@ const GameScreen: React.FC = () => {
 
   const getHint = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/game/hint`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          game_session_id: currentGameSession.gameSessionId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await gameApi.getHint(currentGameSession.gameSessionId);
       return data.hint;
     } catch (error) {
       console.error("Error getting hint:", error);
@@ -86,22 +55,7 @@ const GameScreen: React.FC = () => {
 
   const makeGuess = async (guess: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/game/guess`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          game_session_id: currentGameSession.gameSessionId,
-          guessed_character: guess,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await gameApi.makeGuess(currentGameSession.gameSessionId, guess);
       return data;
     } catch (error) {
       console.error("Error making guess:", error);
@@ -143,7 +97,8 @@ const GameScreen: React.FC = () => {
 
     try {
       const hint = await getHint();
-      addMessage(`Hint: ${hint}`, false);
+      // addMessage(`Hint: ${hint}`, false); TODO change eventually
+      addMessage(`No, pussy .l.`, false);
     } catch (error) {
       console.error("Error getting hint:", error);
       addMessage("Sorry, I couldn't get a hint right now. Please try again.", false);

@@ -21,22 +21,18 @@ class CharactersResponse(BaseModel):
 class CharacterByIDResponse(BaseModel):
     character: Character
 
-class IgnoreCharacterRequest(BaseModel):
-    character_id: str
+class ToggleCharacterRequest(BaseModel):
+    characterId: str
 
-class IgnoreCharacterResponse(BaseModel):
+class ToggleCharacterResponse(BaseModel):
     message: str
-    character_id: str
+    characterId: str
 
-class UnignoreCharacterResponse(BaseModel):
-    message: str
-    character_id: str
-
-class RateCharacterRequest(BaseModel):
-    character_id: str
+class ChangeCharacterRatingRequest(BaseModel):
+    characterId: str
     difficulty: int
 
-class RateCharacterResponse(BaseModel):
+class ChangeCharacterRatingResponse(BaseModel):
     message: str
-    character_id: str
+    characterId: str
     difficulty: int

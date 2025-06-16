@@ -2,8 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from game_controller import GameController
 from routes import create_routers
+from schemas.character_schemas import Character
 
 app = FastAPI()
 app.add_middleware(
@@ -19,9 +19,10 @@ config = {
     "scheme" : "f",
     "instruction_prompt" : "f"
 }
-game_controller = GameController(config=config)
 
-game_router, characters_router, data_router = create_routers(game_controller)
+
+
+game_router, characters_router, data_router = create_routers(config)
 
 app.include_router(game_router)
 app.include_router(characters_router)
