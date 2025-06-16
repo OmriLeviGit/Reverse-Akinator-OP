@@ -13,58 +13,44 @@ class CharacterController:
             Character(
                 id="char_001",
                 name="Monkey D. Luffy",
+                description="The main protagonist and captain of the Straw Hat Pirates",
+                image=None,
                 arc="East Blue",
-                is_filler=False,
-                difficulty="easy",
                 chapter=1,
                 episode=1,
-                wikiLink="https://onepiece.fandom.com/wiki/Monkey_D._Luffy",
-                is_tv=True  # Add this
-            ),
-            Character(
-                id="char_002",
-                name="Crocodile",
-                arc="Alabasta",
-                is_filler=False,
-                difficulty="medium",
-                chapter=155,
-                episode=92,
-                wikiLink="https://onepiece.fandom.com/wiki/Crocodile",
-                is_tv=True  # Add this
-            ),
-            Character(
-                id="char_003",
-                name="Gol D. Roger",
-                arc="Loguetown",
-                is_filler=False,
-                difficulty="hard",
-                chapter=506,
-                episode=400,
-                wikiLink="https://onepiece.fandom.com/wiki/Gol_D._Roger",
-                is_tv=True  # Add this
+                fillerStatus="canon",
+                source="manga",
+                difficulty=2,
+                isIgnored=False,
+                wikiLink="https://onepiece.fandom.com/wiki/Monkey_D._Luffy"
             ),
             Character(
                 id="char_004",
                 name="Condoriano",
+                description="A mysterious inspector from the G-8 arc",
+                image=None,
                 arc="G-8",
-                is_filler=True,
-                difficulty="easy",
                 chapter=None,
                 episode=196,
-                wikiLink="https://onepiece.fandom.com/wiki/Condoriano",
-                is_tv=True  # TV filler
+                fillerStatus="filler",
+                source="anime",
+                difficulty=1,
+                isIgnored=False,
+                wikiLink="https://onepiece.fandom.com/wiki/Condoriano"
             ),
-            # You could add a non-TV character like:
             Character(
                 id="char_005",
                 name="Shiki",
+                description="The Golden Lion, captain of the Flying Pirates",
+                image=None,
                 arc="Strong World",
-                is_filler=True,
-                difficulty="medium",
-                chapter=0,
+                chapter=None,
                 episode=None,
-                wikiLink="https://onepiece.fandom.com/wiki/Shiki",
-                is_tv=False  # Movie character
+                fillerStatus="canon",
+                source="movie",
+                difficulty=3,
+                isIgnored=False,
+                wikiLink="https://onepiece.fandom.com/wiki/Shiki"
             ),
         ]
         # Mock user preferences storage

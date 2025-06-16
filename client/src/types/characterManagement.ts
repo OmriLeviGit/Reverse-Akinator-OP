@@ -1,6 +1,6 @@
-export type IgnoreFilter = "ignored-only" | "not-ignored-only" | "show-both";
+export type IgnoreFilter = "ignored-only" | "not-ignored-only" | "all";
 export type ContentFilter = "canon-only" | "all" | "fillers-only";
-export type RatingFilter = "rated-only" | "unrated-only" | "show-both";
+export type RatingFilter = "rated-only" | "unrated-only" | "all";
 export type SortOption = "alphabetical-az" | "alphabetical-za" | "difficulty-easy-hard" | "difficulty-hard-easy";
 
 export const ratingLabels = {

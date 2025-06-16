@@ -1,14 +1,18 @@
 from pydantic import BaseModel
 
+
 class Character(BaseModel):
     id: str
     name: str
-    arc: str
-    is_filler: bool
-    is_tv: bool
-    difficulty: str
+    description: str | None = None
+    image: str | None = None
+    arc: str | None = None
     chapter: int | None = None
     episode: int | None = None
+    fillerStatus: str  # "canon" | "filler" | "filler-non-tv"
+    source: str | None = None
+    difficulty: int
+    isIgnored: bool | None = None
     wikiLink: str | None = None
 
 class CharactersResponse(BaseModel):

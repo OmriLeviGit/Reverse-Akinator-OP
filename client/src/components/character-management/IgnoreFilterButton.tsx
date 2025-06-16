@@ -13,8 +13,8 @@ const getIgnoreFilterLabel = (filter: IgnoreFilter) => {
       return "Ignored Only";
     case "not-ignored-only":
       return "Not Ignored Only";
-    case "show-both":
-      return "Show Both";
+    case "all":
+      return "All";
   }
 };
 

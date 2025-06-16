@@ -21,11 +21,10 @@ config = {
 }
 game_controller = GameController(config=config)
 
-game_router, characters_router, user_router, data_router = create_routers(game_controller)
+game_router, characters_router, data_router = create_routers(game_controller)
 
 app.include_router(game_router)
 app.include_router(characters_router)
-app.include_router(user_router)
 app.include_router(data_router)
 
 @app.get("/")

@@ -28,7 +28,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
           <div>
             <h3 className={`text-xl font-bold mb-1 ${isIgnored ? "text-white/60" : "text-white"}`}>{character.name}</h3>
             <div className={`text-sm mb-1 ${isIgnored ? "text-white/40" : "text-white/60"}`}>
-              {character.is_filler === true ? "Filler" : "Canon"}
+              {character.fillerStatus === "filler" ? "Filler" : "Canon"}
             </div>
             <a
               href={character.wikiLink}

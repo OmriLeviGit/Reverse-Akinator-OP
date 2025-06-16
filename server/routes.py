@@ -30,7 +30,6 @@ from schemas.data_schemas import (
 def create_routers(game_controller):
     game_router = APIRouter(prefix="/api/game", tags=["game"])
     characters_router = APIRouter(prefix="/api/characters", tags=["characters"])
-    user_router = APIRouter(prefix="/api/user", tags=["user"])
     data_router = APIRouter(prefix="/api/data", tags=["data"])
 
     character_controller = CharacterController()
@@ -61,21 +60,21 @@ def create_routers(game_controller):
     def get_characters():
         return character_controller.get_all_characters()
 
-    @user_router.post("/ignore-character", response_model=IgnoreCharacterResponse)
+    @characters_router.post("/ignore-character", response_model=IgnoreCharacterResponse)
     def ignore_character(request: IgnoreCharacterRequest):
         try:
             return character_controller.ignore_character(request)
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
-    @user_router.delete("/ignore-character/{character_id}", response_model=UnignoreCharacterResponse)
+    @characters_router.delete("/ignore-character/{character_id}", response_model=UnignoreCharacterResponse)
     def unignore_character(character_id: str):
         try:
             return character_controller.unignore_character(character_id)
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
-    @user_router.post("/rate-character", response_model=RateCharacterResponse)
+    @characters_router.post("/rate-character", response_model=RateCharacterResponse)
     def rate_character(request: RateCharacterRequest):
         try:
             return character_controller.rate_character(request)
@@ -89,4 +88,4 @@ def create_routers(game_controller):
 
             return DataResponse(**data)
 
-    return game_router, characters_router, user_router, data_router
+    return game_router, characters_router, data_router

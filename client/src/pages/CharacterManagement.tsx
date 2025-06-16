@@ -24,9 +24,9 @@ const CharacterManagement: React.FC = () => {
   } = useGameContext();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("show-both");
+  const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("all");
   const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
-  const [ratingFilter, setRatingFilter] = useState<RatingFilter>("show-both");
+  const [ratingFilter, setRatingFilter] = useState<RatingFilter>("all");
   const [includeNonTVContent, setIncludeNonTVContent] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical-az");
 
@@ -37,8 +37,8 @@ const CharacterManagement: React.FC = () => {
         case "ignored-only":
           return "not-ignored-only";
         case "not-ignored-only":
-          return "show-both";
-        case "show-both":
+          return "all";
+        case "all":
           return "ignored-only";
       }
     });
@@ -71,8 +71,8 @@ const CharacterManagement: React.FC = () => {
         case "rated-only":
           return "unrated-only";
         case "unrated-only":
-          return "show-both";
-        case "show-both":
+          return "all";
+        case "all":
           return "rated-only";
       }
     });
@@ -146,11 +146,11 @@ const CharacterManagement: React.FC = () => {
       <div className="relative z-10 h-screen overflow-y-auto">
         {/* Scrollable Header Section */}
         <Header />
-        <NavigationHeader />
 
         {/* Sticky Title and Filters Section */}
 
         <div className="sticky top-0 z-40 border-white/10 ">
+          <NavigationHeader />
           <div className="container mx-auto px-4 py-6">
             <div className="max-w-6xl mx-auto">
               {/* Page Header */}
@@ -182,7 +182,7 @@ const CharacterManagement: React.FC = () => {
 
         {/* Character List Content */}
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-[70rem] mx-auto">
             {/* Loading State */}
             {isLoadingCharacters && (
               <div className="text-center py-12">

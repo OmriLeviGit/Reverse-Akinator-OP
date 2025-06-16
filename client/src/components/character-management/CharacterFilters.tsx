@@ -1,7 +1,7 @@
 import React from "react";
 import { IgnoreFilterButton } from "./IgnoreFilterButton";
 import { ContentFilterButton } from "./ContentFilterButton";
-import { RatingFilterButton } from "./RatingFilterButton";
+import { RatingFilterButton } from "./DifficultyFilterButton";
 import { SearchAndSort } from "./SearchAndSort";
 import { Button } from "@/components/ui/button";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../../types/characterManagement";

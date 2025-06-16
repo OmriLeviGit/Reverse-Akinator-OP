@@ -1,23 +1,10 @@
 import { useMemo } from "react";
 import { fuzzySearch } from "../utils/fuzzySearch";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
-import { Character } from "../types/character"; // ✅ Add this import
-
-// ❌ Remove this duplicate interface entirely
-// interface CharacterData {
-//   id: string;
-//   name: string;
-//   description: string;
-//   image: string;
-//   chapter: number;
-//   fillerStatus: "canon" | "filler";
-//   wikiLink: string;
-//   currentRating?: number;
-//   isIgnored?: boolean;
-// }
+import { Character } from "../types/character";
 
 interface UseCharacterFilteringProps {
-  allCharacters: Character[]; // ✅ Use the shared Character interface
+  allCharacters: Character[];
   ignoreFilter: IgnoreFilter;
   contentFilter: ContentFilter;
   ratingFilter: RatingFilter;
@@ -53,12 +40,12 @@ export const useCharacterFiltering = ({
     if (contentFilter === "canon-only") {
       filtered = filtered.filter((char) => char.fillerStatus === "canon");
     } else if (contentFilter === "fillers-only") {
-      filtered = filtered.filter((char) => char.fillerStatus === "filler");
+      filtered = filtered.filter((char) => char.fillerStatus === "filler" || char.fillerStatus === "filler-non-tv");
     }
 
-    // ✅ Now we can use is_tv since it's in our Character interface
+    // Apply non-TV content filter
     if (!includeNonTVContent) {
-      filtered = filtered.filter((char) => char.is_tv);
+      filtered = filtered.filter((char) => char.fillerStatus !== "filler-non-tv");
     }
 
     // Apply rating filter

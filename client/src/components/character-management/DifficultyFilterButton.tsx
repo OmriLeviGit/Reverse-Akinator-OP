@@ -1,7 +1,6 @@
-
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { RatingFilter } from '../../types/characterManagement';
+import { RatingFilter } from "../../types/characterManagement";
 
 interface RatingFilterButtonProps {
   ratingFilter: RatingFilter;
@@ -10,16 +9,16 @@ interface RatingFilterButtonProps {
 
 const getRatingFilterLabel = (filter: RatingFilter) => {
   switch (filter) {
-    case 'rated-only': return 'Rated Only';
-    case 'unrated-only': return 'Unrated Only';
-    case 'show-both': return 'Show Both';
+    case "rated-only":
+      return "Rated Only";
+    case "unrated-only":
+      return "Unrated Only";
+    case "all":
+      return "All";
   }
 };
 
-export const RatingFilterButton: React.FC<RatingFilterButtonProps> = ({
-  ratingFilter,
-  onCycle
-}) => {
+export const RatingFilterButton: React.FC<RatingFilterButtonProps> = ({ ratingFilter, onCycle }) => {
   return (
     <div className="flex flex-col items-center space-y-2">
       <label className="text-white/90 text-base font-bold">Difficulty Status</label>

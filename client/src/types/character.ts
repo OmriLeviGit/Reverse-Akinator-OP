@@ -2,23 +2,19 @@
 export interface Character {
   id: string;
   name: string;
-  description?: string;
-  image?: string;
+
+  description: string | null;
+  image: string | null;
+
+  arc: string | null;
   chapter: number | null;
   episode: number | null;
-  arc?: string;
 
-  // Content classification
-  fillerStatus: "canon" | "filler"; // Use this as the single source of truth
-  is_filler: boolean; // Keep for backward compatibility if needed
-  is_tv: boolean;
+  fillerStatus: "canon" | "filler" | "filler-non-tv";
+  source: string | null;
 
-  // External links
+  difficulty: number;
+  isIgnored: boolean | null;
+
   wikiLink: string | null;
-
-  // User-specific data (populated by context/API)
-  isIgnored?: boolean;
-
-  // Additional metadata
-  difficulty?: string; // If you need this separate from rating
 }

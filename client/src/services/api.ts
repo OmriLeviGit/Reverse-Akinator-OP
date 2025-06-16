@@ -86,28 +86,18 @@ export const characterApi = {
 
 // User Preferences API
 export const userApi = {
-  getIgnoredCharacters: async () => {
-    const response = await api.get("/user/ignored-characters");
-    return response.data;
-  },
-
   ignoreCharacter: async (characterId: string) => {
-    const response = await api.post("/user/ignore-character", { characterId });
+    const response = await api.post("/characters/ignore-character", { characterId });
     return response.data;
   },
 
   unignoreCharacter: async (characterId: string) => {
-    const response = await api.delete(`/user/ignore-character/${characterId}`);
-    return response.data;
-  },
-
-  getCharacterRatings: async () => {
-    const response = await api.get("/user/character-ratings");
+    const response = await api.delete(`/characters/unignore-character/${characterId}`);
     return response.data;
   },
 
   rateCharacter: async (characterId: string, rating: number | null) => {
-    const response = await api.post("/user/rate-character", { characterId, rating });
+    const response = await api.post("/characters/rate-character", { characterId, rating });
     return response.data;
   },
 };
