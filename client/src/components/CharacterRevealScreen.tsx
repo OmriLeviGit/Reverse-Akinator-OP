@@ -7,10 +7,9 @@ import { useGameContext } from "../contexts/GameContext";
 interface CharacterRevealScreenProps {
   gameSessionId: string;
   onPlayAgain: () => void;
-  onReturnHome: () => void;
 }
 
-const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAgain, onReturnHome }) => {
+const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAgain }) => {
   const { currentCharacter, characterRatings, setCharacterRating, addToIgnoredCharacters } = useGameContext();
   const [showIgnoreConfirmation, setShowIgnoreConfirmation] = useState(false);
 
@@ -73,46 +72,40 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
                 <p className="text-white leading-relaxed text-center">{currentCharacter.description}</p>
               </div>
 
-              {/* Current Difficulty Display - clear and visible */}
-              <div className="text-center mb-4">
-                <p className="text-white/90 text-lg">
-                  Difficulty:{" "}
-                  <span className="font-semibold text-yellow-300">{ratingLabels[currentRating as keyof typeof ratingLabels]}</span>
-                </p>
-              </div>
-
               {/* Character Information - left-justified, secondary styling */}
               <div className="text-left mb-6 space-y-1">
-                href={currentCharacter.wikiLink}
-                target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm
-                block"
-                <a>View on wiki</a>
+                <a
+                  href={currentCharacter.wikiLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block"
+                >
+                  View on wiki
+                </a>
               </div>
 
               {/* Difficulty Rating System - removed "No Score" from this page */}
               <div className="mb-8">
                 <h4 className="text-lg font-semibold text-white text-center mb-4">How difficult was this character to guess?</h4>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {Object.entries(ratingLabels)
-                    .filter(([rating]) => parseInt(rating) !== 0) // Remove "No Score" option
-                    .map(([rating, label]) => (
-                      <Button
-                        key={rating}
-                        onClick={() => handleRating(parseInt(rating))}
-                        variant={currentRating === parseInt(rating) ? "default" : "outline"}
-                        className={
-                          currentRating === parseInt(rating)
-                            ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
-                            : "bg-white/10 text-white border-white/30 hover:bg-white/20"
-                        }
-                      >
-                        {label}
-                      </Button>
-                    ))}
+                  {Object.entries(ratingLabels).map(([rating, label]) => (
+                    <Button
+                      key={rating}
+                      onClick={() => handleRating(parseInt(rating))}
+                      variant={currentRating === parseInt(rating) ? "default" : "outline"}
+                      className={
+                        currentRating === parseInt(rating)
+                          ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
+                          : "bg-white/10 text-white border-white/30 hover:bg-white/20"
+                      }
+                    >
+                      {label}
+                    </Button>
+                  ))}
                 </div>
               </div>
 
-              {/* Action Buttons - updated order: Play Again, Return Home, then Don't Show Again */}
+              {/* Action Buttons - Play Again and Don't Show Again */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
                 <Button
                   onClick={onPlayAgain}
@@ -121,20 +114,10 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
                   Play Again
                 </Button>
                 <Button
-                  onClick={onReturnHome}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  Return to Home
-                </Button>
-              </div>
-
-              {/* Don't Show Again Button - moved below other action buttons */}
-              <div className="flex justify-center mb-4">
-                <Button
                   onClick={handleIgnoreCharacter}
                   className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
-                  Don't show this character again
+                  Remove
                 </Button>
               </div>
 

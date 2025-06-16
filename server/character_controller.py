@@ -2,7 +2,7 @@ from schemas.character_schemas import (
     Character, CharactersResponse,
     IgnoreCharacterRequest, IgnoreCharacterResponse,
     UnignoreCharacterResponse,
-    RateCharacterRequest, RateCharacterResponse
+    RateCharacterRequest, RateCharacterResponse, CharacterByIDResponse
 )
 
 
@@ -61,11 +61,11 @@ class CharacterController:
         """Get all characters"""
         return CharactersResponse(characters=self.mock_characters)
 
-    def get_character_by_id(self, character_id: str) -> Character | None:
+    def get_character_by_id(self, character_id: str) -> CharacterByIDResponse | None:
         """Get a specific character by ID"""
         for character in self.mock_characters:
             if character.id == character_id:
-                return character
+                return CharacterByIDResponse(character=character)
         return None
 
     def ignore_character(self, request: IgnoreCharacterRequest) -> IgnoreCharacterResponse:
@@ -93,17 +93,23 @@ class CharacterController:
         )
 
     def rate_character(self, request: RateCharacterRequest) -> RateCharacterResponse:
-        """Rate a character (1-5 scale)"""
+        """Rate a character's difficulty (0 = unrated, 1-5 = difficulty scale)"""
         character = self.get_character_by_id(request.character_id)
         if not character:
             raise ValueError(f"Character with ID {request.character_id} not found")
 
-        if not 1 <= request.rating <= 5:
-            raise ValueError("Rating must be between 1 and 5")
+        if not (0 <= request.difficulty <= 5):
+            raise ValueError("Difficulty must be between 0 (unrated) and 5")
 
-        self.character_ratings[request.character_id] = request.rating
+        self.character_ratings[request.character_id] = request.difficulty
+
+        if request.difficulty == 0:
+            message = "Character difficulty rating removed (set to unrated)"
+        else:
+            message = "Character difficulty rated successfully"
+
         return RateCharacterResponse(
-            message="Character rated successfully",
+            message=message,
             character_id=request.character_id,
-            rating=request.rating
+            difficulty=request.difficulty
         )

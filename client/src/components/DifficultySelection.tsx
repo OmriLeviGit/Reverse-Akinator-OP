@@ -17,7 +17,7 @@ const DifficultySelection: React.FC<DifficultySelectionProps> = ({ selectedDiffi
     <div className="space-y-4">
       <div className="text-center">
         <h3 className="text-xl font-bold text-white mb-2">Difficulty Level</h3>
-        <div className="w-16 h-1 bg-orange-400 mx-auto rounded-full"></div>
+        <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto rounded-full"></div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {difficulties.map((difficulty) => (

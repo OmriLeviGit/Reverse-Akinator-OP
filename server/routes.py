@@ -13,14 +13,15 @@ from schemas.game_schemas import (
 )
 
 from schemas.character_schemas import (
-    CharactersResponse
+    CharactersResponse, IgnoreCharacterResponse, IgnoreCharacterRequest, UnignoreCharacterResponse,
+    RateCharacterResponse, RateCharacterRequest
 )
 
-from schemas.user_schemas import (
-    IgnoreCharacterRequest, IgnoreCharacterResponse,
-    UnignoreCharacterResponse,
-    RateCharacterRequest, RateCharacterResponse,
-)
+# from schemas.user_schemas import (
+#     IgnoreCharacterRequest, IgnoreCharacterResponse,
+#     UnignoreCharacterResponse,
+#     RateCharacterRequest, RateCharacterResponse,
+# )
 
 from schemas.data_schemas import (
     DataResponse
@@ -48,6 +49,7 @@ def create_routers(game_controller):
 
     @game_router.post("/reveal", response_model=GameRevealResponse)
     def reveal_character_route(request: GameRevealRequest):
+        a = game_controller.reveal_character(request)
         return game_controller.reveal_character(request)
 
     @game_router.post("/guess", response_model=GameGuessResponse)

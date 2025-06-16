@@ -2,8 +2,8 @@ import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { fuzzySearch } from "../utils/fuzzySearch";
 import { useDebounce } from "../hooks/useDebounce";
+import Fuse from "fuse.js"; // Add this import
 
 interface CharacterSearchProps {
   characters: string[]; // Use prop instead of context
@@ -23,7 +23,10 @@ const CharacterSearch: React.FC<CharacterSearchProps> = ({
     if (!debouncedSearchTerm.trim()) {
       return characters.slice(0, 20); // Show first 20 characters when no search
     }
-    return fuzzySearch(debouncedSearchTerm, characters);
+
+    const fuse = new Fuse(characters, { threshold: 0.3 });
+
+    return fuse.search(debouncedSearchTerm).map((result) => result.item);
   }, [debouncedSearchTerm, characters]);
 
   return (

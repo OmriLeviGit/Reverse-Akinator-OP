@@ -1,29 +1,32 @@
 from pydantic import BaseModel
 
+from schemas.character_schemas import Character
+
+
 # Request models
 class GameStartRequest(BaseModel):
-   arc_selection: str
-   filler_percentage: int
-   include_non_tv_fillers: bool
-   difficulty_level: str
+   arcSelection: str
+   fillerPercentage: int
+   includeNonTVFillers: bool
+   difficultyLevel: str
 
 class GameQuestionRequest(BaseModel):
-   game_session_id: str
-   question_text: str
+   gameSessionId: str
+   questionText: str
 
 class GameHintRequest(BaseModel):
-   game_session_id: str
+   gameSessionId: str
 
 class GameRevealRequest(BaseModel):
-   game_session_id: str
+   gameSessionId: str
 
 class GameGuessRequest(BaseModel):
-   game_session_id: str
-   guessed_character: str
+   gameSessionId: str
+   guessedCharacter: str
 
 # Response models
 class GameStartResponse(BaseModel):
-   game_session_id: str
+   gameSessionId: str
    message: str
 
 class GameQuestionResponse(BaseModel):
@@ -33,8 +36,8 @@ class GameHintResponse(BaseModel):
    hint: str
 
 class GameRevealResponse(BaseModel):
-   character_info: str
+   character: Character
 
 class GameGuessResponse(BaseModel):
-   is_correct: bool
+   isCorrect: bool
    message: str

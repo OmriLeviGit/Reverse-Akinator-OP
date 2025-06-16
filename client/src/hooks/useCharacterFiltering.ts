@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import { fuzzySearch } from "../utils/fuzzySearch";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 import { Character } from "../types/character";
+import Fuse from "fuse.js";
 
 interface UseCharacterFilteringProps {
   allCharacters: Character[];
@@ -55,13 +55,20 @@ export const useCharacterFiltering = ({
       filtered = filtered.filter((char) => !characterRatings[char.id] || characterRatings[char.id] === 0);
     }
 
+    // Create Fuse instance (put this outside the filtering logic, preferably as a useMemo)
+    const fuse = useMemo(() => {
+      return new Fuse(filtered, {
+        keys: ["name"], // Search by character name
+        threshold: 0.3,
+        includeScore: true,
+        minMatchCharLength: 1,
+      });
+    }, [filtered]);
+
     // Apply search
     if (searchTerm.trim()) {
-      const searchResults = fuzzySearch(
-        searchTerm,
-        filtered.map((char) => char.name)
-      );
-      filtered = searchResults.map((name) => filtered.find((char) => char.name === name)!).filter(Boolean);
+      const searchResults = fuse.search(searchTerm);
+      filtered = searchResults.map((result) => result.item);
     }
 
     // Apply sorting

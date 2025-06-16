@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ArcSelectionProps {
@@ -39,23 +38,19 @@ const ArcSelection: React.FC<ArcSelectionProps> = ({ selectedArc, onArcChange })
     { value: "68", label: "68 - Baratie" },
     { value: "41", label: "41 - Syrup Village" },
     { value: "21", label: "21 - Orange Town" },
-    { value: "7", label: "7 - East Blue" }
+    { value: "7", label: "7 - East Blue" },
   ];
 
   return (
     <div className="space-y-3">
-      <h3 className="text-xl font-bold text-white drop-shadow-lg">Last Chapter</h3>
+      <h3 className="text-xl font-bold text-white drop-shadow-lg">Last Arc</h3>
       <Select value={selectedArc} onValueChange={onArcChange}>
         <SelectTrigger className="w-full bg-white/90 backdrop-blur-sm border-2 border-blue-300 hover:border-blue-400 transition-colors duration-200 text-slate-800 font-medium">
           <SelectValue placeholder="Select arc..." />
         </SelectTrigger>
         <SelectContent className="bg-white/95 backdrop-blur-sm border-2 border-blue-300 max-h-60 z-50">
           {arcs.map((arc) => (
-            <SelectItem 
-              key={arc.value} 
-              value={arc.value}
-              className="text-slate-800 hover:bg-blue-100 focus:bg-blue-100 cursor-pointer"
-            >
+            <SelectItem key={arc.value} value={arc.value} className="text-slate-800 hover:bg-blue-100 focus:bg-blue-100 cursor-pointer">
               {arc.label}
             </SelectItem>
           ))}

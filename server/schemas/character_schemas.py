@@ -18,6 +18,9 @@ class Character(BaseModel):
 class CharactersResponse(BaseModel):
     characters: list[Character]
 
+class CharacterByIDResponse(BaseModel):
+    character: Character
+
 class IgnoreCharacterRequest(BaseModel):
     character_id: str
 
@@ -31,9 +34,9 @@ class UnignoreCharacterResponse(BaseModel):
 
 class RateCharacterRequest(BaseModel):
     character_id: str
-    rating: int
+    difficulty: int
 
 class RateCharacterResponse(BaseModel):
     message: str
     character_id: str
-    rating: int
+    difficulty: int

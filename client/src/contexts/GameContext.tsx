@@ -1,7 +1,7 @@
 // src/contexts/GameContext.tsx
 import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { characterApi, userApi, gameApi } from "../services/api";
+import { characterApi, gameApi } from "../services/api";
 import { Character } from "../types/character";
 
 interface GameSession {
@@ -62,6 +62,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     queryFn: characterApi.getCharacters,
   });
 
+  // Fetch ignored characters
+  const { data: ignoredCharactersData } = useQuery({
+    queryKey: ["ignoredCharacters"],
+    queryFn: characterApi.getIgnoredCharacters,
+  });
+
   // Start game mutation
   const startGameMutation = useMutation({
     mutationFn: gameApi.startGame,
@@ -75,7 +81,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Character rating mutation
   const ratingMutation = useMutation({
-    mutationFn: ({ characterId, rating }: { characterId: string; rating: number }) => userApi.rateCharacter(characterId, rating),
+    mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: number }) =>
+      characterApi.rateCharacter(characterId, difficulty),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
     },
@@ -83,15 +90,17 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Ignore character mutations
   const ignoreMutation = useMutation({
-    mutationFn: userApi.ignoreCharacter,
+    mutationFn: characterApi.ignoreCharacter,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ignoredCharacters"] });
       queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
     },
   });
 
   const unignoreMutation = useMutation({
-    mutationFn: userApi.unignoreCharacter,
+    mutationFn: characterApi.unignoreCharacter,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ignoredCharacters"] });
       queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
     },
   });
@@ -127,25 +136,25 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Helper functions to process API data
   const allCharacters: Character[] = charactersData?.characters || [];
 
-const characterRatings = React.useMemo(() => {
-  const ratings: Record<string, number> = {};
-  allCharacters.forEach((character) => {
-    // Set to difficulty if it exists, otherwise 0
-    ratings[character.id] = character.difficulty;
-  });
-  return ratings;
-}, [allCharacters]);
+  const characterRatings = React.useMemo(() => {
+    const difficulties: Record<string, number> = {};
+    allCharacters.forEach((character) => {
+      // Set to difficulty if it exists, otherwise 0
+      difficulties[character.id] = character.difficulty;
+    });
+    return difficulties;
+  }, [allCharacters]);
 
   const ignoredCharacters = React.useMemo(() => {
-    // Extract ignored status from character data - update based on your API response structure
+    // Use the ignored characters from the separate API call
     const ignored = new Set<string>();
-    allCharacters.forEach((character) => {
-      if (character.isIgnored) {
-        ignored.add(character.id);
-      }
-    });
+    if (ignoredCharactersData?.ignoredCharacterIds) {
+      ignoredCharactersData.ignoredCharacterIds.forEach((id: string) => {
+        ignored.add(id);
+      });
+    }
     return ignored;
-  }, [allCharacters]);
+  }, [ignoredCharactersData]);
 
   // Add currentCharacter computed value
   const currentCharacter = currentGameSession?.currentCharacter || null;
@@ -155,7 +164,7 @@ const characterRatings = React.useMemo(() => {
   };
 
   const setCharacterRating = (characterId: string, rating: number) => {
-    ratingMutation.mutate({ characterId, rating });
+    ratingMutation.mutate({ characterId, difficulty: rating });
   };
 
   const addToIgnoredCharacters = (characterId: string) => {

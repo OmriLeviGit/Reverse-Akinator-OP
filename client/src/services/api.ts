@@ -45,6 +45,7 @@ export const gameApi = {
   },
 
   revealCharacter: async (gameSessionId: string) => {
+    console.log("@@@");
     const response = await api.post("/game/reveal", { gameSessionId });
     return response.data;
   },
@@ -64,35 +65,27 @@ export const characterApi = {
     const response = await api.get("/characters");
     return response.data;
   },
-
+  getCharacterById: async (id: string) => {
+    const response = await api.get(`/characters/${id}`);
+    return response.data;
+  },
   searchCharacters: async (params: { query?: string; arc?: string; filler?: string; difficulty?: string }) => {
     const response = await api.get("/characters/search", { params });
     return response.data;
   },
 
-  getAvailableCharacters: async (filters: {
-    arcSelection: string;
-    fillerSettings: {
-      fillerPercentage: number;
-      includeNonTVFillers: boolean;
-    };
-    difficulty: string;
-    ignoredCharacterIds: string[];
-  }) => {
-    const response = await api.post("/characters/available", filters);
+  getIgnoredCharacters: async () => {
+    const response = await api.get("/characters/ignored-characters");
     return response.data;
   },
-};
 
-// User Preferences API
-export const userApi = {
   ignoreCharacter: async (characterId: string) => {
     const response = await api.post("/characters/ignore-character", { characterId });
     return response.data;
   },
 
   unignoreCharacter: async (characterId: string) => {
-    const response = await api.delete(`/characters/unignore-character/${characterId}`);
+    const response = await api.delete(`/characters/ignore-character/${characterId}`);
     return response.data;
   },
 

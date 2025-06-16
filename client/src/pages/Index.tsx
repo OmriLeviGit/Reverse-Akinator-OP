@@ -22,7 +22,7 @@ const Index = () => {
   const [isStartingGame, setIsStartingGame] = useState(false);
 
   // ✅ Use GameContext instead of local state
-  const { allCharacters, isLoadingCharacters, startGame, currentGameSession } = useGameContext();
+  const { allCharacters, isLoadingCharacters, startGame, currentGameSession, revealCharacter } = useGameContext();
 
   // ✅ Derive charactersLoaded from GameContext
   const charactersLoaded = !isLoadingCharacters && allCharacters.length > 0;
@@ -65,13 +65,26 @@ const Index = () => {
       } else {
         toast.error("Failed to start game. Please try again.");
       }
-    } finally {
+    } finally {                <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto rounded-full"></div>
+
       setIsStartingGame(false);
     }
   };
 
-  const handleRevealCharacter = () => {
-    setGameState("reveal");
+  const handleRevealCharacter = async () => {
+    console.log("🎭 handleRevealCharacter called");
+
+    try {
+      // Actually call the API to get character data
+      const result = await revealCharacter();
+      console.log("✅ Character revealed:", result);
+
+      // Then change the UI state
+      setGameState("reveal");
+    } catch (error) {
+      console.error("❌ Failed to reveal character:", error);
+      toast.error("Failed to reveal character");
+    }
   };
 
   const handlePlayAgain = async () => {
@@ -106,7 +119,6 @@ const Index = () => {
 
   const handleReturnHome = () => {
     setGameState("home");
-    // ❌ Remove: setCurrentGameSession(null); - GameContext handles this
   };
 
   // ✅ Update to use currentGameSession from GameContext
@@ -126,7 +138,6 @@ const Index = () => {
       <CharacterRevealScreen
         gameSessionId={currentGameSession.gameSessionId} // ✅ Use the session ID
         onPlayAgain={handlePlayAgain}
-        onReturnHome={handleReturnHome}
       />
     );
   }
