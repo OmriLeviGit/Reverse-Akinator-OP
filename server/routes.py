@@ -1,9 +1,7 @@
 import json
 
 from fastapi import APIRouter, HTTPException
-
 from character_controller import CharacterController
-
 from schemas.game_schemas import (
    GameStartRequest, GameStartResponse,
    GameQuestionRequest, GameQuestionResponse,
@@ -11,18 +9,10 @@ from schemas.game_schemas import (
    GameRevealRequest, GameRevealResponse,
    GameGuessRequest, GameGuessResponse,
 )
-
 from schemas.character_schemas import (
     CharactersResponse, IgnoreCharacterResponse, IgnoreCharacterRequest, UnignoreCharacterResponse,
     RateCharacterResponse, RateCharacterRequest
 )
-
-# from schemas.user_schemas import (
-#     IgnoreCharacterRequest, IgnoreCharacterResponse,
-#     UnignoreCharacterResponse,
-#     RateCharacterRequest, RateCharacterResponse,
-# )
-
 from schemas.data_schemas import (
     DataResponse
 )
@@ -49,7 +39,6 @@ def create_routers(game_controller):
 
     @game_router.post("/reveal", response_model=GameRevealResponse)
     def reveal_character_route(request: GameRevealRequest):
-        a = game_controller.reveal_character(request)
         return game_controller.reveal_character(request)
 
     @game_router.post("/guess", response_model=GameGuessResponse)
@@ -57,7 +46,6 @@ def create_routers(game_controller):
         return game_controller.make_guess(request)
 
     # Character Data Routes - Fixed to use characters_router
-
     @characters_router.get("", response_model=CharactersResponse)
     def get_characters():
         return character_controller.get_all_characters()

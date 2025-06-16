@@ -1,24 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import Header from "./Header";
-import NavigationHeader from "./NavigationHeader";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import Header from "../components/Header";
+import NavigationHeader from "../components/NavigationHeader";
 import { useGameContext } from "../contexts/GameContext";
 
-interface CharacterRevealScreenProps {
-  gameSessionId: string;
-  onPlayAgain: () => void;
-}
-
-const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAgain }) => {
-  const { currentCharacter, characterRatings, setCharacterRating, addToIgnoredCharacters } = useGameContext();
+const CharacterRevealScreen: React.FC = () => {
+  const navigate = useNavigate();
+  const { currentCharacter, characterRatings, setCharacterRating, addToIgnoredCharacters, startGame, currentGameSession } =
+    useGameContext();
   const [showIgnoreConfirmation, setShowIgnoreConfirmation] = useState(false);
 
+  // Redirect to home if no current character or game session
+  useEffect(() => {
+    if (!currentCharacter || !currentGameSession) {
+      toast.error("No character data available. Please start a new game.");
+      navigate("/");
+    }
+  }, [currentCharacter, currentGameSession, navigate]);
+
+  // Don't render anything if no character data
   if (!currentCharacter) {
-    return <div>No character data available</div>;
+    return null;
   }
 
   const ratingLabels = {
-    0: "No Score", // Added No Score option
+    0: "No Score",
     1: "Very Easy",
     2: "Easy",
     3: "Medium",
@@ -36,6 +44,30 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
     addToIgnoredCharacters(currentCharacter.name);
     setShowIgnoreConfirmation(true);
     setTimeout(() => setShowIgnoreConfirmation(false), 3000);
+  };
+
+  const handlePlayAgain = async () => {
+    try {
+      // Get the last game settings from the current session or use defaults
+      const gameSettings = {
+        arcSelection: "all", // You might want to store these in context
+        fillerPercentage: 0,
+        includeNonTVFillers: false,
+        difficultyLevel: "easy",
+      };
+
+      await startGame(gameSettings);
+      toast.success("New game started!");
+      navigate("/game");
+    } catch (error: any) {
+      console.error("Failed to start new game:", error);
+      toast.error("Failed to start new game. Returning to home.");
+      navigate("/");
+    }
+  };
+
+  const handleReturnHome = () => {
+    navigate("/");
   };
 
   return (
@@ -72,7 +104,7 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
                 <p className="text-white leading-relaxed text-center">{currentCharacter.description}</p>
               </div>
 
-              {/* Character Information - left-justified, secondary styling */}
+              {/* Character Information */}
               <div className="text-left mb-6 space-y-1">
                 <a
                   href={currentCharacter.wikiLink}
@@ -84,7 +116,7 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
                 </a>
               </div>
 
-              {/* Difficulty Rating System - removed "No Score" from this page */}
+              {/* Difficulty Rating System */}
               <div className="mb-8">
                 <h4 className="text-lg font-semibold text-white text-center mb-4">How difficult was this character to guess?</h4>
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -105,10 +137,10 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
                 </div>
               </div>
 
-              {/* Action Buttons - Play Again and Don't Show Again */}
+              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
                 <Button
-                  onClick={onPlayAgain}
+                  onClick={handlePlayAgain}
                   className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Play Again
@@ -118,6 +150,12 @@ const CharacterRevealScreen: React.FC<CharacterRevealScreenProps> = ({ onPlayAga
                   className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
                 >
                   Remove
+                </Button>
+                <Button
+                  onClick={handleReturnHome}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
+                >
+                  Home
                 </Button>
               </div>
 
