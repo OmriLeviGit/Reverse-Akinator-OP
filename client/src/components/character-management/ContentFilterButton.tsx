@@ -1,54 +1,33 @@
-
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ContentFilter } from '../../types/characterManagement';
+import { ContentFilter } from "../../types/characterManagement";
 
 interface ContentFilterButtonProps {
   contentFilter: ContentFilter;
-  includeNonTVContent: boolean;
   onCycle: () => void;
-  onNonTVContentChange: (checked: boolean | "indeterminate") => void;
 }
 
 const getContentFilterLabel = (filter: ContentFilter) => {
   switch (filter) {
-    case 'canon-only': return 'Canon Only';
-    case 'canon-and-fillers': return 'Canon + Fillers';
-    case 'fillers-only': return 'Fillers Only';
+    case "all":
+      return "All";
+    case "canon-only":
+      return "Canon Only";
+    case "fillers-only":
+      return "Fillers Only";
   }
 };
 
-export const ContentFilterButton: React.FC<ContentFilterButtonProps> = ({
-  contentFilter,
-  includeNonTVContent,
-  onCycle,
-  onNonTVContentChange
-}) => {
-  const showNonTVCheckbox = contentFilter === 'canon-and-fillers' || contentFilter === 'fillers-only';
-
+export const ContentFilterButton: React.FC<ContentFilterButtonProps> = ({ contentFilter, onCycle }) => {
   return (
     <div className="flex flex-col items-center space-y-2">
-      <label className="text-white/90 text-base font-bold">Content Type</label>
+      <label className="text-white/90 text-base font-bold">Canon/Filler</label>
       <Button
         onClick={onCycle}
         className="w-40 bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/40 transition-all duration-200"
       >
         {getContentFilterLabel(contentFilter)}
       </Button>
-      {showNonTVCheckbox && (
-        <div className="flex items-center gap-2 mt-1 justify-center">
-          <Checkbox
-            id="include-non-tv"
-            checked={includeNonTVContent}
-            onCheckedChange={onNonTVContentChange}
-            className="data-[state=checked]:bg-white/30 data-[state=checked]:border-white/40"
-          />
-          <label htmlFor="include-non-tv" className="text-white/80 text-sm">
-            Include Non-TV Content
-          </label>
-        </div>
-      )}
     </div>
   );
 };

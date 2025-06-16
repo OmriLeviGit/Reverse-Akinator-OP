@@ -1,50 +1,35 @@
 from pydantic import BaseModel
 
-# Request models
-class CharacterSearchRequest(BaseModel):
-   query: str | None = None
-   arc: str | None = None
-   filler: str | None = None
-   difficulty: str | None = None
-
-class FillerSettings(BaseModel):
-   filler_percentage: int
-   include_non_tv_fillers: bool
-
-class AvailableCharactersRequest(BaseModel):
-   arc_selection: str
-   filler_settings: FillerSettings
-   difficulty: str
-   ignored_character_ids: list[str]
-
-# Response models
 class Character(BaseModel):
-   id: str
-   name: str
-   arc: str
-   is_filler: bool
-   difficulty: str
-   # Add other character fields as needed
+    id: str
+    name: str
+    arc: str
+    is_filler: bool
+    is_tv: bool
+    difficulty: str
+    chapter: int | None = None
+    episode: int | None = None
+    wikiLink: str | None = None
 
 class CharactersResponse(BaseModel):
-   characters: list[Character]
+    characters: list[Character]
 
-class CharacterWithStatus(BaseModel):
-   id: str
-   name: str
-   arc: str
-   is_filler: bool
-   difficulty: str
-   status: str  # or whatever status field you have
-   # Add other fields as needed
+class IgnoreCharacterRequest(BaseModel):
+    character_id: str
 
-class AllCharactersWithStatusResponse(BaseModel):
-   characters: list[CharacterWithStatus]
+class IgnoreCharacterResponse(BaseModel):
+    message: str
+    character_id: str
 
-class CharacterSearchResponse(BaseModel):
-   characters: list[Character]
-   total_count: int
+class UnignoreCharacterResponse(BaseModel):
+    message: str
+    character_id: str
 
-class AvailableCharactersResponse(BaseModel):
-   characters: list[Character]
-   total_available: int
+class RateCharacterRequest(BaseModel):
+    character_id: str
+    rating: int
+
+class RateCharacterResponse(BaseModel):
+    message: str
+    character_id: str
+    rating: int

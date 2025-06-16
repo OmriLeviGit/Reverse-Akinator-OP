@@ -1,92 +1,176 @@
 import React, { useState } from "react";
+import { toast } from "sonner";
 import Header from "./Header";
 import NavigationHeader from "./NavigationHeader";
 import GameInput from "./game/GameInput";
 import MessageArea from "./game/MessageArea";
 import GameActions from "./game/GameActions";
 import CharacterSearch from "./CharacterSearch";
-import { useGameContext } from "../contexts/GameContext";
 import { useGameMessages } from "../hooks/useGameMessages";
-import { fuzzySearch } from "../utils/fuzzySearch";
 
 interface GameScreenProps {
+  gameSessionId: string;
+  allCharacters: string[]; // Add this
   onRevealCharacter: () => void;
   onReturnHome: () => void;
 }
 
-const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome }) => {
-  const { currentCharacter } = useGameContext();
+const API_BASE_URL = "http://localhost:3001/api"; // Adjust to your server URL
+
+const GameScreen: React.FC<GameScreenProps> = ({
+  gameSessionId,
+  allCharacters, // Add this parameter
+  onRevealCharacter,
+}) => {
   const { messages, addMessage, messagesEndRef } = useGameMessages();
   const [inputMessage, setInputMessage] = useState("");
   const [showCharacterSearch, setShowCharacterSearch] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const checkGuess = (guess: string): boolean => {
-    if (!currentCharacter) return false;
+  const askQuestion = async (question: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/question`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game_session_id: gameSessionId,
+          question_text: question,
+        }),
+      });
 
-    const guessLower = guess.toLowerCase().trim();
-    const characterNameLower = currentCharacter.name.toLowerCase();
-
-    // Exact match
-    if (guessLower === characterNameLower) return true;
-
-    // Fuzzy match using our utility
-    const matches = fuzzySearch(guess, [currentCharacter.name]);
-    return matches.length > 0;
-  };
-
-  const handleSendMessage = () => {
-    if (inputMessage.trim()) {
-      addMessage(inputMessage, true);
-
-      // Check if it's a correct guess
-      if (checkGuess(inputMessage)) {
-        setTimeout(() => {
-          addMessage(`Congratulations! You guessed correctly! It was ${currentCharacter?.name}!`, false);
-          // Navigate to reveal page after a short delay
-          setTimeout(() => {
-            onRevealCharacter();
-          }, 2000);
-        }, 1000);
-      } else {
-        setTimeout(() => {
-          addMessage("That's not quite right. Try asking for a hint or make another guess!", false);
-        }, 1000);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      setInputMessage("");
+      const data = await response.json();
+      return data.answer;
+    } catch (error) {
+      console.error("Error asking question:", error);
+      throw error;
     }
   };
 
-  const handleHint = () => {
-    if (!currentCharacter) return;
+  const getHint = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/hint`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game_session_id: gameSessionId,
+        }),
+      });
 
-    const hints = [
-      "This character is known for their incredible strength and has a special connection to the sea.",
-      "This character has a unique fighting style that sets them apart from others.",
-      "This character is part of an important crew in the One Piece world.",
-    ];
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    const randomHint = hints[Math.floor(Math.random() * hints.length)];
-    addMessage(randomHint, false);
+      const data = await response.json();
+      return data.hint;
+    } catch (error) {
+      console.error("Error getting hint:", error);
+      throw error;
+    }
   };
 
-  const handleCharacterSelect = (character: string) => {
-    addMessage(`I guess it's ${character}!`, true);
-    setShowCharacterSearch(false);
+  const makeGuess = async (guess: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/game/guess`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          game_session_id: gameSessionId,
+          guessed_character: guess,
+        }),
+      });
 
-    // Check if it's correct
-    if (checkGuess(character)) {
-      setTimeout(() => {
-        addMessage(`Congratulations! You guessed correctly! It was ${currentCharacter?.name}!`, false);
-        // Navigate to reveal page after a short delay
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error making guess:", error);
+      throw error;
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isProcessing) return;
+
+    setIsProcessing(true);
+    addMessage(inputMessage, true);
+    const userInput = inputMessage;
+    setInputMessage("");
+
+    try {
+      // The input bar should ONLY be for yes/no questions
+      const answer = await askQuestion(userInput);
+      addMessage(answer, false);
+
+      // Check if the game ended
+      if (answer.toLowerCase().includes("congratulations") || answer.toLowerCase().includes("character was")) {
         setTimeout(() => {
           onRevealCharacter();
         }, 2000);
-      }, 1000);
-    } else {
-      setTimeout(() => {
-        addMessage(`Good guess! ${character} is a great character, but that's not who I was thinking of. Try again!`, false);
-      }, 1000);
+      }
+    } catch (error) {
+      console.error("Error processing message:", error);
+      addMessage("Sorry, there was an error processing your message. Please try again.", false);
+      toast.error("Failed to process message");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleHint = async () => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    addMessage("Can I get a hint?", true);
+
+    try {
+      const hint = await getHint();
+      addMessage(`Hint: ${hint}`, false);
+    } catch (error) {
+      console.error("Error getting hint:", error);
+      addMessage("Sorry, I couldn't get a hint right now. Please try again.", false);
+      toast.error("Failed to get hint");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCharacterSelect = async (character: string) => {
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    addMessage(`I guess it's ${character}!`, true);
+    setShowCharacterSearch(false);
+
+    try {
+      const guessResult = await makeGuess(character);
+
+      if (guessResult.is_correct) {
+        addMessage(guessResult.message, false);
+        setTimeout(() => {
+          onRevealCharacter();
+        }, 2000);
+      } else {
+        addMessage(guessResult.message, false);
+      }
+    } catch (error) {
+      console.error("Error making guess:", error);
+      addMessage("Sorry, there was an error processing your guess. Please try again.", false);
+      toast.error("Failed to process guess");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -107,16 +191,32 @@ const GameScreen: React.FC<GameScreenProps> = ({ onRevealCharacter, onReturnHome
         <NavigationHeader />
 
         <main className="flex-1 container mx-auto px-4 py-4 max-w-4xl">
-          <GameInput inputMessage={inputMessage} onInputChange={setInputMessage} onSendMessage={handleSendMessage} />
+          <GameInput
+            inputMessage={inputMessage}
+            onInputChange={setInputMessage}
+            onSendMessage={handleSendMessage}
+            disabled={isProcessing}
+          />
 
           <MessageArea messages={messages} messagesEndRef={messagesEndRef} />
 
-          <GameActions onHint={handleHint} onMakeGuess={() => setShowCharacterSearch(true)} onRevealCharacter={onRevealCharacter} />
+          <GameActions
+            onHint={handleHint}
+            onMakeGuess={() => setShowCharacterSearch(true)}
+            onRevealCharacter={onRevealCharacter}
+            disabled={isProcessing}
+          />
         </main>
       </div>
 
       {/* Character Search Modal */}
-      {showCharacterSearch && <CharacterSearch onCharacterSelect={handleCharacterSelect} onClose={() => setShowCharacterSearch(false)} />}
+      {showCharacterSearch && (
+        <CharacterSearch
+          characters={allCharacters} // Pass the cached characters
+          onCharacterSelect={handleCharacterSelect}
+          onClose={() => setShowCharacterSearch(false)}
+        />
+      )}
     </div>
   );
 };

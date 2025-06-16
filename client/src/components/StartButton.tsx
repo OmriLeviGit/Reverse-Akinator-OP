@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 
 interface StartButtonProps {
   onStart: () => void;
+  disabled?: boolean;
 }
 
-const StartButton: React.FC<StartButtonProps> = ({ onStart }) => {
+const StartButton: React.FC<StartButtonProps> = ({ onStart, disabled = false }) => {
   return (
     <Button
       onClick={onStart}
-      className="py-4 px-8 text-xl font-bold bg-orange-400 hover:bg-orange-500 text-white border-2 border-none transition-all duration-100 transform hover:scale-105 ship-shadow rounded-xl"
+      disabled={disabled}
+      className={`py-4 px-8 text-xl font-bold transition-all duration-100 transform border-2 border-none ship-shadow rounded-xl ${
+        disabled ? "bg-gray-400 text-gray-200 cursor-not-allowed" : "bg-orange-400 hover:bg-orange-500 text-white hover:scale-105"
+      }`}
     >
-      ⚓ START ADVENTURE ⚓
+      {disabled ? "⏳ LOADING..." : "⚓ START ADVENTURE ⚓"}
     </Button>
   );
 };

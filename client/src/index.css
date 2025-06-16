@@ -111,6 +111,13 @@
 
 .ocean-gradient {
   background: linear-gradient(180deg, hsl(var(--ocean-light)) 0%, hsl(var(--ocean-blue)) 50%, hsl(var(--ocean-dark)) 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 100vh;
+  z-index: 0;
 }
 
 .ship-shadow {

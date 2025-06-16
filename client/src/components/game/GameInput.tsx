@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -7,15 +6,12 @@ interface GameInputProps {
   inputMessage: string;
   onInputChange: (value: string) => void;
   onSendMessage: () => void;
+  disabled?: boolean;
 }
 
-const GameInput: React.FC<GameInputProps> = ({
-  inputMessage,
-  onInputChange,
-  onSendMessage
-}) => {
+const GameInput: React.FC<GameInputProps> = ({ inputMessage, onInputChange, onSendMessage }) => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       onSendMessage();
     }
   };

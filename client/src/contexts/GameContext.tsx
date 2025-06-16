@@ -2,33 +2,22 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { characterApi, userApi, gameApi } from "../services/api";
-
-interface CharacterData {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  chapter: number;
-  fillerStatus: "canon" | "filler";
-  wikiLink: string;
-  currentRating?: number;
-  isIgnored?: boolean;
-}
+import { Character } from "../types/character";
 
 interface GameSession {
   gameSessionId: string;
   gameState: string;
-  currentCharacter?: CharacterData;
+  currentCharacter?: Character; // ✅ Changed from CharacterData to Character
 }
 
 interface GameContextType {
   // Game Session
   currentGameSession: GameSession | null;
-  currentCharacter: CharacterData | null; // Add this line
+  currentCharacter: Character | null;
   startGame: (settings: GameSettings) => Promise<void>;
 
   // Character Data
-  allCharacters: CharacterData[];
+  allCharacters: Character[];
   isLoadingCharacters: boolean;
   characterError: Error | null;
 
@@ -84,7 +73,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     error: characterError,
   } = useQuery({
     queryKey: ["allCharacters"],
-    queryFn: characterApi.getAllCharactersWithStatus,
+    queryFn: characterApi.getCharacters,
   });
 
   // Fetch character ratings
@@ -165,7 +154,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   });
 
   // Helper functions to process API data
-  const allCharacters = charactersData?.characters || [];
+  const allCharacters: Character[] = charactersData?.characters || []; // ✅ Explicit type annotation
 
   const characterRatings = React.useMemo(() => {
     if (!ratingsData?.ratings) return {};
@@ -229,7 +218,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <GameContext.Provider
       value={{
         currentGameSession,
-        currentCharacter, // Add this line
+        currentCharacter,
         startGame,
         allCharacters,
         isLoadingCharacters,

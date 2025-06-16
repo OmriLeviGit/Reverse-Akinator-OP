@@ -2,18 +2,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ratingLabels } from "../../types/characterManagement";
-
-interface Character {
-  id: string;
-  name: string;
-  image: string;
-  wikiLink: string;
-  fillerStatus: "canon" | "filler";
-}
+import { Character } from "../../types/character";
 
 interface CharacterCardProps {
   character: Character;
-  currentRating: number;
+  currentRating: number; // This comes from the context's characterRatings
   isIgnored: boolean;
   onRatingChange: (characterId: string, rating: number) => void;
   onIgnoreToggle: (characterId: string, isCurrentlyIgnored: boolean) => void;
@@ -27,19 +20,24 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
       }`}
     >
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        {/** Character Info **/}
+        {/*** Character Info ***/}
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30">
-            <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
+            {/** <img src={character.image} alt={character.name} className="w-full h-full object-cover" /> **/}
           </div>
           <div>
             <h3 className={`text-xl font-bold mb-1 ${isIgnored ? "text-white/60" : "text-white"}`}>{character.name}</h3>
             <div className={`text-sm mb-1 ${isIgnored ? "text-white/40" : "text-white/60"}`}>
-              {character.fillerStatus === "filler" ? "Filler" : "Canon"}
+              {character.is_filler === true ? "Filler" : "Canon"}
             </div>
-            href={character.wikiLink}
-            target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
-            <a>View Wiki</a>
+            <a
+              href={character.wikiLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm"
+            >
+              View Wiki
+            </a>
           </div>
         </div>
 

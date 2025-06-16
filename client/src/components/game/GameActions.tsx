@@ -1,18 +1,14 @@
-
-import React from 'react';
+import React from "react";
 import { Button } from "@/components/ui/button";
 
 interface GameActionsProps {
   onHint: () => void;
   onMakeGuess: () => void;
   onRevealCharacter: () => void;
+  disabled?: boolean;
 }
 
-const GameActions: React.FC<GameActionsProps> = ({
-  onHint,
-  onMakeGuess,
-  onRevealCharacter
-}) => {
+const GameActions: React.FC<GameActionsProps> = ({ onHint, onMakeGuess, onRevealCharacter }) => {
   return (
     <div className="flex flex-wrap gap-4 justify-center">
       <Button

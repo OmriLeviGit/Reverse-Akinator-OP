@@ -2,30 +2,29 @@ import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useGameContext } from "../contexts/GameContext";
 import { fuzzySearch } from "../utils/fuzzySearch";
 import { useDebounce } from "../hooks/useDebounce";
 
 interface CharacterSearchProps {
+  characters: string[]; // Use prop instead of context
   onCharacterSelect: (character: string) => void;
   onClose: () => void;
 }
 
-const CharacterSearch: React.FC<CharacterSearchProps> = ({ onCharacterSelect, onClose }) => {
-  const { allCharacters } = useGameContext();
+const CharacterSearch: React.FC<CharacterSearchProps> = ({
+  characters, // Use the prop
+  onCharacterSelect,
+  onClose,
+}) => {
   const [searchTerm, setSearchTerm] = useState("");
-
-  // Debounce the search term with 300ms delay
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
-
-  const characterNames = allCharacters.map((char) => char.name);
 
   const filteredCharacters = useMemo(() => {
     if (!debouncedSearchTerm.trim()) {
-      return characterNames.slice(0, 20); // Show first 20 characters when no search
+      return characters.slice(0, 20); // Show first 20 characters when no search
     }
-    return fuzzySearch(debouncedSearchTerm, characterNames);
-  }, [debouncedSearchTerm, characterNames]);
+    return fuzzySearch(debouncedSearchTerm, characters);
+  }, [debouncedSearchTerm, characters]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -36,7 +35,6 @@ const CharacterSearch: React.FC<CharacterSearchProps> = ({ onCharacterSelect, on
             ×
           </Button>
         </div>
-
         <Input
           type="text"
           placeholder="Search characters..."
@@ -44,7 +42,6 @@ const CharacterSearch: React.FC<CharacterSearchProps> = ({ onCharacterSelect, on
           onChange={(e) => setSearchTerm(e.target.value)}
           className="mb-4"
         />
-
         <ScrollArea className="h-48">
           <div className="space-y-2">
             {filteredCharacters.map((character) => (
@@ -59,7 +56,6 @@ const CharacterSearch: React.FC<CharacterSearchProps> = ({ onCharacterSelect, on
             ))}
           </div>
         </ScrollArea>
-
         {filteredCharacters.length === 0 && debouncedSearchTerm && (
           <div className="text-center py-4 text-gray-500">No characters found matching your search.</div>
         )}

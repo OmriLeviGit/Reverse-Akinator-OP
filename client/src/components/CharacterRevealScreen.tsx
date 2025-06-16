@@ -5,6 +5,7 @@ import NavigationHeader from "./NavigationHeader";
 import { useGameContext } from "../contexts/GameContext";
 
 interface CharacterRevealScreenProps {
+  gameSessionId: string;
   onPlayAgain: () => void;
   onReturnHome: () => void;
 }

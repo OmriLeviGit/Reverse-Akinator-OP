@@ -9,7 +9,7 @@ import DifficultySelection from "../components/DifficultySelection";
 import StartButton from "../components/StartButton";
 import GameScreen from "../components/GameScreen";
 import CharacterRevealScreen from "../components/CharacterRevealScreen";
-import { useGameContext } from "../contexts/GameContext";
+import { useGameContext } from "../contexts/GameContext"; // ✅ Add this import
 
 type GameState = "home" | "playing" | "reveal";
 
@@ -21,7 +21,11 @@ const Index = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
   const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const { startGame, currentGameSession } = useGameContext();
+  // ✅ Use GameContext instead of local state
+  const { allCharacters, isLoadingCharacters, startGame, currentGameSession } = useGameContext();
+
+  // ✅ Derive charactersLoaded from GameContext
+  const charactersLoaded = !isLoadingCharacters && allCharacters.length > 0;
 
   const handleFillerPercentageChange = (value: number) => {
     setFillerPercentage(value);
@@ -31,6 +35,12 @@ const Index = () => {
   };
 
   const handleStart = async () => {
+    // Don't allow starting game until characters are loaded
+    if (!charactersLoaded) {
+      toast.error("Character database is still loading. Please wait...");
+      return;
+    }
+
     setIsStartingGame(true);
 
     try {
@@ -43,13 +53,14 @@ const Index = () => {
 
       console.log("Starting game with settings:", gameSettings);
 
+      // ✅ Use startGame from GameContext
       await startGame(gameSettings);
       setGameState("playing");
       toast.success("Game started successfully!");
     } catch (error: any) {
       console.error("Failed to start game:", error);
 
-      if (error.response?.data?.message === "No characters available") {
+      if (error.message?.includes("No characters available")) {
         toast.error("No characters available for this difficulty level. Try adjusting your settings.");
       } else {
         toast.error("Failed to start game. Please try again.");
@@ -74,13 +85,14 @@ const Index = () => {
         difficultyLevel: selectedDifficulty,
       };
 
+      // ✅ Use startGame from GameContext
       await startGame(gameSettings);
       setGameState("playing");
       toast.success("New game started!");
     } catch (error: any) {
       console.error("Failed to start new game:", error);
 
-      if (error.response?.data?.message === "No characters available") {
+      if (error.message?.includes("No characters available")) {
         toast.error("No characters available for this difficulty level.");
         setGameState("home");
       } else {
@@ -94,18 +106,32 @@ const Index = () => {
 
   const handleReturnHome = () => {
     setGameState("home");
+    // ❌ Remove: setCurrentGameSession(null); - GameContext handles this
   };
 
-  // Render different screens based on game state
-  if (gameState === "playing") {
-    return <GameScreen onRevealCharacter={handleRevealCharacter} onReturnHome={handleReturnHome} />;
+  // ✅ Update to use currentGameSession from GameContext
+  if (gameState === "playing" && currentGameSession) {
+    return (
+      <GameScreen
+        gameSessionId={currentGameSession.gameSessionId} // ✅ Use the session ID
+        allCharacters={allCharacters.map((char) => char.name)} // ✅ Convert Character[] to string[] if GameScreen needs names
+        onRevealCharacter={handleRevealCharacter}
+        onReturnHome={handleReturnHome}
+      />
+    );
   }
 
-  if (gameState === "reveal") {
-    return <CharacterRevealScreen onPlayAgain={handlePlayAgain} onReturnHome={handleReturnHome} />;
+  if (gameState === "reveal" && currentGameSession) {
+    return (
+      <CharacterRevealScreen
+        gameSessionId={currentGameSession.gameSessionId} // ✅ Use the session ID
+        onPlayAgain={handlePlayAgain}
+        onReturnHome={handleReturnHome}
+      />
+    );
   }
 
-  // Home screen
+  // Home screen remains the same
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Ocean Background without Animation */}
@@ -140,14 +166,29 @@ const Index = () => {
               </div>
               {/* Start Button */}
               <div className="mt-8 flex justify-center">
-                <StartButton onStart={handleStart} />
+                <StartButton
+                  onStart={handleStart}
+                  disabled={isStartingGame || isLoadingCharacters} // ✅ Use isLoadingCharacters from context
+                />
               </div>
             </div>
 
-            {/* Loading indicator */}
+            {/* Loading indicators */}
+            {isLoadingCharacters && (
+              <div className="mt-4 text-center">
+                <p className="text-white/70">Loading character database...</p>
+              </div>
+            )}
+
             {isStartingGame && (
               <div className="mt-4 text-center">
                 <p className="text-white/70">Starting game...</p>
+              </div>
+            )}
+
+            {!charactersLoaded && !isLoadingCharacters && (
+              <div className="mt-4 text-center">
+                <p className="text-red-300">Failed to load characters. Some features may not work.</p>
               </div>
             )}
           </div>

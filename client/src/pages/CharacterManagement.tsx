@@ -25,11 +25,12 @@ const CharacterManagement: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("show-both");
-  const [contentFilter, setContentFilter] = useState<ContentFilter>("canon-only");
+  const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>("show-both");
   const [includeNonTVContent, setIncludeNonTVContent] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical-az");
 
+  // ... all your existing functions
   const cycleIgnoreFilter = () => {
     setIgnoreFilter((prev) => {
       switch (prev) {
@@ -45,19 +46,23 @@ const CharacterManagement: React.FC = () => {
 
   const cycleContentFilter = () => {
     setContentFilter((prev) => {
-      switch (prev) {
-        case "canon-only":
-          return "canon-and-fillers";
-        case "canon-and-fillers":
-          return "fillers-only";
-        case "fillers-only":
-          return "canon-only";
+      const newValue = (() => {
+        switch (prev) {
+          case "all":
+            return "canon-only";
+          case "canon-only":
+            return "fillers-only";
+          case "fillers-only":
+            return "all";
+        }
+      })();
+
+      if (newValue === "canon-only") {
+        setIncludeNonTVContent(false);
       }
+
+      return newValue;
     });
-    // Reset non-TV content when switching away from filters that support it
-    if (contentFilter === "canon-only") {
-      setIncludeNonTVContent(false);
-    }
   };
 
   const cycleRatingFilter = () => {
@@ -92,19 +97,8 @@ const CharacterManagement: React.FC = () => {
     }
   };
 
-  // Convert new character structure to old structure for compatibility with useCharacterFiltering
-  const compatibleCharacters = allCharacters.map((character) => ({
-    ...character,
-    name: character.name, // Keep name for compatibility
-    firstAppeared: {
-      chapter: character.chapter,
-      type: character.fillerStatus as "canon" | "filler",
-    },
-    wikiUrl: character.wikiLink, // Map wikiLink to wikiUrl for compatibility
-  }));
-
   const filteredAndSortedCharacters = useCharacterFiltering({
-    allCharacters: compatibleCharacters,
+    allCharacters,
     ignoreFilter,
     contentFilter,
     ratingFilter,
@@ -148,31 +142,25 @@ const CharacterManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
+      {/* Single Scrollable Container */}
+      <div className="relative z-10 h-screen overflow-y-auto">
+        {/* Scrollable Header Section */}
         <Header />
         <NavigationHeader />
 
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Page Header */}
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold pirate-text mb-2">Character Management</h2>
-              <p className="text-white/80">Manage character difficulty ratings and ignore settings</p>
-            </div>
+        {/* Sticky Title and Filters Section */}
 
-            {/* Loading State */}
-            {isLoadingCharacters && (
-              <div className="text-center py-12">
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
-                  <p className="text-white/70 text-lg">Loading characters...</p>
-                </div>
+        <div className="sticky top-0 z-40 border-white/10 ">
+          <div className="container mx-auto px-4 py-6">
+            <div className="max-w-6xl mx-auto">
+              {/* Page Header */}
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold pirate-text mb-2">Character Management</h2>
+                <p className="text-white/80">Manage character difficulty ratings and ignore settings</p>
               </div>
-            )}
 
-            {!isLoadingCharacters && (
-              <>
-                {/* Filters and Controls */}
+              {/* Filters - only show when not loading */}
+              {!isLoadingCharacters && (
                 <CharacterFilters
                   ignoreFilter={ignoreFilter}
                   contentFilter={contentFilter}
@@ -187,10 +175,28 @@ const CharacterManagement: React.FC = () => {
                   onSearchChange={setSearchTerm}
                   onSortChange={setSortOption}
                 />
+              )}
+            </div>
+          </div>
+        </div>
 
+        {/* Character List Content */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Loading State */}
+            {isLoadingCharacters && (
+              <div className="text-center py-12">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
+                  <p className="text-white/70 text-lg">Loading characters...</p>
+                </div>
+              </div>
+            )}
+
+            {!isLoadingCharacters && (
+              <>
                 {/* Characters List */}
                 <div className="space-y-4">
-                  {allCharacters.map((character) => {
+                  {filteredAndSortedCharacters.map((character) => {
                     const currentRating = characterRatings[character.id] || 0;
                     const isIgnored = ignoredCharacters.has(character.id);
 
@@ -206,12 +212,6 @@ const CharacterManagement: React.FC = () => {
                     );
                   })}
                 </div>
-                {/* Loading indicator for updates */}
-                {(isUpdatingRating || isUpdatingIgnoreList) && (
-                  <div className="fixed bottom-4 right-4 bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20">
-                    <p className="text-white/70 text-sm">Updating...</p>
-                  </div>
-                )}
 
                 {filteredAndSortedCharacters.length === 0 && (
                   <div className="text-center py-12">
@@ -224,8 +224,15 @@ const CharacterManagement: React.FC = () => {
               </>
             )}
           </div>
-        </main>
+        </div>
       </div>
+
+      {/* Loading indicator for updates */}
+      {(isUpdatingRating || isUpdatingIgnoreList) && (
+        <div className="fixed bottom-4 right-4 bg-white/10 backdrop-blur-lg rounded-lg p-3 border border-white/20 z-50">
+          <p className="text-white/70 text-sm">Updating...</p>
+        </div>
+      )}
     </div>
   );
 };

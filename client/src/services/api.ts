@@ -65,11 +65,6 @@ export const characterApi = {
     return response.data;
   },
 
-  getAllCharactersWithStatus: async () => {
-    const response = await api.get("/characters/all-with-status");
-    return response.data;
-  },
-
   searchCharacters: async (params: { query?: string; arc?: string; filler?: string; difficulty?: string }) => {
     const response = await api.get("/characters/search", { params });
     return response.data;
