@@ -1,8 +1,18 @@
 // src/contexts/GameContext.tsx
 import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { characterApi, gameApi } from "../services/api";
+import { characterApi, dataApi, gameApi } from "../services/api";
 import { Character } from "../types/character";
+
+interface Arc {
+  name: string;
+  chapter: number;
+  episode: number;
+}
+
+type ArcListResponse = {
+  arcList: Arc[];
+};
 
 interface GameSession {
   gameSessionId: string;
@@ -20,6 +30,8 @@ interface GameContextType {
   allCharacters: Character[];
   isLoadingCharacters: boolean;
   characterError: Error | null;
+
+  arcList: ArcListResponse;
 
   // Character Ratings
   characterRatings: Record<string, number>;
@@ -58,6 +70,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   } = useQuery({
     queryKey: ["allCharacters"],
     queryFn: characterApi.getCharacters,
+  });
+
+  const { data: arcList } = useQuery({
+    queryKey: ["arcList"],
+    queryFn: dataApi.getArcs,
   });
 
   // Start game mutation
@@ -214,6 +231,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         startGame,
         allCharacters,
         isLoadingCharacters,
+        arcList: arcList || {},
         characterError: characterError as Error | null,
         characterRatings,
         setCharacterRating,

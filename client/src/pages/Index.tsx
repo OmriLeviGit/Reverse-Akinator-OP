@@ -7,10 +7,11 @@ import FillerSettings from "../components/FillerSettings";
 import DifficultySelection from "../components/DifficultySelection";
 import StartButton from "../components/StartButton";
 import { useGameContext } from "../contexts/GameContext";
+import { useSelectedArc } from "@/hooks/useSelectedArc";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [selectedArc, setSelectedArc] = useState("all");
+  const { selectedArc, setSelectedArc } = useSelectedArc();
   const [fillerPercentage, setFillerPercentage] = useState(0);
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
@@ -47,7 +48,6 @@ const Index = () => {
       navigate("/game"); // Navigate to game route
     } catch (error: any) {
       console.error("Failed to start game:", error);
-
     } finally {
       setIsStartingGame(false);
     }
@@ -73,7 +73,7 @@ const Index = () => {
                 </div>
 
                 <div className="border-t border-white/20 pt-6">
-                  <ArcSelection selectedArc={selectedArc} onArcChange={setSelectedArc} />
+                  <ArcSelection />
                 </div>
 
                 <div className="border-t border-white/20 pt-6">

@@ -1,7 +1,6 @@
 // src/types/character.ts
 export interface Character {
   name: string;
-  name: string;
 
   description: string | null;
   image: string | null;

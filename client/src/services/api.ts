@@ -95,7 +95,8 @@ export const characterApi = {
 // Data Management API
 export const dataApi = {
   getArcs: async () => {
-    const response = await api.get("/arcs");
+    const response = await api.get("/data/arcs");
+    console.log(response.data);
     return response.data;
   },
 };

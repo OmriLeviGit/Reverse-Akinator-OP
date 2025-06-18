@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, HTTPException
 from character_controller import CharacterController
 from game_controller import GameController
@@ -18,6 +16,7 @@ from schemas.character_schemas import (
 from schemas.data_schemas import (
     DataResponse
 )
+from DataManager import DataManager
 
 
 def create_game_router():
@@ -75,10 +74,9 @@ def create_characters_router():
 def create_data_router():
     data_router = APIRouter(prefix="/api/data", tags=["data"])
 
-    @data_router.post("/arcs", response_model=DataResponse)
+    @data_router.get("/arcs", response_model=DataResponse)
     def arc_list():
-        with open('data/arc_list.json', 'r') as file:
-            data = json.load(file)
-            return DataResponse(**data)
+        data_manager = DataManager.get_instance()
+        return DataResponse(arcList=data_manager.arc_list)
 
     return data_router

@@ -6,7 +6,7 @@ from schemas.character_schemas import Character
 # Request models
 class GameStartRequest(BaseModel):
    arcSelection: str
-   fillerPercentage: int
+   fillerPercentage: float
    includeNonTVFillers: bool
    difficultyLevel: str
 

@@ -21,6 +21,7 @@ class GameController:
 
     def start_game(self, request: GameStartRequest) -> GameStartResponse:
         """Initialize a new game session"""
+
         try:
             # Generate unique game session ID
             game_session_id = str(uuid.uuid4())
