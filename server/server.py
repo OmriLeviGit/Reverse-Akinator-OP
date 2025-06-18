@@ -2,8 +2,9 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import create_routers
-from schemas.character_schemas import Character
+
+from DataManager import DataManager
+from routes import create_game_router, create_characters_router, create_data_router
 
 app = FastAPI()
 app.add_middleware(
@@ -14,15 +15,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-config = {
-    'arc_to_chapter' : "fe",
-    "scheme" : "f",
-    "instruction_prompt" : "f"
-}
+dm = DataManager.get_instance()
 
-
-
-game_router, characters_router, data_router = create_routers(config)
+game_router = create_game_router()
+characters_router = create_characters_router()
+data_router = create_data_router()
 
 app.include_router(game_router)
 app.include_router(characters_router)

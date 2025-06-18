@@ -30,9 +30,9 @@ export const useCharacterFiltering = ({
 
     // Apply ignore filter
     if (ignoreFilter === "ignored-only") {
-      filtered = filtered.filter((char) => ignoredCharacters.has(char.id));
+      filtered = filtered.filter((char) => ignoredCharacters.has(char.name));
     } else if (ignoreFilter === "not-ignored-only") {
-      filtered = filtered.filter((char) => !ignoredCharacters.has(char.id));
+      filtered = filtered.filter((char) => !ignoredCharacters.has(char.name));
     }
 
     // Apply content filter
@@ -49,9 +49,9 @@ export const useCharacterFiltering = ({
 
     // Apply rating filter
     if (ratingFilter === "rated-only") {
-      filtered = filtered.filter((char) => characterRatings[char.id] && characterRatings[char.id] > 0);
+      filtered = filtered.filter((char) => characterRatings[char.name] && characterRatings[char.name] > 0);
     } else if (ratingFilter === "unrated-only") {
-      filtered = filtered.filter((char) => !characterRatings[char.id] || characterRatings[char.id] === 0);
+      filtered = filtered.filter((char) => !characterRatings[char.name] || characterRatings[char.name] === 0);
     }
 
     // Create Fuse instance (without useMemo)
@@ -76,12 +76,12 @@ export const useCharacterFiltering = ({
         case "alphabetical-za":
           return b.name.localeCompare(a.name);
         case "difficulty-easy-hard":
-          const ratingA = characterRatings[a.id];
-          const ratingB = characterRatings[b.id];
+          const ratingA = characterRatings[a.name];
+          const ratingB = characterRatings[b.name];
           return ratingA - ratingB;
         case "difficulty-hard-easy":
-          const ratingA2 = characterRatings[a.id];
-          const ratingB2 = characterRatings[b.id];
+          const ratingA2 = characterRatings[a.name];
+          const ratingB2 = characterRatings[b.name];
           return ratingB2 - ratingA2;
         default:
           return 0;

@@ -1,6 +1,5 @@
 // src/pages/CharacterManagement.tsx
 import React, { useState } from "react";
-import { toast } from "sonner";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
 import { useGameContext } from "../contexts/GameContext";
@@ -79,17 +78,10 @@ const CharacterManagement: React.FC = () => {
 
   const handleRatingChange = (characterId: string, rating: number) => {
     setCharacterRating(characterId, rating);
-    toast.success("Rating updated successfully!");
   };
 
   const handleIgnoreToggle = (characterId: string, isCurrentlyIgnored: boolean) => {
     toggleIgnoreCharacter(characterId);
-    // Dynamic toast message based on current state
-    if (isCurrentlyIgnored) {
-      toast.success("Character removed from ignore list");
-    } else {
-      toast.success("Character added to ignore list");
-    }
   };
 
   // Create ignoredCharacters Set directly from character data for filtering hook
@@ -97,7 +89,7 @@ const CharacterManagement: React.FC = () => {
     const ignored = new Set<string>();
     allCharacters.forEach((character) => {
       if (character.isIgnored) {
-        ignored.add(character.id);
+        ignored.add(character.name);
       }
     });
     return ignored;
@@ -202,11 +194,11 @@ const CharacterManagement: React.FC = () => {
                 {/* Characters List */}
                 <div className="space-y-4">
                   {filteredAndSortedCharacters.map((character) => {
-                    const currentRating = characterRatings[character.id];
+                    const currentRating = characterRatings[character.name];
                     const isIgnored = character.isIgnored;
                     return (
                       <CharacterCard
-                        key={character.id}
+                        key={character.name}
                         character={character}
                         currentRating={currentRating}
                         isIgnored={isIgnored}

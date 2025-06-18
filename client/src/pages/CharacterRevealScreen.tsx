@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
 import { useGameContext } from "../contexts/GameContext";
@@ -15,7 +14,6 @@ const CharacterRevealScreen: React.FC = () => {
   // Redirect to home if no current character or game session
   useEffect(() => {
     if (!currentCharacter || !currentGameSession) {
-      toast.error("No character data available. Please start a new game.");
       navigate("/");
     }
   }, [currentCharacter, currentGameSession, navigate]);
@@ -25,24 +23,21 @@ const CharacterRevealScreen: React.FC = () => {
     return null;
   }
 
-  const currentRating = characterRatings[currentCharacter.id];
+  const currentRating = characterRatings[currentCharacter.name];
 
   const handleRating = (rating: number) => {
-    setCharacterRating(currentCharacter.id, rating);
-    toast.success("Rating updated successfully!");
+    setCharacterRating(currentCharacter.name, rating);
   };
 
   const handleIgnoreCharacter = () => {
     const wasIgnored = currentCharacter.isIgnored;
 
-    toggleIgnoreCharacter(currentCharacter.id);
+    toggleIgnoreCharacter(currentCharacter.name);
 
     // Show appropriate message and confirmation based on previous state
     if (wasIgnored) {
-      toast.success("Character removed from ignore list!");
       setShowConfirmation("removed");
     } else {
-      toast.success("Character added to ignore list!");
       setShowConfirmation("added");
     }
 
@@ -60,11 +55,9 @@ const CharacterRevealScreen: React.FC = () => {
       };
 
       await startGame(gameSettings);
-      toast.success("New game started!");
       navigate("/game");
     } catch (error: any) {
       console.error("Failed to start new game:", error);
-      toast.error("Failed to start new game. Returning to home.");
       navigate("/");
     }
   };

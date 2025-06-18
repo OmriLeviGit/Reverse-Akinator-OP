@@ -45,14 +45,14 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, current
         <div className="flex flex-col sm:flex-row gap-6 items-center">
           {/** Difficulty Rating **/}
           <div className="space-y-3 text-center">
-            <DifficultyRating currentRating={currentRating} onRatingChange={(rating) => onRatingChange(character.id, rating)} />
+            <DifficultyRating currentRating={currentRating} onRatingChange={(rating) => onRatingChange(character.name, rating)} />
           </div>
 
           {/** Ignore Toggle **/}
           <div className="space-y-3 text-center">
             <div className="flex flex-wrap gap-2 justify-center">
               <Button
-                onClick={() => onIgnoreToggle(character.id, isIgnored)}
+                onClick={() => onIgnoreToggle(character.name, isIgnored)}
                 variant="outline"
                 size="sm"
                 className={

@@ -1,4 +1,3 @@
-f"""
 <game_instructions>
 # ONE PIECE REVERSE AKINATOR GAME
 
@@ -55,6 +54,4 @@ You are playing a reverse Akinator game in the world of the anime One Piece. You
 
 EXAMPLE: Black beard (Marshal Teach) is from the "D" lineage, is part of the whitebeard crew, and considers "White beard" his father, but we have no knowledge of a direct blood relation → Answer "no"
 EXAMPLE: Big Mom (Charlotte Linlin) has biological children including Charlotte Lola → Answer "yes"
-
 </game_instructions>
-"""

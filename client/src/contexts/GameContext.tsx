@@ -88,7 +88,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         return {
           ...old,
-          characters: old.characters.map((char: Character) => (char.id === characterId ? { ...char, difficulty } : char)),
+          characters: old.characters.map((char: Character) => (char.name === characterId ? { ...char, difficulty } : char)),
         };
       });
 
@@ -114,7 +114,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) => (char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char)),
+          characters: old.characters.map((char: Character) => (char.name === characterId ? { ...char, isIgnored: !char.isIgnored } : char)),
         };
       });
 
@@ -161,18 +161,18 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const characterRatings = React.useMemo(() => {
     const difficulties: Record<string, number> = {};
     allCharacters.forEach((character) => {
-      difficulties[character.id] = character.difficulty;
+      difficulties[character.name] = character.difficulty;
     });
     return difficulties;
   }, [allCharacters]);
 
   // Add currentCharacter computed value
   const currentCharacter = React.useMemo(() => {
-    if (!currentGameSession?.currentCharacter?.id) return null;
+    if (!currentGameSession?.currentCharacter?.name) return null;
 
     // Find the updated character from allCharacters, fall back to session character
-    return allCharacters.find((char) => char.id === currentGameSession.currentCharacter.id) || currentGameSession.currentCharacter;
-  }, [currentGameSession?.currentCharacter?.id, allCharacters]);
+    return allCharacters.find((char) => char.name === currentGameSession.currentCharacter.name) || currentGameSession.currentCharacter;
+  }, [currentGameSession?.currentCharacter?.name, allCharacters]);
 
   const startGame = async (settings: GameSettings) => {
     await startGameMutation.mutateAsync(settings);

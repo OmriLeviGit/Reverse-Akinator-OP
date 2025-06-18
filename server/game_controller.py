@@ -1,5 +1,4 @@
 import csv
-import os
 import json
 import uuid
 from datetime import datetime
@@ -17,59 +16,8 @@ from mockData import mock_characters
 
 
 class GameController:
-    def __init__(self, api_key=None, config=None):
-        self.games_file = "data/games.csv"
-        self.characters_file = "data/characters.csv"
-        self.user_ignored_file = "data/user_ignored.csv"
-        self.user_ratings_file = "data/user_ratings.csv"
-
-        # Initialize CSV files
-        self._init_csv_files()
-
-        # Game configuration
-        if api_key:
-            # genai.configure(api_key=api_key)
-            pass
-
-        if config:
-            # genai.configure(api_key=api_key)
-            self.config = config
-            self.arc_chapter_mapping = config.get('arc_to_chapter', [])
-            self.schema = config.get('scheme', {})
-            self.instructions = config.get('instruction_prompt', "")
-
-        # Active games storage
+    def __init__(self, api_key=None):
         self.active_games = {}
-
-    def _init_csv_files(self):
-        """Initialize CSV files with headers if they don't exist"""
-        os.makedirs("data", exist_ok=True)
-
-        # Games CSV
-        if not os.path.exists(self.games_file):
-            with open(self.games_file, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(
-                    ['game_session_id', 'character_name', 'is_canon', 'status', 'created_at', 'conversation',
-                     'arc_selection', 'filler_percentage', 'include_non_tv_fillers', 'difficulty_level'])
-
-        # Characters CSV
-        if not os.path.exists(self.characters_file):
-            with open(self.characters_file, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['name', 'is_canon', 'first_chapter', 'first_episode', 'source', 'first_appearance'])
-
-        # User ignored characters
-        if not os.path.exists(self.user_ignored_file):
-            with open(self.user_ignored_file, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['character_name', 'reason', 'ignored_at'])
-
-        # User ratings
-        if not os.path.exists(self.user_ratings_file):
-            with open(self.user_ratings_file, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(['character_name', 'rating', 'rated_at'])
 
     def start_game(self, request: GameStartRequest) -> GameStartResponse:
         """Initialize a new game session"""
@@ -96,7 +44,6 @@ class GameController:
 
             # Store active game
             self.active_games[game_session_id] = {
-                'character_id': character.id,
                 'character_name': character.name,
                 'filler_status': character.fillerStatus,  # "canon" | "filler" | "filler-non-tv"
                 'conversation': [{"role": "system", "content": prompt}],
@@ -186,8 +133,8 @@ class GameController:
             #     raise ValueError("Game not found")
             #
             # game = self.active_games[game_session_id]
-            # character_id = game['character_id']
-            # character = self._get_character_by_id(character_id)
+            # character_name = game['character_name']
+            # character = self._get_character_by_name(character_name)
 
             # For now using mock data, later replace with actual character lookup
             character = mock_characters[0]

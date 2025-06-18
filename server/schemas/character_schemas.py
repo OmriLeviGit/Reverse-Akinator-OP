@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 
 class Character(BaseModel):
-    id: str
     name: str
     description: str | None = None
     image: str | None = None
@@ -22,17 +21,17 @@ class CharacterByIDResponse(BaseModel):
     character: Character
 
 class ToggleCharacterRequest(BaseModel):
-    characterId: str
+    characterName: str
 
 class ToggleCharacterResponse(BaseModel):
     message: str
-    characterId: str
+    characterName: str
 
 class ChangeCharacterRatingRequest(BaseModel):
-    characterId: str
+    characterName: str
     difficulty: int
 
 class ChangeCharacterRatingResponse(BaseModel):
     message: str
-    characterId: str
+    characterName: str
     difficulty: int

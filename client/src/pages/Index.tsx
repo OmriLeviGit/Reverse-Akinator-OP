@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { toast } from "sonner";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
@@ -29,7 +28,6 @@ const Index = () => {
 
   const handleStart = async () => {
     if (!charactersLoaded) {
-      toast.error("Character database is still loading. Please wait...");
       return;
     }
 
@@ -50,11 +48,6 @@ const Index = () => {
     } catch (error: any) {
       console.error("Failed to start game:", error);
 
-      if (error.message?.includes("No characters available")) {
-        toast.error("No characters available for this difficulty level. Try adjusting your settings.");
-      } else {
-        toast.error("Failed to start game. Please try again.");
-      }
     } finally {
       setIsStartingGame(false);
     }

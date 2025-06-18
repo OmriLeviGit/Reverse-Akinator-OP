@@ -5,11 +5,11 @@ from character_controller import CharacterController
 from game_controller import GameController
 
 from schemas.game_schemas import (
-   GameStartRequest, GameStartResponse,
-   GameQuestionRequest, GameQuestionResponse,
-   GameHintRequest, GameHintResponse,
-   GameRevealRequest, GameRevealResponse,
-   GameGuessRequest, GameGuessResponse,
+    GameStartRequest, GameStartResponse,
+    GameQuestionRequest, GameQuestionResponse,
+    GameHintRequest, GameHintResponse,
+    GameRevealRequest, GameRevealResponse,
+    GameGuessRequest, GameGuessResponse,
 )
 from schemas.character_schemas import (
     CharactersResponse, ToggleCharacterResponse, ToggleCharacterRequest,
@@ -20,13 +20,9 @@ from schemas.data_schemas import (
 )
 
 
-def create_routers(config):
+def create_game_router():
     game_router = APIRouter(prefix="/api/game", tags=["game"])
-    characters_router = APIRouter(prefix="/api/characters", tags=["characters"])
-    data_router = APIRouter(prefix="/api/data", tags=["data"])
-
-    game_controller = GameController(config=config)
-    character_controller = CharacterController()
+    game_controller = GameController()
 
     @game_router.post("/start", response_model=GameStartResponse)
     def start_game_route(request: GameStartRequest):
@@ -48,7 +44,13 @@ def create_routers(config):
     def make_guess_route(request: GameGuessRequest):
         return game_controller.make_guess(request)
 
-    # Character Data Routes - Fixed to use characters_router
+    return game_router
+
+
+def create_characters_router():
+    characters_router = APIRouter(prefix="/api/characters", tags=["characters"])
+    character_controller = CharacterController()
+
     @characters_router.get("", response_model=CharactersResponse)
     def get_characters():
         return character_controller.get_all_characters()
@@ -67,11 +69,16 @@ def create_routers(config):
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+    return characters_router
+
+
+def create_data_router():
+    data_router = APIRouter(prefix="/api/data", tags=["data"])
+
     @data_router.post("/arcs", response_model=DataResponse)
     def arc_list():
         with open('data/arc_list.json', 'r') as file:
             data = json.load(file)
-
             return DataResponse(**data)
 
-    return game_router, characters_router, data_router
+    return data_router

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
@@ -23,7 +22,6 @@ const GameScreen: React.FC = () => {
   // Redirect to home if no active game session
   useEffect(() => {
     if (!currentGameSession) {
-      toast.error("No active game session. Please start a new game.");
       navigate("/");
     }
   }, [currentGameSession, navigate]);
@@ -83,7 +81,6 @@ const GameScreen: React.FC = () => {
     } catch (error) {
       console.error("Error processing message:", error);
       addMessage("Sorry, there was an error processing your message. Please try again.", false);
-      toast.error("Failed to process message");
     } finally {
       setIsProcessing(false);
     }
@@ -102,7 +99,6 @@ const GameScreen: React.FC = () => {
     } catch (error) {
       console.error("Error getting hint:", error);
       addMessage("Sorry, I couldn't get a hint right now. Please try again.", false);
-      toast.error("Failed to get hint");
     } finally {
       setIsProcessing(false);
     }
@@ -129,7 +125,6 @@ const GameScreen: React.FC = () => {
     } catch (error) {
       console.error("Error making guess:", error);
       addMessage("Sorry, there was an error processing your guess. Please try again.", false);
-      toast.error("Failed to process guess");
     } finally {
       setIsProcessing(false);
     }
@@ -146,7 +141,6 @@ const GameScreen: React.FC = () => {
       navigate("/reveal");
     } catch (error) {
       console.error("❌ Failed to reveal character:", error);
-      toast.error("Failed to reveal character");
     }
   };
 
