@@ -15,7 +15,7 @@ from schemas.character_schemas import Character
 from mockData import mock_characters
 
 
-class GameController:
+class GameService:
     def __init__(self, api_key=None):
         self.active_games = {}
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from character_controller import CharacterController
-from game_controller import GameController
+from game_controller import GameService
 
 from schemas.game_schemas import (
     GameStartRequest, GameStartResponse,
@@ -21,27 +21,27 @@ from DataManager import DataManager
 
 def create_game_router():
     game_router = APIRouter(prefix="/api/game", tags=["game"])
-    game_controller = GameController()
+    game_service = GameService()
 
     @game_router.post("/start", response_model=GameStartResponse)
     def start_game_route(request: GameStartRequest):
-        return game_controller.start_game(request)
+        return game_service.start_game(request)
 
     @game_router.post("/question", response_model=GameQuestionResponse)
     def ask_question_route(request: GameQuestionRequest):
-        return game_controller.ask_question(request)
+        return game_service.ask_question(request)
 
     @game_router.post("/hint", response_model=GameHintResponse)
     def get_hint_route(request: GameHintRequest):
-        return game_controller.get_hint(request)
+        return game_service.get_hint(request)
 
     @game_router.post("/reveal", response_model=GameRevealResponse)
     def reveal_character_route(request: GameRevealRequest):
-        return game_controller.reveal_character(request)
+        return game_service.reveal_character(request)
 
     @game_router.post("/guess", response_model=GameGuessResponse)
     def make_guess_route(request: GameGuessRequest):
-        return game_controller.make_guess(request)
+        return game_service.make_guess(request)
 
     return game_router
 
