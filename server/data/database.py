@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 import sys
 
-from server.models import Character, Arc, Base
+from server.db_models import DBCharacter, Arc, Base
 
 BASE_DIR = Path(__file__).parent  # Use pathlib.Path
 sys.path.append(str(BASE_DIR.parent))
@@ -42,8 +42,6 @@ class DatabaseManager:
         self.characters_file = self.data_dir / "character_data.csv"
         self.arcs_file = self.data_dir / "arcs.json"
 
-        self.load_initial_data()
-
         self.initialized = True
 
 
@@ -72,7 +70,7 @@ class DatabaseManager:
     def load_initial_data(self):
         session = self.get_session()
         try:
-            if session.query(Character).count() == 0:
+            if session.query(DBCharacter).count() == 0:
                 self.load_characters_from_csv()
 
             if session.query(Arc).count() == 0:
@@ -87,7 +85,7 @@ class DatabaseManager:
         field_mapping = {
             'ID': 'id',
             'Name': 'name',
-            'Type': 'type',
+            'Type': 'fillerStatus',
             'Wiki': 'wiki_link',
             'Chapter': 'chapter',
             'Episode': 'episode',
@@ -123,7 +121,7 @@ class DatabaseManager:
 
                             character_data[model_key] = value
 
-                    character = Character(**character_data)
+                    character = DBCharacter(**character_data)
                     session.add(character)
 
             session.commit()

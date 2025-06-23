@@ -1,22 +1,11 @@
 from server.data.database import DatabaseManager
-from server.models import Character, Arc
+from server.db_models import DBCharacter, Arc
+from server.schemas.character_schemas import UpdateCharacterRequest, Character
 
 
 class Repository:
     def __init__(self):
         self.db_manager = DatabaseManager()
-        self.large_images = self.db_manager.data_dir / "img" / "lg_avatars"
-        self.small_images = self.db_manager.data_dir / "img" / "sm_avatars"
-
-    def _get_character_image_paths(self, character_id: str) -> tuple[str | None, str | None]:
-        """Helper function to get image paths for a character"""
-        small_image_path = self.small_images / f"{character_id}.webp"
-        large_image_path = self.large_images / f"{character_id}.webp"
-
-        small_image = f"img/sm_avatars/{character_id}.webp" if small_image_path.exists() else None
-        large_image = f"img/lg_avatars/{character_id}.webp" if large_image_path.exists() else None
-
-        return small_image, large_image
 
     def _get_character_episode(self, character: Character) -> int | None:
         """Get the effective episode number (higher of episode or number)"""
@@ -26,172 +15,98 @@ class Repository:
             return character.number
         if character.number is None:
             return character.episode
+
         return max(character.episode, character.number)
 
-    def _character_to_summary(self, character: Character) -> dict:
-        """Convert Character model to CharacterSummary dict"""
-        small_image, _ = self._get_character_image_paths(character.id)
 
-        return {
-            "id": character.id,
-            "name": character.name,
-            "smallImage": small_image,
-            "chapter": character.chapter,
-            "episode": self._get_character_episode(character),
-            "type": character.type,
-            "difficulty": character.difficulty,
-            "isIgnored": character.is_ignored,
-            "wikiLink": character.wiki_link
-        }
-
-    def _character_to_detail(self, character: Character) -> dict:
-        """Convert Character model to CharacterDetail dict"""
-        small_image, large_image = self._get_character_image_paths(character.id)
-
-        return {
-            "id": character.id,
-            "name": character.name,
-            "description": character.description,
-            "smallImage": small_image,
-            "largeImage": large_image,
-            "chapter": character.chapter,
-            "episode": self._get_character_episode(character),
-            "type": character.type,
-            "difficulty": character.difficulty,
-            "isIgnored": character.is_ignored,
-            "wikiLink": character.wiki_link
-        }
-
-    def get_characters_up_to(self, arc: str) -> dict:
+    def get_characters_up_to(self, arc: Arc, include_ignored: bool = False) -> list[Character]:
         """
         Get all characters up to a specific arc
         """
         session = self.db_manager.get_session()
         try:
             # Special case for "All"
-            if arc == "All":
-                all_characters = session.query(Character).all()
-                return {"characters": [self._character_to_summary(char) for char in all_characters]}
-
-            # Get the arc details
-            arc_obj = session.query(Arc).filter(Arc.name == arc).first()
-            all_arcs = session.query(Arc).all()
-            print(f"Available arcs: {[a.name for a in all_arcs]}")
-            print(f"Looking for arc: '{arc}'")
-            if not arc_obj:
-                raise ValueError(f"Arc '{arc}' not found")
+            if arc.name == "All":
+                all_characters = session.query(DBCharacter).all()
+                if not include_ignored:
+                    all_characters = [char for char in all_characters if not char.is_ignored]
+                return [char.to_pydantic() for char in all_characters]
 
             # Get all characters
-            all_characters = session.query(Character).all()
+            all_characters = session.query(DBCharacter).all()
             valid_characters = []
 
             for character in all_characters:
                 is_valid = True
 
+                # Check if character should be ignored
+                if not include_ignored and character.is_ignored:
+                    continue
+
                 # Check chapter constraint
-                if character.chapter is not None and arc_obj.last_chapter is not None:
-                    if character.chapter > arc_obj.last_chapter:
+                if character.chapter is not None and arc.last_chapter is not None:
+                    if character.chapter > arc.last_chapter:
                         is_valid = False
 
-                # Check episode constraint (using the higher of episode/number)
+                # Check episode constraint
                 character_episode = self._get_character_episode(character)
-                if character_episode is not None and arc_obj.last_episode is not None:
-                    if character_episode > arc_obj.last_episode:
+                if character_episode is not None and arc.last_episode is not None:
+                    if character_episode > arc.last_episode:
                         is_valid = False
 
                 if is_valid:
-                    valid_characters.append(self._character_to_summary(character))
+                    valid_characters.append(character.to_pydantic())
 
-            return {"characters": valid_characters}
+            return valid_characters
 
         finally:
             self.db_manager.close_session(session)
 
-    def get_character_by_id(self, character_id: str) -> dict:
+    def get_character_by_id(self, character_id: str) -> Character:
         """
         Returns a single character with full details
         """
         session = self.db_manager.get_session()
         try:
-            character = session.query(Character).filter(Character.id == character_id).first()
+            character = session.query(DBCharacter).filter(DBCharacter.id == character_id).first()
             if not character:
                 raise ValueError(f"Character with id '{character_id}' not found")
 
-            return self._character_to_detail(character)
+            return character.to_pydantic()
 
         finally:
             self.db_manager.close_session(session)
 
-    def update_character(self, character_id: str, request: dict) -> dict:
+    def update_character(self, character_id: str, request: UpdateCharacterRequest) -> Character:
         """
         The only 2 fields that should be able to be updated are the ignore and the difficulty
-        Expected request format: {"difficulty": str, "isIgnored": bool}
         """
         session = self.db_manager.get_session()
         try:
-            character = session.query(Character).filter(Character.id == character_id).first()
+            character = session.query(DBCharacter).filter(DBCharacter.id == character_id).first()
             if not character:
                 raise ValueError(f"Character with id '{character_id}' not found")
 
-            if "difficulty" in request:
-                character.difficulty = request["difficulty"]
-            if "isIgnored" in request:
-                character.is_ignored = request["isIgnored"]
+            if request.difficulty is not None:
+                character.difficulty = request.difficulty
+            if request.is_ignored is not None:
+                character.is_ignored = request.is_ignored
 
             session.commit()
 
-            return self._character_to_detail(character)
+            return character.to_pydantic()
 
         finally:
             self.db_manager.close_session(session)
 
-    def get_arcs(self) -> dict[str, dict[str, int | None]]:
-        """
-        Return all arcs as dict where key is name and value contains chapter/episode info
-        """
-        session = self.db_manager.get_session()
-        try:
-            arcs = session.query(Arc).all()
-
-            return {
-                arc.name: {
-                    "chapter": arc.last_chapter,
-                    "episode": arc.last_episode
-                }
-                for arc in arcs
-            }
-
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_arcs_before(self, last_arc) -> dict[str, dict[str, int | None]]:
-        """
-        Return all arcs as dict where key is name and value contains chapter/episode info
-        """
-        session = self.db_manager.get_session()
-        try:
-            arcs = session.query(Arc).all()
-
-            return {
-                arc.name: {
-                    "chapter": arc.last_chapter,
-                    "episode": arc.last_episode
-                }
-                for arc in arcs
-            }
-
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_filtered_characters(self, last_arc: str, difficulty_level: str | None) -> list:
+    def get_filtered_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
         """
         Get characters filtered by arc and difficulty
         """
         session = self.db_manager.get_session()
         try:
             # Start with characters up to the arc
-            characters_data = self.get_characters_up_to(last_arc)
-            characters = characters_data["characters"]
+            characters = self.get_characters_up_to(arc)
 
             filtered_characters = []
 
@@ -207,23 +122,37 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_filler_characters(self, last_arc: str, difficulty_level: str | None) -> list:
+
+    def get_filler_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
         """
         Get filler characters filtered by arc and difficulty
         """
-        all_characters = self.get_filtered_characters(last_arc, difficulty_level)
+        all_characters = self.get_filtered_characters(arc, difficulty_level)
         return [char for char in all_characters if char["type"].lower() == "filler"]
 
-    def get_canon_characters(self, last_arc: str, difficulty_level: str | None) -> list:
+
+    def get_canon_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
         """
         Get canon characters filtered by arc and difficulty
         """
-        all_characters = self.get_filtered_characters(last_arc, difficulty_level)
+        all_characters = self.get_filtered_characters(arc, difficulty_level)
         return [char for char in all_characters if char["type"].lower() == "canon"]
 
-    def get_non_canon_characters(self, last_arc: str, difficulty_level: str | None) -> list:
+
+    def get_non_canon_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
         """
         Get non-canon characters (everything except canon) filtered by arc and difficulty
         """
-        all_characters = self.get_filtered_characters(last_arc, difficulty_level)
+        all_characters = self.get_filtered_characters(arc, difficulty_level)
         return [char for char in all_characters if char["type"].lower() != "canon"]
+
+
+    def get_arc_by_name(self, arc_name) -> Arc:
+        """Return the Arc object, not just the name"""
+        session = self.db_manager.get_session()
+
+        try:
+            # Assuming you store the arc name somewhere and need to fetch the object
+            return session.query(Arc).filter(Arc.name == arc_name).first()
+        finally:
+            self.db_manager.close_session(session)

@@ -141,46 +141,6 @@ def handle_duplicate_ids(df):
         id_name = re.sub(r'#', ' - ', id_name)
         df.at[best_row_idx, 'Name'] = id_name
 
-    # for duplicate_id in duplicate_ids:
-    #     # Get all rows with this duplicate ID
-    #     duplicate_rows = df[df['ID'] == duplicate_id].copy()
-    #
-    #     # Add priority columns for sorting
-    #     duplicate_rows['type_priority'] = duplicate_rows['Type'].apply(get_type_priority)
-    #
-    #     # Convert numeric columns to numeric, filling NaN with -1 for sorting
-    #     for col in ['Episode', 'Chapter', 'Number', 'Year']:
-    #         if col in duplicate_rows.columns:
-    #             duplicate_rows[col] = pd.to_numeric(duplicate_rows[col], errors='coerce').fillna(-1)
-    #         else:
-    #             duplicate_rows[col] = -1
-    #
-    #     # Sort by priority: type_priority (desc), Episode (desc), Chapter (desc), Number (desc), Year (desc)
-    #     sort_columns = ['type_priority']
-    #     sort_ascending = [False]
-    #
-    #     for col in ['Episode', 'Chapter', 'Number', 'Year']:
-    #         if col in duplicate_rows.columns:
-    #             sort_columns.append(col)
-    #             sort_ascending.append(False)
-    #
-    #     duplicate_rows_sorted = duplicate_rows.sort_values(
-    #         by=sort_columns,
-    #         ascending=sort_ascending
-    #     )
-    #
-    #     # Keep the best row (first after sorting)
-    #     best_row_idx = duplicate_rows_sorted.index[0]
-    #
-    #     name = re.sub(r'_', ' ', duplicate_id)
-    #     name = re.sub(r'#', ' - ', name)
-    #
-    #     df.at[best_row_idx, 'Name'] = name
-    #
-    #     # Mark other occurrences for removal
-    #     other_indices = duplicate_rows_sorted.index[1:].tolist()
-    #     rows_to_drop.extend(other_indices)
-
     # Remove duplicate rows
     if rows_to_drop:
         df = df.drop(rows_to_drop).reset_index(drop=True)

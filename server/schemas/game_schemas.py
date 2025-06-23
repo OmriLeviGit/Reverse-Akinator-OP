@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from server.schemas.character_schemas import Character
+
 
 # Request models
 class GameStartRequest(BaseModel):
@@ -9,31 +11,20 @@ class GameStartRequest(BaseModel):
    difficultyLevel: str | None
 
 class GameQuestionRequest(BaseModel):
-   gameSessionId: str
-   questionText: str
-
-class GameHintRequest(BaseModel):
-   gameSessionId: str
-
-class GameHintResponse(BaseModel):
-   hint: str
-
-class GameRevealRequest(BaseModel):
-   gameSessionId: str
+   question: str
 
 class GameGuessRequest(BaseModel):
    guessedCharacterId: str
 
-# Response models
+# Responses
 class GameStartResponse(BaseModel):
-   message: str
+   message: str = "Game started successfully"
 
 class GameQuestionResponse(BaseModel):
    answer: str
-
-class GameRevealResponse(BaseModel):
-   character: str
+   isCorrect: bool
 
 class GameGuessResponse(BaseModel):
-   isCorrect: bool
+   result: str
+   character: Character
    message: str

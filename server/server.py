@@ -24,25 +24,6 @@ characters_router = create_characters_router()
 app.include_router(game_router)
 app.include_router(characters_router)
 
-#
-# def get_earlier_arc(arc1, arc2):
-#     if arc1 == "All":
-#         return arc2
-#     elif arc2 == "All":
-#         return arc2
-#
-#     if not arc1.chapter:
-#         return arc2
-#
-#     if not arc2.chapter:
-#         return arc1
-#
-#     if arc1.chapter < arc2.chapter:
-#         return arc1
-#
-#     return arc2
-
-
 
 @app.get("/")
 def root(session_mgr: SessionManager = Depends(get_session_manager)):

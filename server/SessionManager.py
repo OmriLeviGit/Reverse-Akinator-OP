@@ -2,6 +2,10 @@ from datetime import datetime
 from typing import Optional, Dict, List
 from fastapi import Request
 
+from server.Repository import Repository
+from server.db_models import Arc
+from server.schemas.character_schemas import Character
+
 
 class SessionManager:
     def __init__(self, request: Request):
@@ -41,9 +45,9 @@ class SessionManager:
         return session_copy
 
     # ===== GLOBAL SPOILER SETTINGS =====
-    def get_global_arc_limit(self) -> str:
+    def get_global_arc_limit(self) -> Arc:
         """Get user's global spoiler arc limit"""
-        return self.request.session.get("global_arc_limit", "All")
+        return Repository.get_arc_by_name(self.request.session.get("global_arc_limit", "All"))
 
     def set_global_arc_limit(self, arc: str):
         """Set user's global spoiler arc limit"""
@@ -98,10 +102,10 @@ class SessionManager:
             "timestamp": datetime.now().isoformat()
         })
 
-    def get_target_character(self) -> Optional[str]:
+    def get_target_character(self) -> Character:
         """Get the target character ID for current game (server use only!)"""
         current_game = self.get_current_game()
-        return current_game["target_character"] if current_game else None
+        return current_game["target_character"]
 
     def get_game_arc_limit(self) -> Optional[str]:
         """Get the arc limit for current game"""

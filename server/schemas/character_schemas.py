@@ -1,39 +1,27 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-class CharacterDetail(BaseModel):
+
+class Character(BaseModel):
     id: str
     name: str
     description: str | None = None
-    small_image: str | None = None
-    large_image: str | None = None
     chapter: int | None = None
     episode: int | None = None
-    type: str
-    difficulty: int
-    isIgnored: bool | None = None
-    wikiLink: str | None = None
+    fillerStatus: str
+    difficulty: str | None
+    is_ignored: bool = Field(None, alias="isIgnored")
+    wiki_link: str | None = Field(None, alias="wikiLink")
 
-class CharacterSummary(BaseModel):
-    id: str
-    name: str
-    small_image: str | None = None
-    chapter: int | None = None
-    episode: int | None = None
-    type: str
-    difficulty: int
-    isIgnored: bool | None = None
-    wikiLink: str | None = None
-
-class CharactersResponse(BaseModel):
-    characters: list[CharacterSummary]
-
-class CharacterDetailResponse(BaseModel):
-    character: CharacterDetail
+    class Config:
+        populate_by_name = True  # Accept both snake_case and camelCase
 
 class UpdateCharacterRequest(BaseModel):
+    characterId: str  # Move from URL to body
     difficulty: str | None = None
     isIgnored: bool | None = None
 
-class UpdateCharacterResponse(BaseModel):
-    character_id: str
-    message: str = "Character updated successfully"
+# Responses
+class CharactersResponse(BaseModel):
+    characters: list[Character]
+    count: int | None = None
+    arc: str | None = None
