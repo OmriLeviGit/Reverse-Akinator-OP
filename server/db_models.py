@@ -54,12 +54,23 @@ class DBCharacter(Base):
             name=self.name,
             description=self.description,
             chapter=self.chapter,
-            episode=self._get_character_episode(),
-            type=self.fillerStatus,
+            episode=self.get_character_episode(),
+            fillerStatus=self.fillerStatus,
             difficulty=self.difficulty,
             isIgnored=self.is_ignored,
             wikiLink=self.wiki_link
         )
+
+    def get_character_episode(self) -> int | None:
+        """Get the effective episode number (higher of episode or number)"""
+        if self.episode is None and self.number is None:
+            return None
+        if self.episode is None:
+            return self.number
+        if self.number is None:
+            return self.episode
+
+        return max(self.episode, self.number)
 
 
 class Arc(Base):

@@ -7,18 +7,6 @@ class Repository:
     def __init__(self):
         self.db_manager = DatabaseManager()
 
-    def _get_character_episode(self, character: Character) -> int | None:
-        """Get the effective episode number (higher of episode or number)"""
-        if character.episode is None and character.number is None:
-            return None
-        if character.episode is None:
-            return character.number
-        if character.number is None:
-            return character.episode
-
-        return max(character.episode, character.number)
-
-
     def get_characters_up_to(self, arc: Arc, include_ignored: bool = False) -> list[Character]:
         """
         Get all characters up to a specific arc
@@ -30,6 +18,8 @@ class Repository:
                 all_characters = session.query(DBCharacter).all()
                 if not include_ignored:
                     all_characters = [char for char in all_characters if not char.is_ignored]
+                a = [char.to_pydantic() for char in all_characters]
+
                 return [char.to_pydantic() for char in all_characters]
 
             # Get all characters
@@ -49,7 +39,7 @@ class Repository:
                         is_valid = False
 
                 # Check episode constraint
-                character_episode = self._get_character_episode(character)
+                character_episode = character.get_character_episode()
                 if character_episode is not None and arc.last_episode is not None:
                     if character_episode > arc.last_episode:
                         is_valid = False
@@ -61,6 +51,7 @@ class Repository:
 
         finally:
             self.db_manager.close_session(session)
+
 
     def get_character_by_id(self, character_id: str) -> Character:
         """
@@ -147,12 +138,25 @@ class Repository:
         return [char for char in all_characters if char["type"].lower() != "canon"]
 
 
-    def get_arc_by_name(self, arc_name) -> Arc:
+    def get_arc_by_name(self, arc_name: str) -> Arc:
         """Return the Arc object, not just the name"""
         session = self.db_manager.get_session()
 
         try:
-            # Assuming you store the arc name somewhere and need to fetch the object
+            if arc_name == "All":
+                return Arc(name="All")
+
             return session.query(Arc).filter(Arc.name == arc_name).first()
+        finally:
+            self.db_manager.close_session(session)
+
+    def get_arcs_before(self, arc: Arc) -> list[Arc]:
+        session = self.db_manager.get_session()
+        try:
+            if arc.name == "All":
+                return session.query(Arc).all()
+
+            return session.query(Arc).filter(Arc.last_chapter <= arc.last_chapter).all()
+
         finally:
             self.db_manager.close_session(session)

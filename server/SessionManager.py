@@ -47,7 +47,7 @@ class SessionManager:
     # ===== GLOBAL SPOILER SETTINGS =====
     def get_global_arc_limit(self) -> Arc:
         """Get user's global spoiler arc limit"""
-        return Repository.get_arc_by_name(self.request.session.get("global_arc_limit", "All"))
+        return Repository().get_arc_by_name(self.request.session.get("global_arc_limit", "All"))
 
     def set_global_arc_limit(self, arc: str):
         """Set user's global spoiler arc limit"""
