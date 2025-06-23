@@ -39,13 +39,7 @@ export const gameApi = {
     return response.data;
   },
 
-  getHint: async (gameSessionId: string) => {
-    const response = await api.post("/game/hint", { gameSessionId });
-    return response.data;
-  },
-
   revealCharacter: async (gameSessionId: string) => {
-    console.log("@@@");
     const response = await api.post("/game/reveal", { gameSessionId });
     return response.data;
   },

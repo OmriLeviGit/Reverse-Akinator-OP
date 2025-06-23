@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGameContext } from "@/contexts/GameContext";
 import { useSelectedArc } from "@/hooks/useSelectedArc";
+import { useArcs } from "@/hooks/useArcs";
 
 interface Arc {
   name: string;
@@ -10,7 +10,7 @@ interface Arc {
 }
 
 const ArcSelection: React.FC = () => {
-  const { arcList } = useGameContext();
+  const { arcList } = useArcs();
   const { selectedArc, setSelectedArc } = useSelectedArc();
 
   const arcs: Arc[] = (arcList?.arcList || [])

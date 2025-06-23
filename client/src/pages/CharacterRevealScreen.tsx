@@ -3,12 +3,14 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
-import { useGameContext } from "../contexts/GameContext";
+import { useGameContext } from "../contexts/AppContext";
+import { useCharacterRatings } from "../hooks/useCharacterRatings";
 import { DifficultyRating } from "@/components/DifficultyRating";
 
 const CharacterRevealScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCharacter, characterRatings, setCharacterRating, toggleIgnoreCharacter, startGame, currentGameSession } = useGameContext();
+  const { currentCharacter, startGame, currentGameSession } = useGameContext();
+  const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
   const [showConfirmation, setShowConfirmation] = useState<"added" | "removed" | null>(null);
 
   // Redirect to home if no current character or game session
@@ -23,7 +25,7 @@ const CharacterRevealScreen: React.FC = () => {
     return null;
   }
 
-  const currentRating = characterRatings[currentCharacter.name];
+  const currentRating = currentCharacter.difficulty; // Get rating directly from character
 
   const handleRating = (rating: number) => {
     setCharacterRating(currentCharacter.name, rating);

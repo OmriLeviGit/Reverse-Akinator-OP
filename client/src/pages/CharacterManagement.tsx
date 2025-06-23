@@ -1,22 +1,27 @@
 // src/pages/CharacterManagement.tsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
-import { useGameContext } from "../contexts/GameContext";
+import { useGameContext } from "../contexts/AppContext";
 import { CharacterFilters } from "../components/character-management/CharacterFilters";
 import { CharacterCard } from "../components/character-management/CharacterCard";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
+import { useCharacters } from "@/hooks/useCharacters";
+import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 
 const CharacterManagement: React.FC = () => {
-  const {
-    allCharacters,
-    characterRatings,
-    setCharacterRating,
-    toggleIgnoreCharacter, // Changed from addToIgnoredCharacters/removeFromIgnoredCharacters
-    isLoadingCharacters,
-    characterError,
-  } = useGameContext();
+  const { allCharacters, isLoadingCharacters, characterError } = useCharacters();
+
+  const { setCharacterRating, isUpdatingRating, toggleIgnoreCharacter, isUpdatingIgnoreList } = useCharacterRatings();
+
+  const characterRatings = useMemo(() => {
+    const difficulties: Record<string, number> = {};
+    allCharacters.forEach((character) => {
+      difficulties[character.name] = character.difficulty;
+    });
+    return difficulties;
+  }, [allCharacters]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("all");

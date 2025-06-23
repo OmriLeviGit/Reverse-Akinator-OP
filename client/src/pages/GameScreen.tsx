@@ -7,12 +7,14 @@ import MessageArea from "../components/game/MessageArea";
 import GameActions from "../components/game/GameActions";
 import CharacterSearch from "../components/CharacterSearch";
 import { useGameMessages } from "../hooks/useGameMessages";
-import { useGameContext } from "../contexts/GameContext";
+import { useGameContext } from "../contexts/AppContext";
 import { gameApi } from "../services/api"; // Add this import
+import { useCharacters } from "@/hooks/useCharacters";
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { allCharacters, currentGameSession, revealCharacter } = useGameContext();
+  const { currentGameSession, revealCharacter } = useGameContext();
+  const { allCharacters, isLoadingCharacters } = useCharacters();
   const { messages, addMessage, messagesEndRef } = useGameMessages();
 
   const [inputMessage, setInputMessage] = useState("");
@@ -37,16 +39,6 @@ const GameScreen: React.FC = () => {
       return data.answer;
     } catch (error) {
       console.error("Error asking question:", error);
-      throw error;
-    }
-  };
-
-  const getHint = async () => {
-    try {
-      const data = await gameApi.getHint(currentGameSession.gameSessionId);
-      return data.hint;
-    } catch (error) {
-      console.error("Error getting hint:", error);
       throw error;
     }
   };
@@ -93,12 +85,8 @@ const GameScreen: React.FC = () => {
     addMessage("Can I get a hint?", true);
 
     try {
-      const hint = await getHint();
-      // addMessage(`Hint: ${hint}`, false); TODO change eventually
-      addMessage(`No, pussy .l.`, false);
-    } catch (error) {
-      console.error("Error getting hint:", error);
-      addMessage("Sorry, I couldn't get a hint right now. Please try again.", false);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      addMessage(`no hits`, false);
     } finally {
       setIsProcessing(false);
     }

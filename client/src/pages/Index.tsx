@@ -6,8 +6,9 @@ import ArcSelection from "../components/ArcSelection";
 import FillerSettings from "../components/FillerSettings";
 import DifficultySelection from "../components/DifficultySelection";
 import StartButton from "../components/StartButton";
-import { useGameContext } from "../contexts/GameContext";
+import { useGameContext } from "../contexts/AppContext";
 import { useSelectedArc } from "@/hooks/useSelectedArc";
+import { useCharacters } from "@/hooks/useCharacters";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,7 +18,8 @@ const Index = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
   const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const { allCharacters, isLoadingCharacters, startGame } = useGameContext();
+  const { startGame } = useGameContext();
+  const { allCharacters, isLoadingCharacters } = useCharacters();
   const charactersLoaded = !isLoadingCharacters && allCharacters.length > 0;
 
   const handleFillerPercentageChange = (value: number) => {

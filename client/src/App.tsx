@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { GameProvider } from "./contexts/GameContext";
+import { GameProvider } from "./contexts/AppContext";
 import Index from "./pages/Index";
 import GameScreen from "./pages/GameScreen";
 import CharacterRevealScreen from "./pages/CharacterRevealScreen"; // Move to pages
