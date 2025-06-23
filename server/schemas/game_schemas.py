@@ -1,14 +1,12 @@
 from pydantic import BaseModel
 
-from schemas.character_schemas import Character
-
 
 # Request models
 class GameStartRequest(BaseModel):
    arcSelection: str
    fillerPercentage: float
    includeNonTVFillers: bool
-   difficultyLevel: str
+   difficultyLevel: str | None
 
 class GameQuestionRequest(BaseModel):
    gameSessionId: str
@@ -24,19 +22,17 @@ class GameRevealRequest(BaseModel):
    gameSessionId: str
 
 class GameGuessRequest(BaseModel):
-   gameSessionId: str
-   guessedCharacter: str
+   guessedCharacterId: str
 
 # Response models
 class GameStartResponse(BaseModel):
-   gameSessionId: str
    message: str
 
 class GameQuestionResponse(BaseModel):
    answer: str
 
 class GameRevealResponse(BaseModel):
-   character: Character
+   character: str
 
 class GameGuessResponse(BaseModel):
    isCorrect: bool

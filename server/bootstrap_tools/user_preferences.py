@@ -39,7 +39,7 @@ def create_user_preferences(character_data_file=None, preferences_file=None):
         with open(preferences_file, 'w', newline='') as f:
             writer = csv.writer(f)
             # Write header
-            writer.writerow(['character_id', 'rating', 'ignore_status'])
+            writer.writerow(['ID', 'Difficulty', 'Ignore Status'])
 
             # Write each character with default values
             for character_id in character_ids:

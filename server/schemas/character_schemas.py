@@ -1,37 +1,39 @@
 from pydantic import BaseModel
 
-
-class Character(BaseModel):
+class CharacterDetail(BaseModel):
+    id: str
     name: str
     description: str | None = None
-    image: str | None = None
-    arc: str | None = None
+    small_image: str | None = None
+    large_image: str | None = None
     chapter: int | None = None
     episode: int | None = None
-    fillerStatus: str  # "canon" | "filler" | "filler-non-tv"
-    source: str | None = None
+    type: str
+    difficulty: int
+    isIgnored: bool | None = None
+    wikiLink: str | None = None
+
+class CharacterSummary(BaseModel):
+    id: str
+    name: str
+    small_image: str | None = None
+    chapter: int | None = None
+    episode: int | None = None
+    type: str
     difficulty: int
     isIgnored: bool | None = None
     wikiLink: str | None = None
 
 class CharactersResponse(BaseModel):
-    characters: list[Character]
+    characters: list[CharacterSummary]
 
-class CharacterByIDResponse(BaseModel):
-    character: Character
+class CharacterDetailResponse(BaseModel):
+    character: CharacterDetail
 
-class ToggleCharacterRequest(BaseModel):
-    characterName: str
+class UpdateCharacterRequest(BaseModel):
+    difficulty: str | None = None
+    isIgnored: bool | None = None
 
-class ToggleCharacterResponse(BaseModel):
-    message: str
-    characterName: str
-
-class ChangeCharacterRatingRequest(BaseModel):
-    characterName: str
-    difficulty: int
-
-class ChangeCharacterRatingResponse(BaseModel):
-    message: str
-    characterName: str
-    difficulty: int
+class UpdateCharacterResponse(BaseModel):
+    character_id: str
+    message: str = "Character updated successfully"
