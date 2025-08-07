@@ -1,28 +1,19 @@
 // src/pages/CharacterManagement.tsx
-import React, { useMemo, useState } from "react";
+import React, { useState, useMemo } from "react";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
 import { useAppContext } from "../contexts/AppContext";
+import { useCharacterRatings } from "@/hooks/useCharacterRatings";
+import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { CharacterFilters } from "../components/character-management/CharacterFilters";
 import { CharacterCard } from "../components/character-management/CharacterCard";
-import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
-import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 
 const CharacterManagement: React.FC = () => {
-  // ✅ Use characters already loaded from AppContext instead of separate API call
   const { characters, isLoading } = useAppContext();
+  const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
 
-  const { setCharacterRating, isUpdatingRating, toggleIgnoreCharacter, isUpdatingIgnoreList } = useCharacterRatings();
-
-  const characterRatings = useMemo(() => {
-    const difficulties: Record<string, string | null> = {};
-    characters.forEach((character) => {
-      difficulties[character.name] = character.difficulty;
-    });
-    return difficulties;
-  }, [characters]);
-
+  // Filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("all");
   const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
@@ -30,67 +21,17 @@ const CharacterManagement: React.FC = () => {
   const [includeNonTVContent, setIncludeNonTVContent] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical-az");
 
-  const cycleIgnoreFilter = () => {
-    setIgnoreFilter((prev) => {
-      switch (prev) {
-        case "ignored-only":
-          return "not-ignored-only";
-        case "not-ignored-only":
-          return "all";
-        case "all":
-          return "ignored-only";
-      }
+  // Create character ratings lookup
+  const characterRatings = useMemo(() => {
+    const ratings: Record<string, string | null> = {};
+    characters.forEach((character) => {
+      ratings[character.name] = character.difficulty;
     });
-  };
+    return ratings;
+  }, [characters]);
 
-  const cycleContentFilter = () => {
-    setContentFilter((prev) => {
-      const newValue = (() => {
-        switch (prev) {
-          case "all":
-            return "canon-only";
-          case "canon-only":
-            return "fillers-only";
-          case "fillers-only":
-            return "all";
-        }
-      })();
-
-      if (newValue === "canon-only") {
-        setIncludeNonTVContent(false);
-      }
-
-      return newValue;
-    });
-  };
-
-  const cycleRatingFilter = () => {
-    setRatingFilter((prev) => {
-      switch (prev) {
-        case "rated-only":
-          return "unrated-only";
-        case "unrated-only":
-          return "all";
-        case "all":
-          return "rated-only";
-      }
-    });
-  };
-
-  const handleNonTVContentChange = (checked: boolean | "indeterminate") => {
-    setIncludeNonTVContent(checked === true);
-  };
-
-  const handleRatingChange = (characterId: string, rating: number) => {
-    setCharacterRating(characterId, rating);
-  };
-
-  const handleIgnoreToggle = (characterId: string, isCurrentlyIgnored: boolean) => {
-    toggleIgnoreCharacter(characterId);
-  };
-
-  // Create ignoredCharacters Set directly from character data for filtering hook
-  const ignoredCharacters = React.useMemo(() => {
+  // Create ignored characters set
+  const ignoredCharacters = useMemo(() => {
     const ignored = new Set<string>();
     characters.forEach((character) => {
       if (character.isIgnored) {
@@ -100,8 +41,9 @@ const CharacterManagement: React.FC = () => {
     return ignored;
   }, [characters]);
 
+  // Use your existing filtering hook
   const filteredAndSortedCharacters = useCharacterFiltering({
-    allCharacters: characters, // ✅ Use characters from AppContext
+    allCharacters: characters,
     ignoreFilter,
     contentFilter,
     ratingFilter,
@@ -112,26 +54,40 @@ const CharacterManagement: React.FC = () => {
     characterRatings,
   });
 
-  // ✅ Handle error state (if needed, you might want to add error handling to AppContext)
-  const characterError = null; // Remove this if you add proper error handling to AppContext
+  const handleToggleIgnore = async (id: string) => {
+    try {
+      await toggleIgnoreCharacter(id);
+    } catch (error) {
+      console.error("Failed to update character ignore status:", error);
+    }
+  };
 
-  if (characterError) {
+  const handleUpdateDifficulty = async (id: string, difficulty: string | null) => {
+    try {
+      if (difficulty === null || difficulty === "") {
+        await setCharacterRating(id, 0);
+      } else {
+        const difficultyValue = parseInt(difficulty);
+        await setCharacterRating(id, difficultyValue);
+      }
+    } catch (error) {
+      console.error("Failed to update character difficulty:", error);
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
     return (
       <div className="min-h-screen relative overflow-hidden">
         <div className="absolute inset-0 ocean-gradient"></div>
-        <div className="relative z-10 min-h-screen flex flex-col">
+        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center">
           <Header />
-          <NavigationHeader />
-          <main className="flex-1 container mx-auto px-4 py-8">
-            <div className="max-w-6xl mx-auto">
-              <div className="text-center py-12">
-                <div className="bg-red-500/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-red-500/20">
-                  <p className="text-red-400 text-lg mb-2">Failed to load characters</p>
-                  <p className="text-red-300/70">Please try refreshing the page.</p>
-                </div>
-              </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-white text-xl">Loading characters...</p>
             </div>
-          </main>
+          </div>
         </div>
       </div>
     );
@@ -150,83 +106,63 @@ const CharacterManagement: React.FC = () => {
 
       {/* Single Scrollable Container */}
       <div className="relative z-10 h-screen overflow-y-auto">
-        {/* Scrollable Header Section */}
+        {/* Header */}
         <Header />
 
-        {/* Sticky Title and Filters Section */}
-        <div className="sticky top-0 z-40 border-white/10 ">
+        {/* Sticky Navigation */}
+        <div className="sticky top-0 z-40 backdrop-blur-xl bg-black/20">
           <NavigationHeader />
-          <div className="container mx-auto px-4 py-6">
-            <div className="max-w-6xl mx-auto">
-              {/* Page Header */}
-              <div className="text-center mb-6">
-                <h2 className="text-3xl font-bold pirate-text mb-2">Character Management</h2>
-                <p className="text-white/80">Manage character difficulty ratings and ignore settings</p>
-              </div>
-
-              {/* Filters - only show when not loading */}
-              {!isLoading && (
-                <CharacterFilters
-                  ignoreFilter={ignoreFilter}
-                  contentFilter={contentFilter}
-                  ratingFilter={ratingFilter}
-                  includeNonTVContent={includeNonTVContent}
-                  searchTerm={searchTerm}
-                  sortOption={sortOption}
-                  onIgnoreFilterCycle={cycleIgnoreFilter}
-                  onContentFilterCycle={cycleContentFilter}
-                  onRatingFilterCycle={cycleRatingFilter}
-                  onNonTVContentChange={handleNonTVContentChange}
-                  onSearchChange={setSearchTerm}
-                  onSortChange={setSortOption}
-                />
-              )}
-            </div>
-          </div>
         </div>
 
-        {/* Character List Content */}
+        {/* Main Content */}
         <div className="container mx-auto px-4 py-8">
-          <div className="max-w-[70rem] mx-auto">
-            {/* Loading State */}
-            {isLoading && (
-              <div className="text-center py-12">
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
-                  <p className="text-white/70 text-lg">Loading characters...</p>
-                </div>
-              </div>
-            )}
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
+              {/* Filter Panel */}
+              <aside className="lg:sticky lg:top-20 lg:h-fit">
+                <CharacterFilters
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  ignoreFilter={ignoreFilter}
+                  onIgnoreFilterChange={setIgnoreFilter}
+                  contentFilter={contentFilter}
+                  onContentFilterChange={setContentFilter}
+                  ratingFilter={ratingFilter}
+                  onRatingFilterChange={setRatingFilter}
+                  includeNonTVContent={includeNonTVContent}
+                  onIncludeNonTVContentChange={setIncludeNonTVContent}
+                  sortOption={sortOption}
+                  onSortOptionChange={setSortOption}
+                  filteredCount={filteredAndSortedCharacters.length}
+                  totalCount={characters.length}
+                />
+              </aside>
 
-            {!isLoading && (
-              <>
-                {/* Characters List */}
-                <div className="space-y-4">
-                  {filteredAndSortedCharacters.map((character) => {
-                    const currentRating = characterRatings[character.name];
-                    const isIgnored = character.isIgnored;
-                    return (
+              {/* Character Grid */}
+              <main>
+                
+                {/* Character Cards */}
+                {filteredAndSortedCharacters.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                    {filteredAndSortedCharacters.map((character) => (
                       <CharacterCard
-                        key={character.id} // ✅ Use character.id instead of character.name for key
+                        key={character.id}
                         character={character}
-                        currentRating={currentRating}
-                        isIgnored={isIgnored}
-                        onRatingChange={handleRatingChange}
-                        onIgnoreToggle={handleIgnoreToggle}
+                        onRatingChange={handleUpdateDifficulty}
+                        onIgnoreToggle={handleToggleIgnore}
                       />
-                    );
-                  })}
-                </div>
-
-                {filteredAndSortedCharacters.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
-                      <p className="text-white/70 text-lg mb-2">No characters found with current filters.</p>
-                      <p className="text-white/50">Try adjusting your filters or search terms.</p>
-                    </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/20">
+                    <h3 className="text-2xl font-semibold text-white mb-2">No characters found</h3>
+                    <p className="text-gray-300">
+                      Try adjusting your filters to see more results.
+                    </p>
                   </div>
                 )}
-              </>
-            )}
+              </main>
+            </div>
           </div>
         </div>
       </div>

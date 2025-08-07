@@ -1,55 +1,42 @@
 // src/components/character-management/CharacterCard.tsx
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { Character } from "../../types/character";
-import { DifficultyRating } from "@/components/DifficultyRating";
 
 interface CharacterCardProps {
   character: Character;
-  currentRating: string | null; // ✅ Updated to match new difficulty type
-  isIgnored: boolean;
-  onRatingChange: (characterId: string, rating: number) => void;
-  onIgnoreToggle: (characterId: string, isCurrentlyIgnored: boolean) => void;
+  onRatingChange: (characterId: string, difficulty: string | null) => void;
+  onIgnoreToggle: (characterId: string) => void;
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ 
   character, 
-  currentRating, 
-  isIgnored, 
   onRatingChange, 
   onIgnoreToggle 
 }) => {
-  // Helper function to get display text for filler status
   const getFillerStatusDisplay = (status: string) => {
     switch (status) {
-      case "Canon":
-        return "Canon";
-      case "Filler":
-        return "Filler";
-      case "Filler-Non-TV":
-        return "Filler (Non-TV)";
-      default:
-        return status;
+      case "Canon": return "Canon";
+      case "Filler": return "Filler";
+      case "Filler-Non-TV": return "Filler (Non-TV)";
+      default: return status;
     }
-  };
-
-  // Helper function to convert string rating to number for DifficultyRating component
-  const getRatingAsNumber = (rating: string | null): number => {
-    if (!rating) return 0;
-    const parsed = parseFloat(rating);
-    return isNaN(parsed) ? 0 : parsed;
   };
 
   return (
     <div
-      className={`backdrop-blur-lg rounded-2xl p-6 ship-shadow border border-white/20 transition-all duration-200 ${
-        isIgnored ? "bg-white/5 opacity-75" : "bg-white/10 hover:bg-white/15"
+      className={`bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 transition-all duration-200 ${
+        character.isIgnored ? "opacity-60" : "hover:bg-white/15"
       }`}
     >
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        {/* Character Info */}
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/30">
+      {/* Character Image - Clickable */}
+      <div className="w-16 h-12 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
+        {character.wikiLink ? (
+          <a
+            href={character.wikiLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full h-full hover:opacity-80 transition-opacity"
+          >
             {character.image ? (
               <img 
                 src={character.image} 
@@ -57,68 +44,111 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
                 className="w-full h-full object-cover" 
               />
             ) : (
-              <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                <span className="text-white/60 text-xs">No Image</span>
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-white/60 text-xs">N/A</span>
               </div>
             )}
-          </div>
-          <div>
-            <h3 className={`text-xl font-bold mb-1 ${isIgnored ? "text-white/60" : "text-white"}`}>
+          </a>
+        ) : (
+          <>
+            {character.image ? (
+              <img 
+                src={character.image} 
+                alt={character.name} 
+                className="w-full h-full object-cover" 
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-white/60 text-xs">N/A</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Character Info */}
+      <div className="text-center mb-3">
+        {/* Character Name - Clickable - Now supports 2 lines */}
+        {character.wikiLink ? (
+          <a
+            href={character.wikiLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <h3 
+              className="text-lg font-bold text-white mb-1 hover:text-white/80 transition-colors leading-tight"
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                minHeight: '2.5rem', // Ensures consistent height for 2 lines
+                lineHeight: '1.25rem'
+              }}
+              title={character.name}
+            >
               {character.name}
             </h3>
-            <div className={`text-sm mb-1 ${isIgnored ? "text-white/40" : "text-white/60"}`}>
-              {getFillerStatusDisplay(character.fillerStatus)}
-            </div>
-            {/* Show episode/chapter info if available */}
-            {(character.episode || character.chapter) && (
-              <div className={`text-xs mb-1 ${isIgnored ? "text-white/30" : "text-white/50"}`}>
-                {character.episode && `Episode ${character.episode}`}
-                {character.episode && character.chapter && " • "}
-                {character.chapter && `Chapter ${character.chapter}`}
-              </div>
-            )}
-            {character.wikiLink && (
-          <a href={character.wikiLink} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm">
-            View Wiki
           </a>
-            )}
+        ) : (
+          <h3 
+            className="text-lg font-bold text-white mb-1 leading-tight"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              minHeight: '2.5rem', // Ensures consistent height for 2 lines
+              lineHeight: '1.25rem'
+            }}
+            title={character.name}
+          >
+            {character.name}
+          </h3>
+        )}
+        
+        {/* Episode/Chapter/Status - Fixed height container */}
+        <div className="h-4 mb-2 flex items-center justify-center">
+          <div className="text-xs text-gray-400 truncate flex items-center gap-1">
+            {getFillerStatusDisplay(character.fillerStatus)}
+            {(character.episode || character.chapter) && " • "}
+            {character.episode && `Ep ${character.episode}`}
+            {character.episode && character.chapter && " • "}
+            {character.chapter && `Ch ${character.chapter}`}
           </div>
         </div>
+      </div>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-6 items-center">
-          {/* Difficulty Rating */}
-          <div className="space-y-3 text-center">
-            <DifficultyRating 
-              currentRating={getRatingAsNumber(currentRating)} 
-              onRatingChange={(rating) => onRatingChange(character.id, rating)} // ✅ Use character.id
-            />
-            {/* Show current difficulty from character if available */}
-            {character.difficulty && (
-              <div className={`text-xs ${isIgnored ? "text-white/40" : "text-white/60"}`}>
-                Base: {character.difficulty}
-              </div>
-            )}
-          </div>
-
-          {/* Ignore Toggle */}
-          <div className="space-y-3 text-center">
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Button
-                onClick={() => onIgnoreToggle(character.id, isIgnored)} // ✅ Use character.id
-                variant="outline"
-                size="sm"
-                className={
-                  isIgnored
-                    ? "bg-white/20 hover:bg-white/30 text-white border border-white/40 text-xs px-2 py-1"
-                    : "bg-white/10 text-white border-white/30 hover:bg-white/20 text-xs px-2 py-1"
-                }
-              >
-                {isIgnored ? "Unignore" : "Ignore"}
-              </Button>
-            </div>
-          </div>
+      {/* Actions - Fixed position */}
+      <div className="space-y-2">
+        {/* Difficulty */}
+        <div>
+          <select
+            value={character.difficulty || ""}
+            onChange={(e) => onRatingChange(character.id, e.target.value || null)}
+            className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs"
+          >
+            <option value="" className="bg-white text-gray-800">Unrated</option>
+            <option value="1" className="bg-white text-gray-800">1 - Very Easy</option>
+            <option value="2" className="bg-white text-gray-800">2 - Easy</option>
+            <option value="3" className="bg-white text-gray-800">3 - Medium</option>
+            <option value="4" className="bg-white text-gray-800">4 - Hard</option>
+            <option value="5" className="bg-white text-gray-800">5 - Very Hard</option>
+          </select>
         </div>
+
+        {/* Ignore Button */}
+        <button
+          onClick={() => onIgnoreToggle(character.id)}
+          className={`w-full px-2 py-1 rounded text-xs font-medium transition-colors ${
+            character.isIgnored
+              ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
+              : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+          }`}
+        >
+          {character.isIgnored ? "Unignore" : "Ignore"}
+        </button>
       </div>
     </div>
   );
