@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
-import { useGameContext } from "../contexts/AppContext";
+import { useAppContext } from "../contexts/AppContext";
 import { useCharacterRatings } from "../hooks/useCharacterRatings";
 import { DifficultyRating } from "@/components/DifficultyRating";
 
 const CharacterRevealScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { currentCharacter, startGame, currentGameSession } = useGameContext();
+  const { currentCharacter, startGame, currentGameSession } = useAppContext();
   const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
   const [showConfirmation, setShowConfirmation] = useState<"added" | "removed" | null>(null);
 

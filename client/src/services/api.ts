@@ -19,6 +19,20 @@ api.interceptors.response.use(
   }
 );
 
+// General Management API
+// src/services/api.ts
+export const generalApi = {
+  getInitialData: async (preferences?: {
+    difficulty: string;
+    preferred_arc: string;
+    includeNonTVFillers: boolean;
+    fillerPercentage: number;
+  }) => {
+    const response = await api.get("/", { params: preferences || {} });
+    return response.data;
+  },
+};
+
 // Game Management API
 export const gameApi = {
   startGame: async (settings: {

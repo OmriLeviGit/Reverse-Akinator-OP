@@ -9,7 +9,7 @@ class Character(BaseModel):
     episode: int | None = None
     fillerStatus: str
     difficulty: str | None
-    is_ignored: bool = Field(None, alias="isIgnored")
+    is_ignored: bool = Field(False, alias="isIgnored")
     wiki_link: str | None = Field(None, alias="wikiLink")
 
     class Config:

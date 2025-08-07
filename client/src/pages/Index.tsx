@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
@@ -6,27 +6,76 @@ import ArcSelection from "../components/ArcSelection";
 import FillerSettings from "../components/FillerSettings";
 import DifficultySelection from "../components/DifficultySelection";
 import StartButton from "../components/StartButton";
-import { useGameContext } from "../contexts/AppContext";
-import { useSelectedArc } from "@/hooks/useSelectedArc";
-import { useCharacters } from "@/hooks/useCharacters";
+import { useAppContext } from "../contexts/AppContext";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { selectedArc, setSelectedArc } = useSelectedArc();
+  const [isStartingGame, setIsStartingGame] = useState(false);
+
+  const { startGame, sessionData, availableArcs, characters, isLoading, updatePreferences } = useAppContext();
+
+  // Initialize local state from session data
+  const [selectedArc, setSelectedArc] = useState("All");
   const [fillerPercentage, setFillerPercentage] = useState(0);
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
-  const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const { startGame } = useGameContext();
-  const { allCharacters, isLoadingCharacters } = useCharacters();
-  const charactersLoaded = !isLoadingCharacters && allCharacters.length > 0;
+  // Update local state when session data loads
+  useEffect(() => {
+    if (sessionData?.user_preferences) {
+      const prefs = sessionData.user_preferences;
+      setSelectedDifficulty(prefs.difficulty);
+      setSelectedArc(prefs.preferred_arc);
+      setIncludeNonTVFillers(prefs.includeNonTVFillers);
+      setFillerPercentage(prefs.fillerPercentage);
+    }
+  }, [sessionData]);
+
+  const charactersLoaded = !isLoading && characters.length > 0;
+
+  // Show loading screen until all data is loaded
+  if (isLoading || !sessionData || availableArcs.length === 0 || characters.length === 0) {
+    return (
+      <div className="min-h-screen relative overflow-hidden">
+        <div className="absolute inset-0 ocean-gradient"></div>
+        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center">
+          <Header />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+              <p className="text-white text-xl">Loading game data...</p>
+              <p className="text-white/70 text-sm mt-2">{isLoading ? "Fetching from server..." : "Preparing game..."}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Handlers that update both local state and preferences
+  const handleArcChange = (arc: string) => {
+    setSelectedArc(arc);
+    updatePreferences({ preferred_arc: arc });
+  };
+
+  const handleDifficultyChange = (difficulty: string) => {
+    setSelectedDifficulty(difficulty);
+    updatePreferences({ difficulty });
+  };
 
   const handleFillerPercentageChange = (value: number) => {
     setFillerPercentage(value);
+    updatePreferences({ fillerPercentage: value });
+
     if (value === 0) {
       setIncludeNonTVFillers(false);
+      updatePreferences({ includeNonTVFillers: false });
     }
+  };
+
+  const handleIncludeNonTVFillersChange = (include: boolean) => {
+    setIncludeNonTVFillers(include);
+    updatePreferences({ includeNonTVFillers: include });
   };
 
   const handleStart = async () => {
@@ -47,7 +96,7 @@ const Index = () => {
       console.log("Starting game with settings:", gameSettings);
       await startGame(gameSettings);
 
-      navigate("/game"); // Navigate to game route
+      navigate("/game");
     } catch (error: any) {
       console.error("Failed to start game:", error);
     } finally {
@@ -71,11 +120,11 @@ const Index = () => {
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
               <div className="space-y-8">
                 <div className="transform transition-all duration-300">
-                  <DifficultySelection selectedDifficulty={selectedDifficulty} onDifficultyChange={setSelectedDifficulty} />
+                  <DifficultySelection selectedDifficulty={selectedDifficulty} onDifficultyChange={handleDifficultyChange} />
                 </div>
 
                 <div className="border-t border-white/20 pt-6">
-                  <ArcSelection />
+                  <ArcSelection selectedArc={selectedArc} setSelectedArc={handleArcChange} availableArcs={availableArcs} />
                 </div>
 
                 <div className="border-t border-white/20 pt-6">
@@ -83,33 +132,21 @@ const Index = () => {
                     fillerPercentage={fillerPercentage}
                     onFillerPercentageChange={handleFillerPercentageChange}
                     includeNonTVFillers={includeNonTVFillers}
-                    onIncludeNonTVFillersChange={setIncludeNonTVFillers}
+                    onIncludeNonTVFillersChange={handleIncludeNonTVFillersChange}
                   />
                 </div>
               </div>
 
               {/* Start Button */}
               <div className="mt-8 flex justify-center">
-                <StartButton onStart={handleStart} disabled={isStartingGame || isLoadingCharacters} />
+                <StartButton onStart={handleStart} disabled={isStartingGame || isLoading} />
               </div>
             </div>
 
-            {/* Loading indicators */}
-            {isLoadingCharacters && (
-              <div className="mt-4 text-center">
-                <p className="text-white/70">Loading character database...</p>
-              </div>
-            )}
-
+            {/* Starting Game Loading */}
             {isStartingGame && (
               <div className="mt-4 text-center">
                 <p className="text-white/70">Starting game...</p>
-              </div>
-            )}
-
-            {!charactersLoaded && !isLoadingCharacters && (
-              <div className="mt-4 text-center">
-                <p className="text-red-300">Failed to load characters. Some features may not work.</p>
               </div>
             )}
           </div>

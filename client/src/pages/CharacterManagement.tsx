@@ -2,26 +2,26 @@
 import React, { useMemo, useState } from "react";
 import Header from "../components/Header";
 import NavigationHeader from "../components/NavigationHeader";
-import { useGameContext } from "../contexts/AppContext";
+import { useAppContext } from "../contexts/AppContext";
 import { CharacterFilters } from "../components/character-management/CharacterFilters";
 import { CharacterCard } from "../components/character-management/CharacterCard";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
-import { useCharacters } from "@/hooks/useCharacters";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 
 const CharacterManagement: React.FC = () => {
-  const { allCharacters, isLoadingCharacters, characterError } = useCharacters();
+  // ✅ Use characters already loaded from AppContext instead of separate API call
+  const { characters, isLoading } = useAppContext();
 
   const { setCharacterRating, isUpdatingRating, toggleIgnoreCharacter, isUpdatingIgnoreList } = useCharacterRatings();
 
   const characterRatings = useMemo(() => {
-    const difficulties: Record<string, number> = {};
-    allCharacters.forEach((character) => {
+    const difficulties: Record<string, string | null> = {};
+    characters.forEach((character) => {
       difficulties[character.name] = character.difficulty;
     });
     return difficulties;
-  }, [allCharacters]);
+  }, [characters]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("all");
@@ -92,16 +92,16 @@ const CharacterManagement: React.FC = () => {
   // Create ignoredCharacters Set directly from character data for filtering hook
   const ignoredCharacters = React.useMemo(() => {
     const ignored = new Set<string>();
-    allCharacters.forEach((character) => {
+    characters.forEach((character) => {
       if (character.isIgnored) {
         ignored.add(character.name);
       }
     });
     return ignored;
-  }, [allCharacters]);
+  }, [characters]);
 
   const filteredAndSortedCharacters = useCharacterFiltering({
-    allCharacters,
+    allCharacters: characters, // ✅ Use characters from AppContext
     ignoreFilter,
     contentFilter,
     ratingFilter,
@@ -111,6 +111,9 @@ const CharacterManagement: React.FC = () => {
     ignoredCharacters,
     characterRatings,
   });
+
+  // ✅ Handle error state (if needed, you might want to add error handling to AppContext)
+  const characterError = null; // Remove this if you add proper error handling to AppContext
 
   if (characterError) {
     return (
@@ -162,7 +165,7 @@ const CharacterManagement: React.FC = () => {
               </div>
 
               {/* Filters - only show when not loading */}
-              {!isLoadingCharacters && (
+              {!isLoading && (
                 <CharacterFilters
                   ignoreFilter={ignoreFilter}
                   contentFilter={contentFilter}
@@ -186,7 +189,7 @@ const CharacterManagement: React.FC = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-[70rem] mx-auto">
             {/* Loading State */}
-            {isLoadingCharacters && (
+            {isLoading && (
               <div className="text-center py-12">
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
                   <p className="text-white/70 text-lg">Loading characters...</p>
@@ -194,7 +197,7 @@ const CharacterManagement: React.FC = () => {
               </div>
             )}
 
-            {!isLoadingCharacters && (
+            {!isLoading && (
               <>
                 {/* Characters List */}
                 <div className="space-y-4">
@@ -203,7 +206,7 @@ const CharacterManagement: React.FC = () => {
                     const isIgnored = character.isIgnored;
                     return (
                       <CharacterCard
-                        key={character.name}
+                        key={character.id} // ✅ Use character.id instead of character.name for key
                         character={character}
                         currentRating={currentRating}
                         isIgnored={isIgnored}

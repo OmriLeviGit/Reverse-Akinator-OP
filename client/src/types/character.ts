@@ -1,5 +1,6 @@
 // src/types/character.ts
 export interface Character {
+  id: string;
   name: string;
 
   description: string | null;
@@ -9,11 +10,11 @@ export interface Character {
   chapter: number | null;
   episode: number | null;
 
-  fillerStatus: "canon" | "filler" | "filler-non-tv";
+  fillerStatus: "Canon" | "Filler" | "Filler-Non-TV";
   source: string | null;
 
-  difficulty: number;
-  isIgnored: boolean | null;
+  difficulty: string | null;
+  isIgnored: boolean;
 
   wikiLink: string | null;
 }

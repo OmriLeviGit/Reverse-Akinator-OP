@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useSelectedArc } from "@/hooks/useSelectedArc";
-import { useArcs } from "@/hooks/useArcs";
 
 interface Arc {
   name: string;
@@ -9,26 +7,23 @@ interface Arc {
   episode: number;
 }
 
-const ArcSelection: React.FC = () => {
-  const { arcList } = useArcs();
-  const { selectedArc, setSelectedArc } = useSelectedArc();
-
-  const arcs: Arc[] = (arcList?.arcList || [])
+interface ArcSelectionProps {
+  selectedArc: string;
+  setSelectedArc: (arc: string) => void;
+  availableArcs: any[];
+  sessionDataLoaded?: boolean; // Add this prop
+}
+const ArcSelection: React.FC<ArcSelectionProps> = ({ selectedArc, setSelectedArc, availableArcs }) => {
+  // Transform the availableArcs data to match your Arc interface
+  const arcs: Arc[] = (availableArcs || [])
     .map(
       (arc): Arc => ({
-        name: arc.name,
-        episode: arc.episode,
-        chapter: arc.chapter,
+        name: arc.name || arc,
+        episode: arc.episode || 0,
+        chapter: arc.chapter || 0,
       })
     )
     .reverse();
-
-  // Auto-select first arc when arcs load and no selection exists
-  useEffect(() => {
-    if (!selectedArc && arcs.length > 0) {
-      setSelectedArc(arcs[0].name);
-    }
-  }, [selectedArc, arcs, setSelectedArc]);
 
   return (
     <div className="space-y-3">
@@ -38,7 +33,7 @@ const ArcSelection: React.FC = () => {
           <SelectValue placeholder="Select arc..." />
         </SelectTrigger>
         <SelectContent className="bg-white/95 backdrop-blur-sm border-2 border-blue-300 max-h-60 z-50">
-          {/* "All" option with same grid but empty cells */}
+          {/** "All" option with same grid but empty cells **/}
           <SelectItem value="All" className="text-slate-800 hover:bg-blue-100 focus:bg-blue-100 cursor-pointer">
             <div className="grid grid-cols-[390px_80px_70px] w-full font-mono text-sm">
               <span className="text-left truncate mr-2 font-bold">All Arcs</span>
@@ -46,14 +41,13 @@ const ArcSelection: React.FC = () => {
               <span className="justify-self-start"></span>
             </div>
           </SelectItem>
-
-          {/* Regular arc options */}
+          {/** Regular arc options **/}
           {arcs.map((arc) => (
             <SelectItem key={arc.name} value={arc.name} className="text-slate-800 hover:bg-blue-100 focus:bg-blue-100 cursor-pointer">
               <div className="grid grid-cols-[390px_80px_70px] w-full font-mono text-sm">
                 <span className="text-left truncate mr-2">{arc.name}</span>
-                <span className="justify-self-start">Ep.{arc.episode.toString()}</span>
-                <span className="justify-self-start">Ch.{arc.chapter.toString()}</span>
+                <span className="justify-self-start">{arc.episode > 0 ? `Ep.${arc.episode}` : ""}</span>
+                <span className="justify-self-start">{arc.chapter > 0 ? `Ch.${arc.chapter}` : ""}</span>
               </div>
             </SelectItem>
           ))}

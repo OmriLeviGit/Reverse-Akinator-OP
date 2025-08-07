@@ -4,7 +4,7 @@ import random
 from server.SessionManager import SessionManager
 from server.db_models import Arc
 from server.schemas.character_schemas import Character
-# import google.generativeai as genai
+import google.generativeai as genai
 
 from server.schemas.game_schemas import GameStartRequest, GameQuestionRequest
 

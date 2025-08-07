@@ -7,13 +7,13 @@ import MessageArea from "../components/game/MessageArea";
 import GameActions from "../components/game/GameActions";
 import CharacterSearch from "../components/CharacterSearch";
 import { useGameMessages } from "../hooks/useGameMessages";
-import { useGameContext } from "../contexts/AppContext";
+import { useAppContext } from "../contexts/AppContext";
 import { gameApi } from "../services/api"; // Add this import
 import { useCharacters } from "@/hooks/useCharacters";
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { currentGameSession, revealCharacter } = useGameContext();
+  const { currentGameSession, revealCharacter } = useAppContext();
   const { allCharacters, isLoadingCharacters } = useCharacters();
   const { messages, addMessage, messagesEndRef } = useGameMessages();
 
