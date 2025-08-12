@@ -1,6 +1,6 @@
 from server.data.database import DatabaseManager
 from server.db_models import DBCharacter, Arc
-from server.schemas.character_schemas import UpdateCharacterRequest, Character
+from server.schemas.character_schemas import Character
 
 
 class Repository:
@@ -68,9 +68,9 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def update_character(self, character_id: str, request: UpdateCharacterRequest) -> Character:
+    def toggle_character_ignore(self, character_id: str) -> Character:
         """
-        The only 2 fields that should be able to be updated are the ignore and the difficulty
+        Toggle the ignore status of a character
         """
         session = self.db_manager.get_session()
         try:
@@ -78,17 +78,37 @@ class Repository:
             if not character:
                 raise ValueError(f"Character with id '{character_id}' not found")
 
-            if request.difficulty is not None:
-                character.difficulty = request.difficulty
-            if request.is_ignored is not None:
-                character.is_ignored = request.is_ignored
-
+            # Toggle the current ignore status
+            character.is_ignored = not character.is_ignored
             session.commit()
 
             return character.to_pydantic()
 
         finally:
             self.db_manager.close_session(session)
+
+    def update_character_difficulty(self, character_id: str, difficulty: str) -> Character:
+        """
+        Update the difficulty rating of a character
+        difficulty can be: "", "very-easy", "easy", "medium", "hard", "really-hard"
+        Empty string from frontend converts to None in database
+        """
+        session = self.db_manager.get_session()
+        try:
+            character = session.query(DBCharacter).filter(DBCharacter.id == character_id).first()
+            if not character:
+                raise ValueError(f"Character with id '{character_id}' not found")
+
+            # Convert empty string to None for database storage
+            db_difficulty = None if difficulty == "" else difficulty
+            character.difficulty = db_difficulty
+            session.commit()
+
+            return character.to_pydantic()
+
+        finally:
+            self.db_manager.close_session(session)
+
 
     def get_filtered_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
         """

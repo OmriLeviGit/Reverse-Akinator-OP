@@ -55,8 +55,8 @@ class DBCharacter(Base):
             description=self.description,
             chapter=self.chapter,
             episode=self.get_character_episode(),
-            fillerStatus=self.fillerStatus,
-            difficulty=self.difficulty,
+            filler_status=self.fillerStatus,
+            difficulty=self.difficulty or "",
             isIgnored=self.is_ignored,
             wikiLink=self.wiki_link
         )

@@ -24,7 +24,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
 
   return (
     <div
-      className={`bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 transition-all duration-200 ${
+      className={`bg-white/10 rounded-xl p-4 border border-white/20 transition-all duration-200 ${
         character.isIgnored ? "opacity-60" : "hover:bg-white/15"
       }`}
     >

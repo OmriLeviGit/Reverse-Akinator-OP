@@ -3,8 +3,17 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+// Main API instance for /api/* endpoints
 const api = axios.create({
-  baseURL: apiUrl,
+  baseURL: `${apiUrl}/api`,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Root API instance for root endpoints
+const rootApi = axios.create({
+  baseURL: apiUrl, // Points directly to root
   headers: {
     "Content-Type": "application/json",
   },
@@ -28,7 +37,7 @@ export const generalApi = {
     includeNonTVFillers: boolean;
     fillerPercentage: number;
   }) => {
-    const response = await api.get("/", { params: preferences || {} });
+    const response = await rootApi.get("/", { params: preferences || {} });
     return response.data;
   },
 };
@@ -90,6 +99,7 @@ export const characterApi = {
   },
 
   toggleIgnoreCharacter: async (characterId: string) => {
+    console.log("req", "/characters/toggle-ignore", { characterId });
     const response = await api.post("/characters/toggle-ignore", { characterId });
     console.log(characterId, response);
     return response.data;

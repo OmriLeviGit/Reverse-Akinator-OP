@@ -56,6 +56,7 @@ const CharacterManagement: React.FC = () => {
 
   const handleToggleIgnore = async (id: string) => {
     try {
+      console.log("id is", id);
       toggleIgnoreCharacter(id);
     } catch (error) {
       console.error("Failed to update character ignore status:", error);
@@ -91,13 +92,7 @@ const CharacterManagement: React.FC = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Ocean Background */}
-      <div className="absolute inset-0 ocean-gradient">
-        <div className="absolute inset-0">
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent"></div>
-        </div>
-      </div>
+      <div className="absolute inset-0 ocean-gradient"></div>
 
       {/* Single Scrollable Container */}
       <div className="relative z-10 h-screen overflow-y-auto">

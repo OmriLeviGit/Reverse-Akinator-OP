@@ -24,20 +24,20 @@ export const useCharacterRatings = () => {
   const queryClient = useQueryClient();
 
   const ratingMutation = useMutation({
-    mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: number }) =>
+    mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: string }) =>
       characterApi.rateCharacter(characterId, difficulty),
     onMutate: async ({ characterId, difficulty }) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
-
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) => (char.name === characterId ? { ...char, difficulty } : char)),
+          characters: old.characters.map((char: Character) =>
+            char.name === characterId ? { ...char, difficulty } : char
+          ),
         };
       });
-
       return { previousCharacters };
     },
     onError: (err, variables, context) => {
@@ -57,7 +57,9 @@ export const useCharacterRatings = () => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) => (char.name === characterId ? { ...char, isIgnored: !char.isIgnored } : char)),
+          characters: old.characters.map((char: Character) =>
+            char.name === characterId ? { ...char, isIgnored: !char.isIgnored } : char
+          ),
         };
       });
 
@@ -71,7 +73,8 @@ export const useCharacterRatings = () => {
   });
 
   return {
-    setCharacterRating: (characterId: string, difficulty: number) => {
+    setCharacterRating: (characterId: string, difficulty: string) => {
+      // Changed from number to string
       ratingMutation.mutate({ characterId, difficulty });
     },
     isUpdatingRating: ratingMutation.isPending,

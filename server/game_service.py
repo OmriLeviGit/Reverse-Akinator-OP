@@ -65,7 +65,7 @@ def create_game_prompt(character: Character, last_arc: Arc):
 
 ### CORE INFORMATION
 - APPEARANCE INFO: {appearance_info}
-- CHARACTER TYPE: {character.fillerStatus}
+- CHARACTER TYPE: {character.filler_status}
 
 </character_profile>
 

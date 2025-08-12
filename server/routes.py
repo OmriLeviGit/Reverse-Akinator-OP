@@ -5,7 +5,8 @@ from server.SessionManager import SessionManager, get_session_manager
 from server.schemas.game_schemas import (GameStartRequest, GameQuestionResponse, GameQuestionRequest, GameStartResponse,
                                          GameGuessResponse, GameGuessRequest)
 from server.schemas.character_schemas import (
-    CharactersResponse, UpdateCharacterRequest, Character
+    CharactersResponse, Character, ToggleIgnoreRequest, RateCharacterRequest, ToggleIgnoreResponse,
+    RateCharacterResponse
 )
 
 from server.Repository import Repository
@@ -61,10 +62,32 @@ def create_characters_router():
         except ValueError as e:
             raise HTTPException(status_code=404, detail="Characters not found")
 
-    @characters_router.patch("/update", response_model=Character)
-    def update_character(request: UpdateCharacterRequest):
+    @characters_router.post("/toggle-ignore")
+    def toggle_ignore_character(request: ToggleIgnoreRequest):
+
         try:
-            return Repository().update_character(request.characterId, request)
+            character = Repository().toggle_character_ignore(request.character_id)
+
+            return ToggleIgnoreResponse(
+                success=True,
+                character_id=character.id,
+                is_ignored=character.is_ignored
+            )
+
+        except ValueError as e:
+            raise HTTPException(status_code=404, detail=str(e))
+
+    @characters_router.post("/rate-character")
+    def rate_character(request: RateCharacterRequest):
+        try:
+            character = Repository().update_character_difficulty(request.character_id, request.difficulty)
+
+            return RateCharacterResponse(
+                success=True,
+                character_id=character.id,
+                difficulty=character.difficulty
+            )
+
         except ValueError as e:
             raise HTTPException(status_code=404, detail=str(e))
 

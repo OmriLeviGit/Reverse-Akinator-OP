@@ -140,13 +140,7 @@ const GameScreen: React.FC = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Ocean Background */}
-      <div className="absolute inset-0 ocean-gradient">
-        <div className="absolute inset-0">
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-          <div className="ocean-wave absolute inset-0 bg-gradient-to-r from-transparent via-white/3 to-transparent"></div>
-        </div>
-      </div>
+      <div className="absolute inset-0 ocean-gradient"></div>
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">

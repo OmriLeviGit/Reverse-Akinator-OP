@@ -25,9 +25,10 @@ const CharacterRevealScreen: React.FC = () => {
     return null;
   }
 
-  const currentRating = currentCharacter.difficulty; // Get rating directly from character
+  const currentRating = currentCharacter.difficulty; // This is now a string
 
-  const handleRating = (rating: number) => {
+  const handleRating = (rating: string) => {
+    // Changed from number to string
     setCharacterRating(currentCharacter.name, rating);
   };
 
@@ -86,7 +87,11 @@ const CharacterRevealScreen: React.FC = () => {
               {/* Character Image */}
               <div className="flex justify-center mb-6">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/30 ship-shadow">
-                  <img src={currentCharacter.image} alt={currentCharacter.name} className="w-full h-full object-cover" />
+                  <img
+                    src={currentCharacter.image}
+                    alt={currentCharacter.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
 
@@ -112,7 +117,9 @@ const CharacterRevealScreen: React.FC = () => {
 
               {/* Difficulty Rating System */}
               <div className="mb-8">
-                <h4 className="text-lg font-semibold text-white text-center mb-4">How difficult was this character to guess?</h4>
+                <h4 className="text-lg font-semibold text-white text-center mb-4">
+                  How difficult was this character to guess?
+                </h4>
                 <DifficultyRating currentRating={currentRating} onRatingChange={handleRating} />
               </div>
 
@@ -139,8 +146,12 @@ const CharacterRevealScreen: React.FC = () => {
               {/* Confirmation Messages */}
               {showConfirmation && (
                 <div className="text-center">
-                  {showConfirmation === "added" && <p className="text-green-300 text-sm">Character added to ignore list!</p>}
-                  {showConfirmation === "removed" && <p className="text-red-300 text-sm">Character removed from ignore list!</p>}
+                  {showConfirmation === "added" && (
+                    <p className="text-green-300 text-sm">Character added to ignore list!</p>
+                  )}
+                  {showConfirmation === "removed" && (
+                    <p className="text-red-300 text-sm">Character removed from ignore list!</p>
+                  )}
                 </div>
               )}
             </div>
