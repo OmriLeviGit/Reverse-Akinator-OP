@@ -78,6 +78,14 @@ export const gameApi = {
 
 // Character Data API
 export const characterApi = {
+  getAllCharacters: async () => {
+    console.log("🔍 About to call /api/characters/up-to");
+    const response = await api.get("/characters/up-to"); // ✅ Use axios api instance
+    console.log("📡 Response:", response.status);
+    console.log(response.data);
+    return response.data; // axios automatically parses JSON
+  },
+
   getCharacters: async () => {
     const response = await api.get("/characters");
     return response.data;

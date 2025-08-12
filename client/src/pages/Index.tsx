@@ -14,6 +14,13 @@ const Index = () => {
 
   const { startGame, sessionData, availableArcs, characters, isLoading, updatePreferences } = useAppContext();
 
+  console.log("Index page state:", {
+    isLoading,
+    sessionData: !!sessionData,
+    availableArcsLength: availableArcs.length,
+    charactersLength: characters.length,
+  });
+
   // Initialize local state from session data
   const [selectedArc, setSelectedArc] = useState("All");
   const [fillerPercentage, setFillerPercentage] = useState(0);
@@ -34,7 +41,7 @@ const Index = () => {
   const charactersLoaded = !isLoading && characters.length > 0;
 
   // Show loading screen until all data is loaded
-  if (isLoading || !sessionData || availableArcs.length === 0 || characters.length === 0) {
+  if (isLoading || !sessionData || availableArcs.length === 0) {
     return (
       <div className="min-h-screen relative overflow-hidden">
         <div className="absolute inset-0 ocean-gradient"></div>
@@ -44,7 +51,9 @@ const Index = () => {
             <div className="text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
               <p className="text-white text-xl">Loading game data...</p>
-              <p className="text-white/70 text-sm mt-2">{isLoading ? "Fetching from server..." : "Preparing game..."}</p>
+              <p className="text-white/70 text-sm mt-2">
+                {isLoading ? "Fetching from server..." : "Preparing game..."}
+              </p>
             </div>
           </div>
         </div>
@@ -120,11 +129,18 @@ const Index = () => {
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
               <div className="space-y-8">
                 <div className="transform transition-all duration-300">
-                  <DifficultySelection selectedDifficulty={selectedDifficulty} onDifficultyChange={handleDifficultyChange} />
+                  <DifficultySelection
+                    selectedDifficulty={selectedDifficulty}
+                    onDifficultyChange={handleDifficultyChange}
+                  />
                 </div>
 
                 <div className="border-t border-white/20 pt-6">
-                  <ArcSelection selectedArc={selectedArc} setSelectedArc={handleArcChange} availableArcs={availableArcs} />
+                  <ArcSelection
+                    selectedArc={selectedArc}
+                    setSelectedArc={handleArcChange}
+                    availableArcs={availableArcs}
+                  />
                 </div>
 
                 <div className="border-t border-white/20 pt-6">

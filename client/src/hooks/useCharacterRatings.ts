@@ -9,25 +9,22 @@ export const useCharacterRatings = () => {
     mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: string }) =>
       characterApi.rateCharacter(characterId, difficulty),
     onMutate: async ({ characterId, difficulty }) => {
-      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
-      // Snapshot the previous value
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
-      // Optimistically update the cache
+
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) =>
-            char.name === characterId ? { ...char, difficulty } : char
+          characters: old.characters.map(
+            (char: Character) => (char.id === characterId ? { ...char, difficulty } : char) // ✅ Fixed!
           ),
         };
       });
-      // Return context for rollback
+
       return { previousCharacters };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.previousCharacters) {
         queryClient.setQueryData(["allCharacters"], context.previousCharacters);
       }
@@ -44,8 +41,8 @@ export const useCharacterRatings = () => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) =>
-            char.name === characterId ? { ...char, isIgnored: !char.isIgnored } : char
+          characters: old.characters.map(
+            (char: Character) => (char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char) // ✅ Fixed!
           ),
         };
       });

@@ -1,7 +1,7 @@
 // src/contexts/AppContext.tsx
 import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { gameApi, generalApi } from "../services/api";
+import { gameApi, generalApi, characterApi } from "../services/api";
 import { Character } from "../types/character";
 import { cookieUtils } from "../utils/cookies";
 
@@ -65,7 +65,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [currentGameSession, setCurrentGameSession] = useState<GameSession | null>(null);
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [availableArcs, setAvailableArcs] = useState<any[]>([]);
-  const [characters, setCharacters] = useState<Character[]>([]);
 
   // Load saved preferences from cookie on mount
   const loadSavedPreferences = (): UserPreferences => {
@@ -91,7 +90,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Fetch initial data from server with saved preferences
   const {
     data: initialData,
-    isLoading,
+    isLoading: initialDataLoading,
     refetch,
   } = useQuery({
     queryKey: ["initialData"],
@@ -103,6 +102,19 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Separate query for characters using your existing endpoint
+  const { data: charactersData, isLoading: charactersLoading } = useQuery({
+    queryKey: ["allCharacters"],
+    queryFn: () => characterApi.getAllCharacters(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Extract characters from the response
+  const characters = charactersData?.characters || [];
+
+  // Combine loading states
+  const isLoading = initialDataLoading || charactersLoading;
+
   // Update state when initial data is fetched
   useEffect(() => {
     if (initialData) {
@@ -110,7 +122,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setSessionData(initialData.session_data);
       setAvailableArcs(initialData.available_arcs);
-      setCharacters(initialData.characters);
 
       // Save to cookie (without characters)
       cookieUtils.setCookie("sessionData", JSON.stringify(initialData.session_data));
@@ -122,7 +133,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Load from cookie on mount ONLY if no server data yet
   useEffect(() => {
-    if (!initialData && !isLoading) {
+    if (!initialData && !initialDataLoading) {
       console.log("Attempting to load from cookies...");
 
       const savedSessionData = cookieUtils.getCookie("sessionData");
@@ -146,7 +157,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       console.log("Cookie loading complete (characters will load from server)");
     }
-  }, [initialData, isLoading]);
+  }, [initialData, initialDataLoading]);
 
   // Function to update preferences locally and in cookies
   const updatePreferences = (newPreferences: Partial<UserPreferences>) => {

@@ -56,7 +56,6 @@ const CharacterManagement: React.FC = () => {
 
   const handleToggleIgnore = async (id: string) => {
     try {
-      console.log("id is", id);
       toggleIgnoreCharacter(id);
     } catch (error) {
       console.error("Failed to update character ignore status:", error);

@@ -43,15 +43,11 @@ def root(session_mgr: SessionManager = Depends(get_session_manager)):
     arc_limit = session_mgr.get_global_arc_limit()
     available_arcs = r.get_arcs_before(arc_limit)
 
-    characters = r.get_characters_up_to(arc_limit, include_ignored=True)
-    # add a response scheme, maybe split the characters from the rest and initiate 2 api calls
-
     return {
         "message": "API is running",
         "session_status": status,
         "session_data": session_mgr.get_safe_session_data(),
         "available_arcs": available_arcs,
-        "characters": characters
     }
 
 @app.get("/{path:path}")
