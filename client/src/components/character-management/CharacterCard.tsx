@@ -8,17 +8,17 @@ interface CharacterCardProps {
   onIgnoreToggle: (characterId: string) => void;
 }
 
-export const CharacterCard: React.FC<CharacterCardProps> = ({ 
-  character, 
-  onRatingChange, 
-  onIgnoreToggle 
-}) => {
+export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatingChange, onIgnoreToggle }) => {
   const getFillerStatusDisplay = (status: string) => {
     switch (status) {
-      case "Canon": return "Canon";
-      case "Filler": return "Filler";
-      case "Filler-Non-TV": return "Filler (Non-TV)";
-      default: return status;
+      case "Canon":
+        return "Canon";
+      case "Filler":
+        return "Filler";
+      case "Filler-Non-TV":
+        return "Filler (Non-TV)";
+      default:
+        return status;
     }
   };
 
@@ -28,63 +28,20 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
         character.isIgnored ? "opacity-60" : "hover:bg-white/15"
       }`}
     >
-      {/* Character Image - Clickable */}
-      <div className="w-16 h-12 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
-        {character.wikiLink ? (
-          <a
-            href={character.wikiLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full h-full hover:opacity-80 transition-opacity"
-          >
-            {character.image ? (
-              <img 
-                src={character.image} 
-                alt={character.name} 
-                className="w-full h-full object-cover" 
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-white/60 text-xs">N/A</span>
-              </div>
-            )}
-          </a>
-        ) : (
-          <>
-            {character.image ? (
-              <img 
-                src={character.image} 
-                alt={character.name} 
-                className="w-full h-full object-cover" 
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-white/60 text-xs">N/A</span>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-
       {/* Character Info */}
       <div className="text-center mb-3">
         {/* Character Name - Clickable - Now supports 2 lines */}
         {character.wikiLink ? (
-          <a
-            href={character.wikiLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block"
-          >
-            <h3 
+          <a href={character.wikiLink} target="_blank" rel="noopener noreferrer" className="block">
+            <h3
               className="text-lg font-bold text-white mb-1 hover:text-white/80 transition-colors leading-tight"
               style={{
-                display: '-webkit-box',
+                display: "-webkit-box",
                 WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                minHeight: '2.5rem', // Ensures consistent height for 2 lines
-                lineHeight: '1.25rem'
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                minHeight: "2.5rem", // Ensures consistent height for 2 lines
+                lineHeight: "1.25rem",
               }}
               title={character.name}
             >
@@ -92,22 +49,51 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             </h3>
           </a>
         ) : (
-          <h3 
+          <h3
             className="text-lg font-bold text-white mb-1 leading-tight"
             style={{
-              display: '-webkit-box',
+              display: "-webkit-box",
               WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              minHeight: '2.5rem', // Ensures consistent height for 2 lines
-              lineHeight: '1.25rem'
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              minHeight: "2.5rem", // Ensures consistent height for 2 lines
+              lineHeight: "1.25rem",
             }}
             title={character.name}
           >
             {character.name}
           </h3>
         )}
-        
+        {/* Character Image - Clickable */}
+        <div className="w-16 h-12 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
+          {character.wikiLink ? (
+            <a
+              href={character.wikiLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full h-full hover:opacity-80 transition-opacity"
+            >
+              {character.image ? (
+                <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-white/60 text-xs">N/A</span>
+                </div>
+              )}
+            </a>
+          ) : (
+            <>
+              {character.image ? (
+                <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-white/60 text-xs">N/A</span>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         {/* Episode/Chapter/Status - Fixed height container */}
         <div className="h-4 mb-2 flex items-center justify-center">
           <div className="text-xs text-gray-400 truncate flex items-center gap-1">
@@ -129,12 +115,24 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             onChange={(e) => onRatingChange(character.id, e.target.value || null)}
             className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs"
           >
-            <option value="" className="bg-white text-gray-800">Unrated</option>
-            <option value="1" className="bg-white text-gray-800">1 - Very Easy</option>
-            <option value="2" className="bg-white text-gray-800">2 - Easy</option>
-            <option value="3" className="bg-white text-gray-800">3 - Medium</option>
-            <option value="4" className="bg-white text-gray-800">4 - Hard</option>
-            <option value="5" className="bg-white text-gray-800">5 - Very Hard</option>
+            <option value="" className="bg-white text-gray-800">
+              Unrated
+            </option>
+            <option value="1" className="bg-white text-gray-800">
+              1 - Very Easy
+            </option>
+            <option value="2" className="bg-white text-gray-800">
+              2 - Easy
+            </option>
+            <option value="3" className="bg-white text-gray-800">
+              3 - Medium
+            </option>
+            <option value="4" className="bg-white text-gray-800">
+              4 - Hard
+            </option>
+            <option value="5" className="bg-white text-gray-800">
+              5 - Very Hard
+            </option>
           </select>
         </div>
 
