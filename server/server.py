@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
 from server.Repository import Repository
@@ -55,19 +56,19 @@ def root(session_mgr: SessionManager = Depends(get_session_manager)):
 
 @app.get("/{path:path}")
 def catch_all_get(path: str):
-    return {"error": f"GET endpoint /{path} not found"}
+    raise HTTPException(status_code=404, detail=f"GET endpoint /{path} not found")
 
 @app.post("/{path:path}")
 def catch_all_post(path: str):
-    return {"error": f"POST endpoint /{path} not found"}
+    raise HTTPException(status_code=404, detail=f"POST endpoint /{path} not found")
 
 @app.put("/{path:path}")
 def catch_all_put(path: str):
-    return {"error": f"PUT endpoint /{path} not found"}
+    raise HTTPException(status_code=404, detail=f"PUT endpoint /{path} not found")
 
 @app.delete("/{path:path}")
 def catch_all_delete(path: str):
-    return {"error": f"DELETE endpoint /{path} not found"}
+    raise HTTPException(status_code=404, detail=f"DELETE endpoint /{path} not found")
 
 if __name__ == '__main__':
     uvicorn.run("server.server:app", host="0.0.0.0", port=3001, reload=True)

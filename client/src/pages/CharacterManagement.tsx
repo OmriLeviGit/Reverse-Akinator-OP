@@ -56,7 +56,7 @@ const CharacterManagement: React.FC = () => {
 
   const handleToggleIgnore = async (id: string) => {
     try {
-      await toggleIgnoreCharacter(id);
+      toggleIgnoreCharacter(id);
     } catch (error) {
       console.error("Failed to update character ignore status:", error);
     }
@@ -64,12 +64,7 @@ const CharacterManagement: React.FC = () => {
 
   const handleUpdateDifficulty = async (id: string, difficulty: string | null) => {
     try {
-      if (difficulty === null || difficulty === "") {
-        await setCharacterRating(id, 0);
-      } else {
-        const difficultyValue = parseInt(difficulty);
-        await setCharacterRating(id, difficultyValue);
-      }
+      setCharacterRating(id, difficulty || "");
     } catch (error) {
       console.error("Failed to update character difficulty:", error);
     }
@@ -140,7 +135,6 @@ const CharacterManagement: React.FC = () => {
 
               {/* Character Grid */}
               <main>
-                
                 {/* Character Cards */}
                 {filteredAndSortedCharacters.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
@@ -156,9 +150,7 @@ const CharacterManagement: React.FC = () => {
                 ) : (
                   <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/20">
                     <h3 className="text-2xl font-semibold text-white mb-2">No characters found</h3>
-                    <p className="text-gray-300">
-                      Try adjusting your filters to see more results.
-                    </p>
+                    <p className="text-gray-300">Try adjusting your filters to see more results.</p>
                   </div>
                 )}
               </main>

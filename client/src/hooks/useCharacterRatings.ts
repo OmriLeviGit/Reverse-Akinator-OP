@@ -6,7 +6,7 @@ export const useCharacterRatings = () => {
   const queryClient = useQueryClient();
 
   const ratingMutation = useMutation({
-    mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: number }) =>
+    mutationFn: ({ characterId, difficulty }: { characterId: string; difficulty: string }) =>
       characterApi.rateCharacter(characterId, difficulty),
     onMutate: async ({ characterId, difficulty }) => {
       // Cancel any outgoing refetches
@@ -18,7 +18,9 @@ export const useCharacterRatings = () => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) => (char.name === characterId ? { ...char, difficulty } : char)),
+          characters: old.characters.map((char: Character) =>
+            char.name === characterId ? { ...char, difficulty } : char
+          ),
         };
       });
       // Return context for rollback
@@ -42,7 +44,9 @@ export const useCharacterRatings = () => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) => (char.name === characterId ? { ...char, isIgnored: !char.isIgnored } : char)),
+          characters: old.characters.map((char: Character) =>
+            char.name === characterId ? { ...char, isIgnored: !char.isIgnored } : char
+          ),
         };
       });
 
@@ -56,7 +60,7 @@ export const useCharacterRatings = () => {
   });
 
   return {
-    setCharacterRating: (characterId: string, difficulty: number) => {
+    setCharacterRating: (characterId: string, difficulty: string) => {
       ratingMutation.mutate({ characterId, difficulty });
     },
     isUpdatingRating: ratingMutation.isPending,

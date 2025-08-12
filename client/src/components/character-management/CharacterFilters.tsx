@@ -97,10 +97,25 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             All Difficulties
           </option>
           <option value="rated-only" className="bg-white text-gray-800">
-            Rated Only
+            All Rated
           </option>
           <option value="unrated-only" className="bg-white text-gray-800">
-            Unrated Only
+            Unrated
+          </option>
+          <option value="very-easy" className="bg-white text-gray-800">
+            Very Easy
+          </option>
+          <option value="easy" className="bg-white text-gray-800">
+            Easy
+          </option>
+          <option value="medium" className="bg-white text-gray-800">
+            Medium
+          </option>
+          <option value="hard" className="bg-white text-gray-800">
+            Hard
+          </option>
+          <option value="really-hard" className="bg-white text-gray-800">
+            Really Hard
           </option>
         </select>
       </div>

@@ -12,8 +12,28 @@ interface UseCharacterFilteringProps {
   searchTerm: string;
   sortOption: SortOption;
   ignoredCharacters: Set<string>;
-  characterRatings: Record<string, string | null>; // ✅ Updated to match new difficulty type
+  characterRatings: Record<string, string | null>;
 }
+
+// Helper function to convert difficulty strings to numeric values for sorting
+const getDifficultyNumericValue = (difficulty: string | null | undefined): number => {
+  if (!difficulty || difficulty === "") return 0;
+
+  switch (difficulty) {
+    case "very-easy":
+      return 1;
+    case "easy":
+      return 2;
+    case "medium":
+      return 3;
+    case "hard":
+      return 4;
+    case "really-hard":
+      return 5;
+    default:
+      return 0;
+  }
+};
 
 export const useCharacterFiltering = ({
   allCharacters,
@@ -29,28 +49,26 @@ export const useCharacterFiltering = ({
   return useMemo(() => {
     let filtered = allCharacters;
 
-    // Apply ignore filter - now using character.isIgnored directly
+    // Apply ignore filter
     if (ignoreFilter === "ignored-only") {
       filtered = filtered.filter((char) => char.isIgnored);
     } else if (ignoreFilter === "not-ignored-only") {
       filtered = filtered.filter((char) => !char.isIgnored);
     }
 
-    // Apply content filter - updated to match new fillerStatus values
+    // Apply content filter
     if (contentFilter === "canon-only") {
       filtered = filtered.filter((char) => char.fillerStatus === "Canon");
     } else if (contentFilter === "fillers-only") {
-      filtered = filtered.filter((char) => 
-        char.fillerStatus === "Filler" || char.fillerStatus === "Filler-Non-TV"
-      );
+      filtered = filtered.filter((char) => char.fillerStatus === "Filler" || char.fillerStatus === "Filler-Non-TV");
     }
 
-    // Apply non-TV content filter - updated to match new fillerStatus value
+    // Apply non-TV content filter
     if (!includeNonTVContent) {
       filtered = filtered.filter((char) => char.fillerStatus !== "Filler-Non-TV");
     }
 
-    // Apply rating filter - updated to handle string | null difficulty values
+    // Apply rating filter
     if (ratingFilter === "rated-only") {
       filtered = filtered.filter((char) => {
         const rating = char.difficulty || characterRatings[char.name];
@@ -60,6 +78,12 @@ export const useCharacterFiltering = ({
       filtered = filtered.filter((char) => {
         const rating = char.difficulty || characterRatings[char.name];
         return rating === null || rating === undefined || rating === "";
+      });
+    } else if (ratingFilter !== "all") {
+      // Filter by specific difficulty
+      filtered = filtered.filter((char) => {
+        const rating = char.difficulty || characterRatings[char.name];
+        return rating === ratingFilter;
       });
     }
 
@@ -77,7 +101,7 @@ export const useCharacterFiltering = ({
       filtered = searchResults.map((result) => result.item);
     }
 
-    // Apply sorting - updated to handle string | null difficulty values
+    // Apply sorting
     filtered.sort((a, b) => {
       switch (sortOption) {
         case "alphabetical-az":
@@ -87,31 +111,29 @@ export const useCharacterFiltering = ({
         case "difficulty-easy-hard": {
           const ratingA = a.difficulty || characterRatings[a.name];
           const ratingB = b.difficulty || characterRatings[b.name];
-          
-          // Handle null/undefined values by putting them at the end
-          if (!ratingA && !ratingB) return 0;
-          if (!ratingA) return 1;
-          if (!ratingB) return -1;
-          
-          // Convert to numbers for comparison if they're strings
-          const numA = typeof ratingA === 'string' ? parseFloat(ratingA) : ratingA;
-          const numB = typeof ratingB === 'string' ? parseFloat(ratingB) : ratingB;
-          
+
+          const numA = getDifficultyNumericValue(ratingA);
+          const numB = getDifficultyNumericValue(ratingB);
+
+          // Put unrated (0) at the end
+          if (numA === 0 && numB === 0) return 0;
+          if (numA === 0) return 1;
+          if (numB === 0) return -1;
+
           return numA - numB;
         }
         case "difficulty-hard-easy": {
           const ratingA = a.difficulty || characterRatings[a.name];
           const ratingB = b.difficulty || characterRatings[b.name];
-          
-          // Handle null/undefined values by putting them at the end
-          if (!ratingA && !ratingB) return 0;
-          if (!ratingA) return 1;
-          if (!ratingB) return -1;
-          
-          // Convert to numbers for comparison if they're strings
-          const numA = typeof ratingA === 'string' ? parseFloat(ratingA) : ratingA;
-          const numB = typeof ratingB === 'string' ? parseFloat(ratingB) : ratingB;
-          
+
+          const numA = getDifficultyNumericValue(ratingA);
+          const numB = getDifficultyNumericValue(ratingB);
+
+          // Put unrated (0) at the end
+          if (numA === 0 && numB === 0) return 0;
+          if (numA === 0) return 1;
+          if (numB === 0) return -1;
+
           return numB - numA;
         }
         default:

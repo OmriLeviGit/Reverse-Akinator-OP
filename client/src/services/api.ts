@@ -91,10 +91,11 @@ export const characterApi = {
 
   toggleIgnoreCharacter: async (characterId: string) => {
     const response = await api.post("/characters/toggle-ignore", { characterId });
+    console.log(characterId, response);
     return response.data;
   },
 
-  rateCharacter: async (characterId: string, difficulty: number) => {
+  rateCharacter: async (characterId: string, difficulty: string) => {
     const response = await api.post("/characters/rate-character", { characterId, difficulty });
     return response.data;
   },

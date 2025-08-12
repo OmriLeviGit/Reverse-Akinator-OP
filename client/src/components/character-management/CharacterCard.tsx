@@ -118,20 +118,20 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
             <option value="" className="bg-white text-gray-800">
               Unrated
             </option>
-            <option value="1" className="bg-white text-gray-800">
-              1 - Very Easy
+            <option value="very-easy" className="bg-white text-gray-800">
+              Very Easy
             </option>
-            <option value="2" className="bg-white text-gray-800">
-              2 - Easy
+            <option value="easy" className="bg-white text-gray-800">
+              Easy
             </option>
-            <option value="3" className="bg-white text-gray-800">
-              3 - Medium
+            <option value="medium" className="bg-white text-gray-800">
+              Medium
             </option>
-            <option value="4" className="bg-white text-gray-800">
-              4 - Hard
+            <option value="hard" className="bg-white text-gray-800">
+              Hard
             </option>
-            <option value="5" className="bg-white text-gray-800">
-              5 - Very Hard
+            <option value="really-hard" className="bg-white text-gray-800">
+              Really Hard
             </option>
           </select>
         </div>
