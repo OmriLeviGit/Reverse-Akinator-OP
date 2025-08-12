@@ -60,13 +60,17 @@ export const useCharacterFiltering = ({
     if (contentFilter === "canon-only") {
       filtered = filtered.filter((char) => char.fillerStatus === "Canon");
     } else if (contentFilter === "fillers-only") {
-      filtered = filtered.filter((char) => char.fillerStatus === "Filler" || char.fillerStatus === "Filler-Non-TV");
+      // FIXED: "Fillers Only" = everything that's NOT Canon
+      filtered = filtered.filter((char) => char.fillerStatus !== "Canon");
     }
 
-    // Apply non-TV content filter
+    // Apply non-TV content filter - This runs AFTER content filter
     if (!includeNonTVContent) {
-      filtered = filtered.filter((char) => char.fillerStatus !== "Filler-Non-TV");
+      // Remove non-TV content from whatever is already filtered
+      filtered = filtered.filter((char) => char.fillerStatus === "Canon" || char.fillerStatus === "Filler");
     }
+
+    // ... rest of your filtering logic stays the same
 
     // Apply rating filter
     if (ratingFilter === "rated-only") {
@@ -80,7 +84,6 @@ export const useCharacterFiltering = ({
         return rating === null || rating === undefined || rating === "";
       });
     } else if (ratingFilter !== "all") {
-      // Filter by specific difficulty
       filtered = filtered.filter((char) => {
         const rating = char.difficulty || characterRatings[char.name];
         return rating === ratingFilter;
@@ -115,7 +118,6 @@ export const useCharacterFiltering = ({
           const numA = getDifficultyNumericValue(ratingA);
           const numB = getDifficultyNumericValue(ratingB);
 
-          // Put unrated (0) at the end
           if (numA === 0 && numB === 0) return 0;
           if (numA === 0) return 1;
           if (numB === 0) return -1;
@@ -129,7 +131,6 @@ export const useCharacterFiltering = ({
           const numA = getDifficultyNumericValue(ratingA);
           const numB = getDifficultyNumericValue(ratingB);
 
-          // Put unrated (0) at the end
           if (numA === 0 && numB === 0) return 0;
           if (numA === 0) return 1;
           if (numB === 0) return -1;

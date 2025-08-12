@@ -1,3 +1,4 @@
+// src/pages/Index.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
@@ -12,13 +13,22 @@ const Index = () => {
   const navigate = useNavigate();
   const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const { startGame, sessionData, availableArcs, characters, isLoading, updatePreferences } = useAppContext();
+  const {
+    startGame,
+    sessionData,
+    availableArcs,
+    characters,
+    isLoading, // Only waits for initial data now
+    charactersLoaded, // New flag for characters
+    updatePreferences,
+  } = useAppContext();
 
   console.log("Index page state:", {
     isLoading,
     sessionData: !!sessionData,
     availableArcsLength: availableArcs.length,
     charactersLength: characters.length,
+    charactersLoaded, // Add this to debug
   });
 
   // Initialize local state from session data
@@ -38,9 +48,7 @@ const Index = () => {
     }
   }, [sessionData]);
 
-  const charactersLoaded = !isLoading && characters.length > 0;
-
-  // Show loading screen until all data is loaded
+  // Show loading screen ONLY until essential data is loaded (faster!)
   if (isLoading || !sessionData || availableArcs.length === 0) {
     return (
       <div className="min-h-screen relative overflow-hidden">
@@ -88,7 +96,10 @@ const Index = () => {
   };
 
   const handleStart = async () => {
+    // Check if characters are loaded before starting
     if (!charactersLoaded) {
+      console.log("⏳ Characters still loading, please wait...");
+      // You could show a toast/alert here instead of just returning
       return;
     }
 
@@ -155,8 +166,21 @@ const Index = () => {
 
               {/* Start Button */}
               <div className="mt-8 flex justify-center">
-                <StartButton onStart={handleStart} disabled={isStartingGame || isLoading} />
+                <StartButton
+                  onStart={handleStart}
+                  disabled={isStartingGame || isLoading || !charactersLoaded} // Updated condition
+                />
               </div>
+
+              {/* Character loading status */}
+              {!charactersLoaded && (
+                <div className="mt-4 text-center">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white/60"></div>
+                    <p className="text-white/70 text-sm">Loading character data in background...</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Starting Game Loading */}

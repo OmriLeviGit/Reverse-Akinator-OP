@@ -40,6 +40,7 @@ interface AppContextType {
   availableArcs: any[];
   characters: Character[];
   isLoading: boolean;
+  charactersLoaded: boolean; // Added this for better UX
 
   // Game Actions
   startGame: (settings: GameSettings) => Promise<void>;
@@ -102,7 +103,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Separate query for characters using your existing endpoint
+  // Start fetching characters immediately but don't block UI
   const { data: charactersData, isLoading: charactersLoading } = useQuery({
     queryKey: ["allCharacters"],
     queryFn: () => characterApi.getAllCharacters(),
@@ -112,8 +113,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Extract characters from the response
   const characters = charactersData?.characters || [];
 
-  // Combine loading states
-  const isLoading = initialDataLoading || charactersLoading;
+  // ONLY wait for initial data, not characters
+  const isLoading = initialDataLoading;
+
+  // Add separate flag for characters loading state
+  const charactersLoaded = !charactersLoading && characters.length > 0;
 
   // Update state when initial data is fetched
   useEffect(() => {
@@ -158,6 +162,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log("Cookie loading complete (characters will load from server)");
     }
   }, [initialData, initialDataLoading]);
+
+  // Log characters loading progress
+  useEffect(() => {
+    if (charactersLoading) {
+      console.log("🔄 Loading characters in background...");
+    } else if (characters.length > 0) {
+      console.log("✅ Characters loaded:", characters.length, "characters available");
+    }
+  }, [charactersLoading, characters.length]);
 
   // Function to update preferences locally and in cookies
   const updatePreferences = (newPreferences: Partial<UserPreferences>) => {
@@ -250,6 +263,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         availableArcs,
         characters,
         isLoading,
+        charactersLoaded, // Added this
         startGame,
         askQuestion,
         revealCharacter,

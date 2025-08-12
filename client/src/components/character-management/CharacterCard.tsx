@@ -15,11 +15,25 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         return "Canon";
       case "Filler":
         return "Filler";
-      case "Filler-Non-TV":
-        return "Filler (Non-TV)";
       default:
-        return status;
+        return status; // This will show "Movie", "Game", "OVA", etc. directly
     }
+  };
+
+  // Function to determine what additional info to show
+  const getAdditionalInfo = () => {
+    const fillerStatus = character.fillerStatus;
+
+    // Only show episode/chapter for TV content (Canon and Filler)
+    if (fillerStatus === "Canon" || fillerStatus === "Filler") {
+      const parts = [];
+      if (character.episode) parts.push(`Ep ${character.episode}`);
+      if (character.chapter) parts.push(`Ch ${character.chapter}`);
+      return parts.join(" • ");
+    }
+
+    // For everything else (Non-TV), don't show episode/chapter
+    return "";
   };
 
   return (
@@ -40,7 +54,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
-                minHeight: "2.5rem", // Ensures consistent height for 2 lines
+                minHeight: "2.5rem",
                 lineHeight: "1.25rem",
               }}
               title={character.name}
@@ -56,7 +70,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              minHeight: "2.5rem", // Ensures consistent height for 2 lines
+              minHeight: "2.5rem",
               lineHeight: "1.25rem",
             }}
             title={character.name}
@@ -64,6 +78,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
             {character.name}
           </h3>
         )}
+
         {/* Character Image - Clickable */}
         <div className="w-16 h-12 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
           {character.wikiLink ? (
@@ -98,10 +113,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         <div className="h-4 mb-2 flex items-center justify-center">
           <div className="text-xs text-gray-400 truncate flex items-center gap-1">
             {getFillerStatusDisplay(character.fillerStatus)}
-            {(character.episode || character.chapter) && " • "}
-            {character.episode && `Ep ${character.episode}`}
-            {character.episode && character.chapter && " • "}
-            {character.chapter && `Ch ${character.chapter}`}
+            {getAdditionalInfo() && " • "}
+            {getAdditionalInfo()}
           </div>
         </div>
       </div>
