@@ -36,6 +36,14 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
     return "";
   };
 
+  const imageContent = character.image ? (
+    <img src={`/assets/sm_avatars/${character.image}`} alt={character.name} className="w-full h-full object-cover" />
+  ) : (
+    <div className="w-full h-full flex items-center justify-center">
+      <span className="text-white/60 text-xs">N/A</span>
+    </div>
+  );
+
   return (
     <div
       className={`bg-white/10 rounded-xl p-4 border border-white/20 transition-all duration-200 ${
@@ -88,24 +96,10 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
               rel="noopener noreferrer"
               className="block w-full h-full hover:opacity-80 transition-opacity"
             >
-              {character.image ? (
-                <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-white/60 text-xs">N/A</span>
-                </div>
-              )}
+              {imageContent}
             </a>
           ) : (
-            <>
-              {character.image ? (
-                <img src={character.image} alt={character.name} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-white/60 text-xs">N/A</span>
-                </div>
-              )}
-            </>
+            imageContent
           )}
         </div>
 

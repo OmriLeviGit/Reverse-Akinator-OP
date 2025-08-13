@@ -14,7 +14,7 @@ class DBCharacter(Base):
 
     id: Mapped[str] = mapped_column(String(50), primary_key=True)
     name: Mapped[str] = mapped_column(String(200))
-    fillerStatus: Mapped[str] = mapped_column(String(20))
+    filler_status: Mapped[str] = mapped_column(String(20))
     wiki_link: Mapped[str] = mapped_column(String(200))
     chapter: Mapped[int | None] = mapped_column(Integer)
     episode: Mapped[int | None] = mapped_column(Integer)
@@ -28,13 +28,13 @@ class DBCharacter(Base):
     is_ignored: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def __repr__(self):
-        return f"<Character(id='{self.id}', name='{self.name}', type='{self.fillerStatus}')>"
+        return f"<Character(id='{self.id}', name='{self.name}', type='{self.filler_status}')>"
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
-            'type': self.fillerStatus,
+            'type': self.filler_status,
             'wiki_link': self.wiki_link,
             'chapter': self.chapter,
             'episode': self.episode,
@@ -55,7 +55,7 @@ class DBCharacter(Base):
             description=self.description,
             chapter=self.chapter,
             episode=self.get_character_episode(),
-            filler_status=self.fillerStatus,
+            filler_status=self.filler_status,
             difficulty=self.difficulty or "",
             isIgnored=self.is_ignored,
             wikiLink=self.wiki_link

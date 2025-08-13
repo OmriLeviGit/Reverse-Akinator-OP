@@ -85,7 +85,7 @@ class DatabaseManager:
         field_mapping = {
             'ID': 'id',
             'Name': 'name',
-            'Type': 'fillerStatus',
+            'Type': 'filler_status',
             'Wiki': 'wiki_link',
             'Chapter': 'chapter',
             'Episode': 'episode',
