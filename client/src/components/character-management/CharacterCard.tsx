@@ -1,5 +1,5 @@
 // src/components/character-management/CharacterCard.tsx
-import React from "react";
+import React, { useState } from "react";
 import { Character } from "../../types/character";
 
 interface CharacterCardProps {
@@ -9,6 +9,8 @@ interface CharacterCardProps {
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatingChange, onIgnoreToggle }) => {
+  const [imageError, setImageError] = useState(false);
+
   const getFillerStatusDisplay = (status: string) => {
     switch (status) {
       case "Canon":
@@ -16,7 +18,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
       case "Filler":
         return "Filler";
       default:
-        return status; // This will show "Movie", "Game", "OVA", etc. directly
+        return status;
     }
   };
 
@@ -36,13 +38,23 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
     return "";
   };
 
-  const imageContent = character.image ? (
-    <img src={`/assets/sm_avatars/${character.image}`} alt={character.name} className="w-full h-full object-cover" />
-  ) : (
-    <div className="w-full h-full flex items-center justify-center">
-      <span className="text-white/60 text-xs">N/A</span>
-    </div>
-  );
+  const imageContent =
+    character.id && !imageError ? (
+      <img
+        src={`/assets/sm_avatars/${character.id}.webp`}
+        alt={character.name}
+        className="w-full h-full object-cover"
+        onError={() => {
+          console.log(`❌ Failed to load: ${character.name} - /assets/sm_avatars/${character.id}.webp`);
+          setImageError(true); // Set error state when image fails to load
+        }}
+        onLoad={() => setImageError(false)} // Reset error state if image loads successfully
+      />
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+        <span className="text-white/60 text-xs">N/A</span>
+      </div>
+    );
 
   return (
     <div
@@ -88,7 +100,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         )}
 
         {/* Character Image - Clickable */}
-        <div className="w-16 h-12 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
+        <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
           {character.wikiLink ? (
             <a
               href={character.wikiLink}
