@@ -32,7 +32,7 @@ const Index = () => {
   });
 
   // Initialize local state from session data
-  const [selectedArc, setSelectedArc] = useState("All");
+  const [selectedArc, setSelectedArc] = useState("");
   const [fillerPercentage, setFillerPercentage] = useState(0);
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
