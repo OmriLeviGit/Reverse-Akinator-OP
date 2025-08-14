@@ -120,44 +120,74 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
         </select>
       </div>
 
-      {/* Ignore Filter */}
+      {/* Ignore Filter - Button Group */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-300 mb-2">Ignore Status</label>
-        <select
-          value={ignoreFilter}
-          onChange={(e) => onIgnoreFilterChange(e.target.value as IgnoreFilter)}
-          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all" className="bg-white text-gray-800">
-            All Characters
-          </option>
-          <option value="not-ignored-only" className="bg-white text-gray-800">
-            Not Ignored Only
-          </option>
-          <option value="ignored-only" className="bg-white text-gray-800">
-            Ignored Only
-          </option>
-        </select>
+        <div className="grid grid-cols-3 gap-1 bg-white/5 rounded-lg p-1">
+          <button
+            onClick={() => onIgnoreFilterChange("all")}
+            className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+              ignoreFilter === "all" ? "bg-white/20 text-white" : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => onIgnoreFilterChange("not-ignored-only")}
+            className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+              ignoreFilter === "not-ignored-only"
+                ? "bg-white/20 text-white"
+                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+            }`}
+          >
+            Not Ignored
+          </button>
+          <button
+            onClick={() => onIgnoreFilterChange("ignored-only")}
+            className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+              ignoreFilter === "ignored-only"
+                ? "bg-white/20 text-white"
+                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+            }`}
+          >
+            Ignored
+          </button>
+        </div>
       </div>
 
-      {/* Content Filter */}
+      {/* Content Filter - Button Group */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-300 mb-2">Content Type</label>
-        <select
-          value={contentFilter}
-          onChange={(e) => onContentFilterChange(e.target.value as ContentFilter)}
-          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all" className="bg-white text-gray-800">
-            All Content
-          </option>
-          <option value="canon-only" className="bg-white text-gray-800">
-            Canon Only
-          </option>
-          <option value="fillers-only" className="bg-white text-gray-800">
-            Fillers Only
-          </option>
-        </select>
+        <div className="grid grid-cols-3 gap-1 bg-white/5 rounded-lg p-1">
+          <button
+            onClick={() => onContentFilterChange("all")}
+            className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+              contentFilter === "all" ? "bg-white/20 text-white" : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => onContentFilterChange("canon-only")}
+            className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+              contentFilter === "canon-only"
+                ? "bg-white/20 text-white"
+                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+            }`}
+          >
+            Canon
+          </button>
+          <button
+            onClick={() => onContentFilterChange("fillers-only")}
+            className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
+              contentFilter === "fillers-only"
+                ? "bg-white/20 text-white"
+                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+            }`}
+          >
+            Fillers
+          </button>
+        </div>
       </div>
 
       {/* Non-TV Content */}
@@ -176,7 +206,7 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
               isNonTVContentDisabled ? "opacity-50 cursor-not-allowed" : ""
             }`}
           />
-          <span className={`text-sm ${isNonTVContentDisabled ? "text-gray-500" : "text-gray-300"}`}>
+          <span className={`text-sm ${isNonTVContentDisabled ? "text-gray-400" : "text-gray-300"}`}>
             Include Non-TV Content
           </span>
         </label>
