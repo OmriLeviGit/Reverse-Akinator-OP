@@ -10,7 +10,7 @@ const DifficultySelection: React.FC<DifficultySelectionProps> = ({ selectedDiffi
     { id: "easy", label: "Easy", description: "Characters rated 1-2" },
     { id: "medium", label: "Medium", description: "Characters rated 2-4" },
     { id: "hard", label: "Hard", description: "Characters rated 3-5" },
-    { id: "not-rated", label: "Not Yet Rated", description: "Unrated characters only" },
+    { id: "", label: "Not Yet Rated", description: "Unrated characters only" },
   ];
 
   return (

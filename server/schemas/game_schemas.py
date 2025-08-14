@@ -1,20 +1,20 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from server.schemas.character_schemas import Character
 
 
 # Request models
 class GameStartRequest(BaseModel):
-   arcSelection: str
-   fillerPercentage: float
-   includeNonTVFillers: bool
-   difficultyLevel: str | None
+   arc_selection: str = Field(alias="arcSelection")
+   filler_percentage: float = Field(alias="fillerPercentage")
+   include_non_tv_fillers: bool = Field(alias="includeNonTVFillers")
+   difficulty_level: str = Field(alias="difficultyLevel")
 
 class GameQuestionRequest(BaseModel):
    question: str
 
 class GameGuessRequest(BaseModel):
-   guessedCharacterId: str
+   guessed_character_id: str = Field(alias="guessedCharacterId")
 
 # Responses
 class GameStartResponse(BaseModel):
@@ -22,7 +22,7 @@ class GameStartResponse(BaseModel):
 
 class GameQuestionResponse(BaseModel):
    answer: str
-   isCorrect: bool
+   is_correct: bool = Field(alias="isCorrect")
 
 class GameGuessResponse(BaseModel):
    result: str

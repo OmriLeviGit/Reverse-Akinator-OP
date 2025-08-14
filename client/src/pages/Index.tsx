@@ -18,8 +18,8 @@ const Index = () => {
     sessionData,
     availableArcs,
     characters,
-    isLoading, // Only waits for initial data now
-    charactersLoaded, // New flag for characters
+    isLoading,
+    charactersLoaded, // Specal flag for characters
     updatePreferences,
   } = useAppContext();
 

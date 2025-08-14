@@ -19,8 +19,11 @@ def create_game_router():
 
     @game_router.post("/start", response_model=GameStartResponse)
     def start_game_route(request: GameStartRequest, session_mgr: SessionManager = Depends(get_session_manager)):
-        game_service.start_game(request, session_mgr)
-        return GameStartResponse(message="Game started successfully")
+        try:
+            game_service.start_game(request, session_mgr)
+            return GameStartResponse(message="Game started successfully")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     @game_router.post("/question", response_model=GameQuestionResponse)
     def ask_question_route(request: GameQuestionRequest, session_mgr: SessionManager = Depends(get_session_manager)):
@@ -36,7 +39,7 @@ def create_game_router():
     def make_guess_route(request: GameGuessRequest, session_mgr: SessionManager = Depends(get_session_manager)):
         character = session_mgr.get_target_character()
 
-        if request.guessedCharacterId == character.id:
+        if request.guessed_character_id == character.id:
             result = "correct"
         else:
             result = "incorrect"

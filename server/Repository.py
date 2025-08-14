@@ -18,7 +18,6 @@ class Repository:
                 all_characters = session.query(DBCharacter).all()
                 if not include_ignored:
                     all_characters = [char for char in all_characters if not char.is_ignored]
-                a = [char.to_pydantic() for char in all_characters]
 
                 return [char.to_pydantic() for char in all_characters]
 
@@ -123,10 +122,8 @@ class Repository:
 
             for character in characters:
                 # Filter by difficulty
-                if difficulty_level is not None and character["difficulty"] != difficulty_level:
-                    continue
-
-                filtered_characters.append(character)
+                if character.difficulty == difficulty_level:
+                    filtered_characters.append(character)
 
             return filtered_characters
 
@@ -139,7 +136,7 @@ class Repository:
         Get filler characters filtered by arc and difficulty
         """
         all_characters = self.get_filtered_characters(arc, difficulty_level)
-        return [char for char in all_characters if char["type"].lower() == "filler"]
+        return [char for char in all_characters if char.filler_status.lower() == "filler"]
 
 
     def get_canon_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
@@ -147,7 +144,8 @@ class Repository:
         Get canon characters filtered by arc and difficulty
         """
         all_characters = self.get_filtered_characters(arc, difficulty_level)
-        return [char for char in all_characters if char["type"].lower() == "canon"]
+
+        return [char for char in all_characters if char.filler_status.lower() == "canon"]
 
 
     def get_non_canon_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
@@ -155,7 +153,7 @@ class Repository:
         Get non-canon characters (everything except canon) filtered by arc and difficulty
         """
         all_characters = self.get_filtered_characters(arc, difficulty_level)
-        return [char for char in all_characters if char["type"].lower() != "canon"]
+        return [char for char in all_characters if char.filler_status.lower() != "canon"]
 
 
     def get_arc_by_name(self, arc_name: str) -> Arc:

@@ -23,7 +23,7 @@ class SessionManager:
             "global_arc_limit": "All",
             "user_preferences": {
                 "difficulty": "easy",
-                "preferred_arc": "Wano",
+                "preferred_arc": "Wano Country",
                 "includeNonTVFillers": False,
                 "fillerPercentage": 0
             },
