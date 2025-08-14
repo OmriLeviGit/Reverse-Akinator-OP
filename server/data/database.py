@@ -121,6 +121,9 @@ class DatabaseManager:
 
                             character_data[model_key] = value
 
+                    character_data['difficulty'] = ""  # Default empty string
+                    character_data['is_ignored'] = False  # Default false
+
                     character = DBCharacter(**character_data)
                     session.add(character)
 

@@ -84,12 +84,25 @@ class SessionManager:
 
     def start_new_game(self, target_character, prompt):
         """Start a new game with given character and arc limit"""
+
+        # Debug the to_dict() method
+        target_dict = target_character.model_dump()
+        print(f"Starting a new name for character: {target_dict}")
+
         self.request.session["current_game"] = {
-            "target_character": target_character,
+            "target_character": target_dict,
             "game_arc_limit": self.get_game_arc_limit(),
             'conversation': [{"role": "system", "content": prompt}],
             "game_started_at": datetime.now().isoformat(),
         }
+    # def start_new_game(self, target_character, prompt):
+    #     """Start a new game with given character and arc limit"""
+    #     self.request.session["current_game"] = {
+    #         "target_character": target_character.to_dict(),
+    #         "game_arc_limit": self.get_game_arc_limit(),
+    #         'conversation': [{"role": "system", "content": prompt}],
+    #         "game_started_at": datetime.now().isoformat(),
+    #     }
 
     def add_guess(self, question: str, answer: str):
         """Add a guess and answer to current game"""

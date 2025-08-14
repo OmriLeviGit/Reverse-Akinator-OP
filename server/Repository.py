@@ -7,29 +7,30 @@ class Repository:
     def __init__(self):
         self.db_manager = DatabaseManager()
 
-    def _build_base_query(self, session, arc: Arc, difficulty_level: str | None = None, include_ignored: bool = False):
+    def _build_base_query(self, session, arc: Arc | None = None, difficulty_level: str | None = None,
+                          include_ignored: bool | None = None):
         """
         Build base query with common filters applied at database level
+        If a parameter is None, don't apply that filter (show everything for that criteria)
         """
         query = session.query(DBCharacter)
 
-        # Filter ignored characters
-        if not include_ignored:
+        # Filter ignored characters - None means show all (ignored and non-ignored)
+        if include_ignored is False:  # Only filter if explicitly set to False
             query = query.filter(DBCharacter.is_ignored == False)
 
-        # Filter by difficulty
+        # Filter by difficulty - None means show all difficulties
         if difficulty_level is not None:
             query = query.filter(DBCharacter.difficulty == difficulty_level)
 
-        # Arc filtering
-        if arc.name != "All":
+        # Arc filtering - None means show all characters regardless of arc
+        if arc is not None and arc.name != "All":
             if arc.last_chapter is not None:
                 query = query.filter(
                     (DBCharacter.chapter.is_(None)) |
                     (DBCharacter.chapter <= arc.last_chapter)
                 )
 
-            # Episode filtering using the hybrid property
             if arc.last_episode is not None:
                 query = query.filter(
                     (DBCharacter.effective_episode.is_(None)) |
@@ -45,7 +46,7 @@ class Repository:
         session = self.db_manager.get_session()
         try:
             # Use the base query for both "All" and specific arcs
-            query = self._build_base_query(session, arc, include_ignored=include_ignored)
+            query = self._build_base_query(session, arc=arc, include_ignored=include_ignored)
             characters = query.all()
             return [char.to_pydantic() for char in characters]
 
@@ -106,7 +107,7 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_filtered_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
+    def get_filtered_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
         """
         Get characters filtered by arc and difficulty using database-level filtering
         """
@@ -119,7 +120,7 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_filler_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
+    def get_filler_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
         """
         Get filler characters filtered by arc and difficulty using database-level filtering
         """
@@ -134,7 +135,7 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_canon_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
+    def get_canon_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
         """
         Get canon characters filtered by arc and difficulty using database-level filtering
         """
@@ -149,7 +150,7 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_non_canon_characters(self, arc: Arc, difficulty_level: str | None) -> list[Character]:
+    def get_non_canon_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
         """
         Get non-canon characters (everything except canon) filtered by arc and difficulty
         """

@@ -22,7 +22,7 @@ class DBCharacter(Base):
     note: Mapped[str | None] = mapped_column(String(200))
     appears_in: Mapped[str | None] = mapped_column(String(50))
 
-    difficulty: Mapped[str] = mapped_column(String)
+    difficulty: Mapped[str] = mapped_column(String, default="")
     is_ignored: Mapped[bool] = mapped_column(Boolean, default=False)
 
     @hybrid_property
@@ -38,21 +38,16 @@ class DBCharacter(Base):
 
     @effective_episode.expression
     def effective_episode(cls):
-        """SQL expression for effective episode - used in database queries"""
+        """SQL expression for effective episode - Using func.max"""
         return case(
-            (
-                (cls.episode.is_(None)) & (cls.number.is_(None)),
-                None
-            ),
-            (
-                cls.episode.is_(None),
-                cls.number
-            ),
-            (
-                cls.number.is_(None),
-                cls.episode
-            ),
-            else_=func.greatest(cls.episode, cls.number)
+            # Both null
+            ((cls.episode.is_(None)) & (cls.number.is_(None)), None),
+            # Episode is null, use number
+            (cls.episode.is_(None), cls.number),
+            # Number is null, use episode
+            (cls.number.is_(None), cls.episode),
+            # Both exist - use MAX function
+            else_=func.max(cls.episode, cls.number)
         )
 
     def __repr__(self):
