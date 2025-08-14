@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 import { Character } from "../types/character";
-import Fuse from "fuse.js";
+import { useCharacterSearch } from "./useCharacterSearch";
 
 interface UseCharacterFilteringProps {
   allCharacters: Character[];
@@ -46,7 +46,8 @@ export const useCharacterFiltering = ({
   ignoredCharacters,
   characterRatings,
 }: UseCharacterFilteringProps) => {
-  return useMemo(() => {
+  // First apply all filters except search
+  const filteredCharacters = useMemo(() => {
     let filtered = allCharacters;
 
     // Apply ignore filter
@@ -70,8 +71,6 @@ export const useCharacterFiltering = ({
       filtered = filtered.filter((char) => char.fillerStatus === "Canon" || char.fillerStatus === "Filler");
     }
 
-    // ... rest of your filtering logic stays the same
-
     // Apply rating filter
     if (ratingFilter === "rated-only") {
       filtered = filtered.filter((char) => {
@@ -90,22 +89,28 @@ export const useCharacterFiltering = ({
       });
     }
 
-    // Create Fuse instance
-    const fuse = new Fuse(filtered, {
-      keys: ["name"],
-      threshold: 0.3,
-      includeScore: true,
-      minMatchCharLength: 1,
-    });
+    return filtered;
+  }, [
+    allCharacters,
+    ignoreFilter,
+    contentFilter,
+    ratingFilter,
+    includeNonTVContent,
+    ignoredCharacters,
+    characterRatings,
+  ]);
 
-    // Apply search
-    if (searchTerm.trim()) {
-      const searchResults = fuse.search(searchTerm);
-      filtered = searchResults.map((result) => result.item);
-    }
+  // Apply search using the extracted hook (uses 0.2 threshold by default)
+  const searchedCharacters = useCharacterSearch({
+    characters: filteredCharacters,
+    searchTerm,
+  });
 
-    // Apply sorting
-    filtered.sort((a, b) => {
+  // Finally apply sorting
+  const finalCharacters = useMemo(() => {
+    const sorted = [...searchedCharacters];
+
+    sorted.sort((a, b) => {
       switch (sortOption) {
         case "alphabetical-az":
           return a.name.localeCompare(b.name);
@@ -142,16 +147,8 @@ export const useCharacterFiltering = ({
       }
     });
 
-    return filtered;
-  }, [
-    allCharacters,
-    ignoreFilter,
-    contentFilter,
-    ratingFilter,
-    includeNonTVContent,
-    searchTerm,
-    sortOption,
-    ignoredCharacters,
-    characterRatings,
-  ]);
+    return sorted;
+  }, [searchedCharacters, sortOption, characterRatings]);
+
+  return finalCharacters;
 };
