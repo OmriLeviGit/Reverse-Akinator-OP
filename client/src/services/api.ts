@@ -51,6 +51,8 @@ export const gameApi = {
     difficultyLevel: string;
   }) => {
     const response = await api.post("/game/start", settings);
+
+    console.log("data", response.data);
     return response.data;
   },
 

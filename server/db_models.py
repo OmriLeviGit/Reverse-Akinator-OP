@@ -1,13 +1,11 @@
-from sqlalchemy import Column, String, Integer, Boolean, Text
+from sqlalchemy import Column, String, Integer, Boolean, Text, func, case
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
-
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from server.schemas.character_schemas import Character
 
 Base = declarative_base()
-
-
 
 class DBCharacter(Base):
     __tablename__ = 'characters'
@@ -24,8 +22,38 @@ class DBCharacter(Base):
     note: Mapped[str | None] = mapped_column(String(200))
     appears_in: Mapped[str | None] = mapped_column(String(50))
 
-    difficulty: Mapped[str | None] = mapped_column(String)
+    difficulty: Mapped[str] = mapped_column(String)
     is_ignored: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    @hybrid_property
+    def effective_episode(self):
+        """Get the effective episode number (higher of episode or number) - Python version"""
+        if self.episode is None and self.number is None:
+            return None
+        if self.episode is None:
+            return self.number
+        if self.number is None:
+            return self.episode
+        return max(self.episode, self.number)
+
+    @effective_episode.expression
+    def effective_episode(cls):
+        """SQL expression for effective episode - used in database queries"""
+        return case(
+            (
+                (cls.episode.is_(None)) & (cls.number.is_(None)),
+                None
+            ),
+            (
+                cls.episode.is_(None),
+                cls.number
+            ),
+            (
+                cls.number.is_(None),
+                cls.episode
+            ),
+            else_=func.greatest(cls.episode, cls.number)
+        )
 
     def __repr__(self):
         return f"<Character(id='{self.id}', name='{self.name}', type='{self.filler_status}')>"
@@ -54,7 +82,7 @@ class DBCharacter(Base):
             name=self.name,
             description=self.description,
             chapter=self.chapter,
-            episode=self.get_character_episode(),
+            episode=self.effective_episode,  # Changed from get_character_episode() to effective_episode
             filler_status=self.filler_status,
             difficulty=self.difficulty or "",
             isIgnored=self.is_ignored,
@@ -62,16 +90,8 @@ class DBCharacter(Base):
         )
 
     def get_character_episode(self) -> int | None:
-        """Get the effective episode number (higher of episode or number)"""
-        if self.episode is None and self.number is None:
-            return None
-        if self.episode is None:
-            return self.number
-        if self.number is None:
-            return self.episode
-
-        return max(self.episode, self.number)
-
+        """Get the effective episode number - now just delegates to effective_episode property"""
+        return self.effective_episode
 
 class Arc(Base):
     __tablename__ = 'arcs'
