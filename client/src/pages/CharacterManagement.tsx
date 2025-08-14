@@ -6,7 +6,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { CharacterFilters } from "../components/character-management/CharacterFilters";
-import { CharacterCard } from "../components/character-management/CharacterCard";
+import { VirtualizedCharacterGrid } from "../components/character-management/VirtualizedCharacterGrid";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 
 const CharacterManagement: React.FC = () => {
@@ -129,24 +129,12 @@ const CharacterManagement: React.FC = () => {
 
               {/* Character Grid */}
               <main>
-                {/* Character Cards */}
-                {filteredAndSortedCharacters.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-                    {filteredAndSortedCharacters.map((character) => (
-                      <CharacterCard
-                        key={character.id}
-                        character={character}
-                        onRatingChange={handleUpdateDifficulty}
-                        onIgnoreToggle={handleToggleIgnore}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/20">
-                    <h3 className="text-2xl font-semibold text-white mb-2">No characters found</h3>
-                    <p className="text-gray-300">Try adjusting your filters to see more results.</p>
-                  </div>
-                )}
+                <VirtualizedCharacterGrid
+                  characters={filteredAndSortedCharacters}
+                  onRatingChange={handleUpdateDifficulty}
+                  onIgnoreToggle={handleToggleIgnore}
+                  itemsPerPage={24}
+                />
               </main>
             </div>
           </div>

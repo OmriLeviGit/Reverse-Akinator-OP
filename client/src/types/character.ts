@@ -4,7 +4,6 @@ export interface Character {
   name: string;
 
   description: string | null;
-  image: string | null;
 
   arc: string | null;
   chapter: number | null;
