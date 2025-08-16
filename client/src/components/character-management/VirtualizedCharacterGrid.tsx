@@ -73,9 +73,9 @@ export const VirtualizedCharacterGrid: React.FC<VirtualizedCharacterGridProps> =
 
   if (characters.length === 0) {
     return (
-      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/20">
-        <h3 className="text-2xl font-semibold text-white mb-2">No characters found</h3>
-        <p className="text-gray-300">Try adjusting your filters to see more results.</p>
+      <div className="bg-card backdrop-blur-lg rounded-2xl p-12 text-center border border-border">
+        <h3 className="text-2xl font-semibold text-foreground mb-2">No characters found</h3>
+        <p className="text-muted-foreground">Try adjusting your filters to see more results.</p>
       </div>
     );
   }
@@ -99,18 +99,17 @@ export const VirtualizedCharacterGrid: React.FC<VirtualizedCharacterGridProps> =
         <div ref={loadMoreRef} className="mt-8 text-center">
           {isLoading ? (
             <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mr-3"></div>
-              <span className="text-white">Loading more characters...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mr-3"></div>
+              <span className="text-foreground">Loading more characters...</span>
             </div>
           ) : (
-            <div className="text-gray-300 text-sm">Scroll down to load more characters</div>
+            <div className="text-muted-foreground text-sm">Scroll down to load more characters</div>
           )}
         </div>
       )}
-
       {/* End Indicator */}
       {!hasMoreCharacters && visibleCharacters.length > itemsPerPage && (
-        <div className="mt-8 text-center text-gray-400 text-sm">All {characters.length} characters loaded</div>
+        <div className="mt-8 text-center text-muted-foreground text-sm">All {characters.length} characters loaded</div>
       )}
     </div>
   );

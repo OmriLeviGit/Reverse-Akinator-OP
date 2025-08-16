@@ -1,7 +1,5 @@
-// src/pages/CharacterManagement.tsx
 import React, { useState, useMemo } from "react";
-import Header from "../components/Header";
-import NavigationHeader from "../components/NavigationHeader";
+import Navigation from "../components/Navigation";
 import { useAppContext } from "../contexts/AppContext";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
@@ -10,8 +8,18 @@ import { VirtualizedCharacterGrid } from "../components/character-management/Vir
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 
 const CharacterManagement: React.FC = () => {
-  const { characters, isLoading } = useAppContext();
+  const { characters, isLoading, sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
   const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
+
+  // Spoiler protection state (for Navigation component)
+  const [maxArcSeen, setMaxArcSeen] = useState<string>("All");
+
+  // Initialize maxArcSeen from sessionData
+  React.useEffect(() => {
+    if (sessionData?.global_arc_limit) {
+      setMaxArcSeen(sessionData.global_arc_limit);
+    }
+  }, [sessionData]);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,6 +62,13 @@ const CharacterManagement: React.FC = () => {
     characterRatings,
   });
 
+  // Spoiler protection handler
+  const handleMaxArcChange = (arcName: string) => {
+    setMaxArcSeen(arcName);
+    localStorage.setItem("maxArcSeen", arcName);
+    updateGlobalArcLimit(arcName);
+  };
+
   const handleToggleIgnore = async (id: string) => {
     try {
       toggleIgnoreCharacter(id);
@@ -73,15 +88,11 @@ const CharacterManagement: React.FC = () => {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        <div className="absolute inset-0 ocean-gradient"></div>
-        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center">
-          <Header />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-              <p className="text-white text-xl">Loading characters...</p>
-            </div>
+      <div className="min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-foreground text-xl">Loading characters...</p>
           </div>
         </div>
       </div>
@@ -89,26 +100,21 @@ const CharacterManagement: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Ocean Background */}
-      <div className="absolute inset-0 ocean-gradient"></div>
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <Navigation maxArcSeen={maxArcSeen} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
 
-      {/* Single Scrollable Container */}
-      <div className="relative z-10 h-screen overflow-y-auto">
-        {/* Header */}
-        <Header />
-
-        {/* Sticky Navigation */}
-        <div className="sticky top-0 z-40 backdrop-blur-xl bg-black/20">
-          <NavigationHeader />
-        </div>
-
-        {/* Main Content */}
+      {/* Main Content */}
+      <div className="h-[calc(100vh-theme(spacing.16))] overflow-y-auto">
+        {" "}
+        {/* Adjust height to account for navigation */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
               {/* Filter Panel */}
-              <aside className="lg:sticky lg:top-20 lg:h-fit">
+              <aside className="lg:sticky lg:top-8 lg:h-fit">
+                {" "}
+                {/* Reduced top spacing since no header */}
                 <CharacterFilters
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
@@ -139,6 +145,12 @@ const CharacterManagement: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Background decorative elements (same as Index page) */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent opacity-5 rounded-full blur-3xl"></div>
       </div>
     </div>
   );

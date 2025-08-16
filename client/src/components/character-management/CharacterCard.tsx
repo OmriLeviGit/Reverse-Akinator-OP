@@ -1,4 +1,3 @@
-// src/components/character-management/CharacterCard.tsx
 import React, { useState } from "react";
 import { Character } from "../../types/character";
 
@@ -46,20 +45,20 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         className="w-full h-full object-cover"
         onError={() => {
           console.log(`❌ Failed to load: ${character.name} - /assets/sm_avatars/${character.id}.webp`);
-          setImageError(true); // Set error state when image fails to load
+          setImageError(true);
         }}
-        onLoad={() => setImageError(false)} // Reset error state if image loads successfully
+        onLoad={() => setImageError(false)}
       />
     ) : (
       <div className="w-full h-full flex items-center justify-center">
-        <span className="text-white/60 text-xs">N/A</span>
+        <span className="text-muted-foreground text-xs">N/A</span>
       </div>
     );
 
   return (
     <div
-      className={`bg-white/10 rounded-xl p-4 border border-white/20 transition-all duration-200 ${
-        character.isIgnored ? "opacity-60" : "hover:bg-white/15"
+      className={`bg-card rounded-xl p-4 border border-border transition-all duration-200 ${
+        character.isIgnored ? "opacity-60" : "hover:bg-card/80"
       }`}
     >
       {/* Character Info */}
@@ -68,7 +67,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         {character.wikiLink ? (
           <a href={character.wikiLink} target="_blank" rel="noopener noreferrer" className="block">
             <h3
-              className="text-lg font-bold text-white mb-1 hover:text-white/80 transition-colors leading-tight"
+              className="text-lg font-bold text-foreground mb-1 hover:text-primary transition-colors leading-tight"
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
@@ -84,7 +83,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
           </a>
         ) : (
           <h3
-            className="text-lg font-bold text-white mb-1 leading-tight"
+            className="text-lg font-bold text-foreground mb-1 leading-tight"
             style={{
               display: "-webkit-box",
               WebkitLineClamp: 2,
@@ -100,7 +99,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         )}
 
         {/* Character Image - Clickable */}
-        <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-white/30 mb-3 mx-auto bg-white/20">
+        <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-border mb-3 mx-auto bg-muted">
           {character.wikiLink ? (
             <a
               href={character.wikiLink}
@@ -117,7 +116,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
 
         {/* Episode/Chapter/Status - Fixed height container */}
         <div className="h-4 mb-2 flex items-center justify-center">
-          <div className="text-xs text-gray-400 truncate flex items-center gap-1">
+          <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
             {getFillerStatusDisplay(character.fillerStatus)}
             {getAdditionalInfo() && " • "}
             {getAdditionalInfo()}
@@ -132,24 +131,24 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
           <select
             value={character.difficulty || ""}
             onChange={(e) => onRatingChange(character.id, e.target.value || null)}
-            className="w-full px-2 py-1 bg-white/10 border border-white/20 rounded text-white text-xs"
+            className="w-full px-2 py-1 bg-input border border-border rounded text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="" className="bg-white text-gray-800">
+            <option value="" className="bg-popover text-popover-foreground">
               Unrated
             </option>
-            <option value="very-easy" className="bg-white text-gray-800">
+            <option value="very-easy" className="bg-popover text-popover-foreground">
               Very Easy
             </option>
-            <option value="easy" className="bg-white text-gray-800">
+            <option value="easy" className="bg-popover text-popover-foreground">
               Easy
             </option>
-            <option value="medium" className="bg-white text-gray-800">
+            <option value="medium" className="bg-popover text-popover-foreground">
               Medium
             </option>
-            <option value="hard" className="bg-white text-gray-800">
+            <option value="hard" className="bg-popover text-popover-foreground">
               Hard
             </option>
-            <option value="really-hard" className="bg-white text-gray-800">
+            <option value="really-hard" className="bg-popover text-popover-foreground">
               Really Hard
             </option>
           </select>

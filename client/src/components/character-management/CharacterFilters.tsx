@@ -1,4 +1,3 @@
-// src/components/character-management/CharacterFilters.tsx
 import React from "react";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../../types/characterManagement";
 
@@ -15,7 +14,6 @@ interface CharacterFiltersProps {
   onIncludeNonTVContentChange: (checked: boolean) => void;
   sortOption: SortOption;
   onSortOptionChange: (value: SortOption) => void;
-  // New props for results count
   filteredCount: number;
   totalCount: number;
 }
@@ -40,46 +38,46 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
   const isNonTVContentDisabled = contentFilter === "canon-only";
 
   return (
-    <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-      <h2 className="text-xl font-semibold text-white mb-6">Filters</h2>
+    <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border border-border">
+      <h2 className="text-xl font-semibold text-foreground mb-6">Filters</h2>
 
-      {/* Results Info - Moved here */}
+      {/* Results Info */}
       <div className="mb-6">
-        <p className="text-gray-300 text-sm">
+        <p className="text-muted-foreground text-sm">
           Showing {filteredCount} of {totalCount} characters
         </p>
       </div>
 
       {/* Search */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Search Characters</label>
+        <label className="block text-sm font-medium text-foreground mb-2">Search Characters</label>
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           placeholder="Type character name..."
         />
       </div>
 
-      {/* Sort Options - Right after search */}
+      {/* Sort Options */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Sort By</label>
+        <label className="block text-sm font-medium text-foreground mb-2">Sort By</label>
         <select
           value={sortOption}
           onChange={(e) => onSortOptionChange(e.target.value as SortOption)}
-          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="alphabetical-az" className="bg-white text-gray-800">
+          <option value="alphabetical-az" className="bg-popover text-popover-foreground">
             A-Z
           </option>
-          <option value="alphabetical-za" className="bg-white text-gray-800">
+          <option value="alphabetical-za" className="bg-popover text-popover-foreground">
             Z-A
           </option>
-          <option value="difficulty-easy-hard" className="bg-white text-gray-800">
+          <option value="difficulty-easy-hard" className="bg-popover text-popover-foreground">
             Difficulty: Easy → Hard
           </option>
-          <option value="difficulty-hard-easy" className="bg-white text-gray-800">
+          <option value="difficulty-hard-easy" className="bg-popover text-popover-foreground">
             Difficulty: Hard → Easy
           </option>
         </select>
@@ -87,34 +85,34 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
 
       {/* Rating Filter */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Difficulty Status</label>
+        <label className="block text-sm font-medium text-foreground mb-2">Difficulty Status</label>
         <select
           value={ratingFilter}
           onChange={(e) => onRatingFilterChange(e.target.value as RatingFilter)}
-          className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         >
-          <option value="all" className="bg-white text-gray-800">
+          <option value="all" className="bg-popover text-popover-foreground">
             All Difficulties
           </option>
-          <option value="rated-only" className="bg-white text-gray-800">
+          <option value="rated-only" className="bg-popover text-popover-foreground">
             All Rated
           </option>
-          <option value="unrated-only" className="bg-white text-gray-800">
+          <option value="unrated-only" className="bg-popover text-popover-foreground">
             Unrated
           </option>
-          <option value="very-easy" className="bg-white text-gray-800">
+          <option value="very-easy" className="bg-popover text-popover-foreground">
             Very Easy
           </option>
-          <option value="easy" className="bg-white text-gray-800">
+          <option value="easy" className="bg-popover text-popover-foreground">
             Easy
           </option>
-          <option value="medium" className="bg-white text-gray-800">
+          <option value="medium" className="bg-popover text-popover-foreground">
             Medium
           </option>
-          <option value="hard" className="bg-white text-gray-800">
+          <option value="hard" className="bg-popover text-popover-foreground">
             Hard
           </option>
-          <option value="really-hard" className="bg-white text-gray-800">
+          <option value="really-hard" className="bg-popover text-popover-foreground">
             Really Hard
           </option>
         </select>
@@ -122,12 +120,14 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
 
       {/* Ignore Filter - Button Group */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Ignore Status</label>
-        <div className="grid grid-cols-3 gap-1 bg-white/5 rounded-lg p-1">
+        <label className="block text-sm font-medium text-foreground mb-2">Ignore Status</label>
+        <div className="grid grid-cols-3 gap-1 bg-muted rounded-lg p-1">
           <button
             onClick={() => onIgnoreFilterChange("all")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
-              ignoreFilter === "all" ? "bg-white/20 text-white" : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+              ignoreFilter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             All
@@ -136,8 +136,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onIgnoreFilterChange("not-ignored-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               ignoreFilter === "not-ignored-only"
-                ? "bg-white/20 text-white"
-                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             Not Ignored
@@ -146,8 +146,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onIgnoreFilterChange("ignored-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               ignoreFilter === "ignored-only"
-                ? "bg-white/20 text-white"
-                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             Ignored
@@ -157,12 +157,14 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
 
       {/* Content Filter - Button Group */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-2">Content Type</label>
-        <div className="grid grid-cols-3 gap-1 bg-white/5 rounded-lg p-1">
+        <label className="block text-sm font-medium text-foreground mb-2">Content Type</label>
+        <div className="grid grid-cols-3 gap-1 bg-muted rounded-lg p-1">
           <button
             onClick={() => onContentFilterChange("all")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
-              contentFilter === "all" ? "bg-white/20 text-white" : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+              contentFilter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             All
@@ -171,8 +173,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onContentFilterChange("canon-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               contentFilter === "canon-only"
-                ? "bg-white/20 text-white"
-                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             Canon
@@ -181,8 +183,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onContentFilterChange("fillers-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               contentFilter === "fillers-only"
-                ? "bg-white/20 text-white"
-                : "text-gray-400 hover:text-gray-400 hover:bg-white/10"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             Fillers
@@ -202,11 +204,11 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             checked={includeNonTVContent}
             onChange={(e) => onIncludeNonTVContentChange(e.target.checked)}
             disabled={isNonTVContentDisabled}
-            className={`w-4 h-4 text-blue-500 bg-white/10 border-white/20 rounded focus:ring-blue-500 ${
+            className={`w-4 h-4 text-primary bg-input border-border rounded focus:ring-ring ${
               isNonTVContentDisabled ? "opacity-50 cursor-not-allowed" : ""
             }`}
           />
-          <span className={`text-sm ${isNonTVContentDisabled ? "text-gray-400" : "text-gray-300"}`}>
+          <span className={`text-sm ${isNonTVContentDisabled ? "text-muted-foreground" : "text-foreground"}`}>
             Include Non-TV Content
           </span>
         </label>
