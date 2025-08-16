@@ -1,17 +1,17 @@
-// src/pages/Index.tsx
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import NavigationHeader from "../components/NavigationHeader";
-import ArcSelection from "../components/ArcSelection";
-import FillerSettings from "../components/FillerSettings";
-import DifficultySelection from "../components/DifficultySelection";
-import StartButton from "../components/StartButton";
+import Navigation from "../components/Navigation";
+import GameSetupForm from "../components/GameSetupForm";
+import SpoilerProtectionModal from "../components/SpoilerProtectionModal";
 import { useAppContext } from "../contexts/AppContext";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isStartingGame, setIsStartingGame] = useState(false);
+
+  // Spoiler protection state - now using arc names
+  const [maxArcSeen, setMaxArcSeen] = useState<string>("All");
+  const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
 
   const {
     startGame,
@@ -19,65 +19,102 @@ const Index = () => {
     availableArcs,
     characters,
     isLoading,
-    charactersLoaded, // Specal flag for characters
+    charactersLoaded,
     updatePreferences,
+    updateGlobalArcLimit,
   } = useAppContext();
-
-  console.log("Index page state:", {
-    isLoading,
-    sessionData: !!sessionData,
-    availableArcsLength: availableArcs.length,
-    charactersLength: characters.length,
-    charactersLoaded, // Add this to debug
-  });
 
   // Initialize local state from session data
   const [selectedArc, setSelectedArc] = useState("");
   const [fillerPercentage, setFillerPercentage] = useState(0);
   const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"easy" | "medium" | "hard">("easy");
+  const [includeUnrated, setIncludeUnrated] = useState(false);
+
+  // Spoiler protection setup - check on first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem("hasVisitedBefore");
+    if (!hasVisited) {
+      setShowSpoilerModal(true);
+    } else {
+      // Load saved max arc setting
+      const savedMaxArc = localStorage.getItem("maxArcSeen");
+      if (savedMaxArc) {
+        setMaxArcSeen(savedMaxArc);
+      }
+    }
+  }, []);
+
+  // Initialize maxArcSeen from sessionData if available
+  useEffect(() => {
+    if (sessionData?.global_arc_limit) {
+      setMaxArcSeen(sessionData.global_arc_limit);
+      localStorage.setItem("maxArcSeen", sessionData.global_arc_limit);
+    }
+  }, [sessionData]);
 
   // Update local state when session data loads
   useEffect(() => {
     if (sessionData?.user_preferences) {
       const prefs = sessionData.user_preferences;
-      setSelectedDifficulty(prefs.difficulty);
+      setSelectedDifficulty((prefs.difficulty as "easy" | "medium" | "hard") || "easy");
       setSelectedArc(prefs.preferred_arc);
       setIncludeNonTVFillers(prefs.includeNonTVFillers);
       setFillerPercentage(prefs.fillerPercentage);
+      setIncludeUnrated(prefs.includeUnrated || false);
     }
   }, [sessionData]);
 
-  // Show loading screen ONLY until essential data is loaded (faster!)
+  // Show loading screen ONLY until essential data is loaded
   if (isLoading || !sessionData || availableArcs.length === 0) {
     return (
-      <div className="min-h-screen relative overflow-hidden">
-        <div className="absolute inset-0 ocean-gradient"></div>
-        <div className="relative z-10 min-h-screen flex flex-col items-center justify-center">
-          <Header />
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-              <p className="text-white text-xl">Loading game data...</p>
-              <p className="text-white/70 text-sm mt-2">
-                {isLoading ? "Fetching from server..." : "Preparing game..."}
-              </p>
-            </div>
+      <div className="min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-foreground text-xl">Loading game data...</p>
+            <p className="text-muted-foreground text-sm mt-2">
+              {isLoading ? "Fetching from server..." : "Preparing game..."}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Handlers that update both local state and preferences
+  // Spoiler protection handlers
+  const handleSpoilerModalClose = (arcName: string) => {
+    setMaxArcSeen(arcName);
+    setShowSpoilerModal(false);
+    localStorage.setItem("hasVisitedBefore", "true");
+    localStorage.setItem("maxArcSeen", arcName);
+
+    // Update the backend global arc limit
+    updateGlobalArcLimit(arcName);
+  };
+
+  const handleMaxArcChange = (arcName: string) => {
+    setMaxArcSeen(arcName);
+    localStorage.setItem("maxArcSeen", arcName);
+
+    // Update the backend global arc limit
+    updateGlobalArcLimit(arcName);
+  };
+
+  // Game setup handlers that update both local state and preferences
+  const handleDifficultyChange = (difficulty: "easy" | "medium" | "hard") => {
+    setSelectedDifficulty(difficulty);
+    updatePreferences({ difficulty });
+  };
+
+  const handleIncludeUnratedChange = (includeUnrated: boolean) => {
+    setIncludeUnrated(includeUnrated);
+    updatePreferences({ includeUnrated });
+  };
+
   const handleArcChange = (arc: string) => {
     setSelectedArc(arc);
     updatePreferences({ preferred_arc: arc });
-  };
-
-  const handleDifficultyChange = (difficulty: string) => {
-    setSelectedDifficulty(difficulty);
-    updatePreferences({ difficulty });
   };
 
   const handleFillerPercentageChange = (value: number) => {
@@ -96,10 +133,8 @@ const Index = () => {
   };
 
   const handleStart = async () => {
-    // Check if characters are loaded before starting
     if (!charactersLoaded) {
       console.log("⏳ Characters still loading, please wait...");
-      // You could show a toast/alert here instead of just returning
       return;
     }
 
@@ -111,6 +146,7 @@ const Index = () => {
         fillerPercentage,
         includeNonTVFillers,
         difficultyLevel: selectedDifficulty,
+        includeUnrated,
       };
 
       console.log("Starting game with settings:", gameSettings);
@@ -125,73 +161,54 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Ocean Background without Animation */}
-      <div className="absolute inset-0 ocean-gradient"></div>
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <Navigation maxArcSeen={maxArcSeen} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
+
+      {/* Title Section */}
+      <div className="container mx-auto px-6 py-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Character Guessing Game</h1>
+          <p className="text-muted-foreground text-lg">Configure your game settings and test your knowledge</p>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        <Header />
-        <NavigationHeader />
+      <main className="container mx-auto px-6 pb-12">
+        <div className="flex justify-center">
+          <GameSetupForm
+            maxArcSeen={maxArcSeen}
+            availableArcs={availableArcs}
+            selectedDifficulty={selectedDifficulty}
+            onDifficultyChange={handleDifficultyChange}
+            includeUnrated={includeUnrated}
+            onIncludeUnratedChange={handleIncludeUnratedChange}
+            selectedArc={selectedArc}
+            onArcChange={handleArcChange}
+            fillerPercentage={fillerPercentage}
+            onFillerPercentageChange={handleFillerPercentageChange}
+            includeNonTVFillers={includeNonTVFillers}
+            onIncludeNonTVFillersChange={handleIncludeNonTVFillersChange}
+            onStart={handleStart}
+            isStartingGame={isStartingGame}
+            charactersLoaded={charactersLoaded}
+            isLoading={isLoading}
+          />
+        </div>
+      </main>
 
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="max-w-2xl mx-auto">
-            {/* Settings Card */}
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
-              <div className="space-y-8">
-                <div className="transform transition-all duration-300">
-                  <DifficultySelection
-                    selectedDifficulty={selectedDifficulty}
-                    onDifficultyChange={handleDifficultyChange}
-                  />
-                </div>
-
-                <div className="border-t border-white/20 pt-6">
-                  <ArcSelection
-                    selectedArc={selectedArc}
-                    setSelectedArc={handleArcChange}
-                    availableArcs={availableArcs}
-                  />
-                </div>
-
-                <div className="border-t border-white/20 pt-6">
-                  <FillerSettings
-                    fillerPercentage={fillerPercentage}
-                    onFillerPercentageChange={handleFillerPercentageChange}
-                    includeNonTVFillers={includeNonTVFillers}
-                    onIncludeNonTVFillersChange={handleIncludeNonTVFillersChange}
-                  />
-                </div>
-              </div>
-
-              {/* Start Button */}
-              <div className="mt-8 flex justify-center">
-                <StartButton
-                  onStart={handleStart}
-                  disabled={isStartingGame || isLoading || !charactersLoaded} // Updated condition
-                />
-              </div>
-
-              {/* Character loading status */}
-              {!charactersLoaded && (
-                <div className="mt-4 text-center">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white/60"></div>
-                    <p className="text-white/70 text-sm">Loading character data in background...</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Starting Game Loading */}
-            {isStartingGame && (
-              <div className="mt-4 text-center">
-                <p className="text-white/70">Starting game...</p>
-              </div>
-            )}
-          </div>
-        </main>
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent opacity-5 rounded-full blur-3xl"></div>
       </div>
+
+      {/* Spoiler Protection Modal */}
+      <SpoilerProtectionModal
+        isOpen={showSpoilerModal}
+        onClose={handleSpoilerModalClose}
+        availableArcs={availableArcs}
+      />
     </div>
   );
 };

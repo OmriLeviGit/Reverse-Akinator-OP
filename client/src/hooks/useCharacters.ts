@@ -1,7 +1,7 @@
-// src/hooks/useCharacters.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { characterApi } from "../services/api";
 import { Character } from "../types/character";
+import { useEffect } from "react";
 
 export const useCharacters = () => {
   const {
@@ -10,12 +10,27 @@ export const useCharacters = () => {
     error: characterError,
   } = useQuery({
     queryKey: ["allCharacters"],
-    queryFn: characterApi.getCharacters,
+    queryFn: characterApi.getAllCharacters, // Keep your existing API call
+    staleTime: 5 * 60 * 1000, // Add stale time for consistency
   });
 
+  const allCharacters = charactersData?.characters || [];
+  const charactersLoaded = !isLoadingCharacters && allCharacters.length > 0;
+
+  // Add logging like in the original AppContext
+  useEffect(() => {
+    if (isLoadingCharacters) {
+      console.log("🔄 Loading characters in background...");
+    } else if (allCharacters.length > 0) {
+      console.log("✅ Characters loaded:", allCharacters.length, "characters available");
+    }
+  }, [isLoadingCharacters, allCharacters.length]);
+
   return {
-    allCharacters: charactersData?.characters || [],
+    allCharacters,
+    characters: allCharacters, // Add alias for compatibility
     isLoadingCharacters,
+    charactersLoaded, // Add this for the AppContext
     characterError: characterError as Error | null,
   };
 };
@@ -52,7 +67,6 @@ export const useCharacterRatings = () => {
     onMutate: async (characterId: string) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
-
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
@@ -62,7 +76,6 @@ export const useCharacterRatings = () => {
           ),
         };
       });
-
       return { previousCharacters };
     },
     onError: (err, variables, context) => {
@@ -74,7 +87,6 @@ export const useCharacterRatings = () => {
 
   return {
     setCharacterRating: (characterId: string, difficulty: string) => {
-      // Changed from number to string
       ratingMutation.mutate({ characterId, difficulty });
     },
     isUpdatingRating: ratingMutation.isPending,
