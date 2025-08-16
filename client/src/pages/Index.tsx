@@ -31,6 +31,26 @@ const Index = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<"easy" | "medium" | "hard">("easy");
   const [includeUnrated, setIncludeUnrated] = useState(false);
 
+  // Helper function to determine which arc is earlier
+  const getEarlierArc = (arc1: string, arc2: string): string => {
+    // If either arc is "All", return the other one (or "All" if both are "All")
+    if (arc1 === "All" && arc2 === "All") return "All";
+    if (arc1 === "All") return arc2;
+    if (arc2 === "All") return arc1;
+
+    // Find indices in the original availableArcs array (earlier arcs have lower indices)
+    const index1 = availableArcs.findIndex((arc) => arc.name === arc1);
+    const index2 = availableArcs.findIndex((arc) => arc.name === arc2);
+
+    // If either arc is not found, return the found one or fallback
+    if (index1 === -1 && index2 === -1) return maxArcSeen; // fallback
+    if (index1 === -1) return arc2;
+    if (index2 === -1) return arc1;
+
+    // Return the arc with the lower index (earlier in the series)
+    return index1 <= index2 ? arc1 : arc2;
+  };
+
   // Spoiler protection setup - check on first visit
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisitedBefore");
@@ -45,25 +65,55 @@ const Index = () => {
     }
   }, []);
 
-  // Initialize maxArcSeen from sessionData if available
+  // Initialize preferences from sessionData and handle arc selection logic
   useEffect(() => {
-    if (sessionData?.global_arc_limit) {
-      setMaxArcSeen(sessionData.global_arc_limit);
-      localStorage.setItem("maxArcSeen", sessionData.global_arc_limit);
-    }
-  }, [sessionData]);
-
-  // Update local state when session data loads
-  useEffect(() => {
-    if (sessionData?.user_preferences) {
+    if (sessionData?.user_preferences && availableArcs.length > 0) {
       const prefs = sessionData.user_preferences;
       setSelectedDifficulty((prefs.difficulty as "easy" | "medium" | "hard") || "easy");
-      setSelectedArc(prefs.preferred_arc);
       setIncludeNonTVFillers(prefs.includeNonTVFillers);
       setFillerPercentage(prefs.fillerPercentage);
       setIncludeUnrated(prefs.includeUnrated || false);
+
+      // Handle arc selection with spoiler protection
+      const currentPreferredArc = prefs.preferred_arc || maxArcSeen;
+
+      // Determine which arc to use: the earlier between current preference and maxArcSeen
+      const safeArc = getEarlierArc(currentPreferredArc, maxArcSeen);
+
+      console.log("Arc selection logic:", {
+        currentPreferredArc,
+        maxArcSeen,
+        safeArc,
+        selectedArc,
+      });
+
+      // Only update if the safe arc is different from what's currently selected
+      if (safeArc !== selectedArc) {
+        setSelectedArc(safeArc);
+        // Update preferences to reflect the safe choice
+        updatePreferences({ preferred_arc: safeArc });
+      }
     }
-  }, [sessionData]);
+  }, [sessionData, maxArcSeen, availableArcs]); // Remove selectedArc from dependencies to avoid loops
+
+  // Handle maxArcSeen changes and update arc selection accordingly
+  useEffect(() => {
+    if (maxArcSeen && selectedArc && availableArcs.length > 0) {
+      // When maxArcSeen changes, ensure selectedArc doesn't exceed it
+      const safeArc = getEarlierArc(selectedArc, maxArcSeen);
+
+      if (safeArc !== selectedArc) {
+        console.log("Updating selectedArc due to maxArcSeen change:", {
+          oldSelectedArc: selectedArc,
+          maxArcSeen,
+          newSelectedArc: safeArc,
+        });
+
+        setSelectedArc(safeArc);
+        updatePreferences({ preferred_arc: safeArc });
+      }
+    }
+  }, [maxArcSeen, availableArcs]); // Don't include selectedArc here to avoid loops
 
   // Show loading screen ONLY until essential data is loaded
   if (isLoading || !sessionData || availableArcs.length === 0) {
@@ -119,11 +169,15 @@ const Index = () => {
 
   const handleFillerPercentageChange = (value: number) => {
     setFillerPercentage(value);
-    updatePreferences({ fillerPercentage: value });
 
     if (value === 0) {
       setIncludeNonTVFillers(false);
-      updatePreferences({ includeNonTVFillers: false });
+      updatePreferences({
+        fillerPercentage: value,
+        includeNonTVFillers: false,
+      });
+    } else {
+      updatePreferences({ fillerPercentage: value });
     }
   };
 

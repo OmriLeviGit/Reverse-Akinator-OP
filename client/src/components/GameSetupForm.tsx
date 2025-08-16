@@ -1,14 +1,12 @@
-// src/components/GameSetupForm.tsx
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Arc } from "@/types";
 
 interface GameSetupFormProps {
-  maxArcSeen: string; // Changed from number to string
+  maxArcSeen: string;
   availableArcs: Arc[];
   selectedDifficulty: "easy" | "medium" | "hard";
   onDifficultyChange: (difficulty: "easy" | "medium" | "hard") => void;
@@ -25,7 +23,6 @@ interface GameSetupFormProps {
   charactersLoaded: boolean;
   isLoading: boolean;
 }
-
 const GameSetupForm = ({
   maxArcSeen,
   availableArcs,
@@ -44,13 +41,57 @@ const GameSetupForm = ({
   charactersLoaded,
   isLoading,
 }: GameSetupFormProps) => {
-  // Local state for slider (needs to be array for the Slider component)
   const [fillerSliderValue, setFillerSliderValue] = useState([fillerPercentage]);
 
-  // Update slider when prop changes
   useEffect(() => {
     setFillerSliderValue([fillerPercentage]);
   }, [fillerPercentage]);
+
+  // Filter arcs based on maxArcSeen (spoiler protection)
+  const getFilteredArcs = () => {
+    if (maxArcSeen === "All") {
+      // Return all arcs in reverse order (newest first)
+      return [...availableArcs].reverse();
+    }
+
+    // Find the index of maxArcSeen arc in the original array
+    const maxArcIndex = availableArcs.findIndex((arc) => arc.name === maxArcSeen);
+    if (maxArcIndex === -1) {
+      return [...availableArcs].reverse(); // Fallback to all arcs reversed
+    }
+
+    // Get arcs from beginning up to and including maxArcSeen, then reverse
+    return availableArcs.slice(0, maxArcIndex + 1).reverse();
+  };
+
+  const filteredArcs = getFilteredArcs();
+
+  // Create options array with "All Arcs" only if maxArcSeen is "All"
+  const getSelectOptions = () => {
+    const options = [];
+
+    // Only add "All Arcs" option if user can see all arcs
+    if (maxArcSeen === "All") {
+      options.push({ name: "All", displayName: "All Arcs" });
+    }
+
+    // Add filtered arcs
+    filteredArcs.forEach((arc) => {
+      options.push({ name: arc.name, displayName: arc.name });
+    });
+
+    return options;
+  };
+
+  const selectOptions = getSelectOptions();
+
+  // Set default selectedArc to maxArcSeen when availableArcs load or maxArcSeen changes
+  useEffect(() => {
+    if (maxArcSeen && availableArcs.length > 0 && (!selectedArc || selectedArc === "")) {
+      console.log("Setting default arc to:", maxArcSeen);
+      onArcChange(maxArcSeen);
+    }
+  }, [maxArcSeen, availableArcs, selectedArc, onArcChange]);
 
   const handleFillerSliderChange = (value: number[]) => {
     setFillerSliderValue(value);
@@ -61,20 +102,8 @@ const GameSetupForm = ({
     onStart();
   };
 
-  // Filter available arcs based on maxArcSeen if needed
-  // You might need to adjust this logic based on how your arcs are structured
-  const getDisplayValue = (arc: any) => {
-    // Adjust this based on your arc object structure
-    return typeof arc === "string" ? arc : arc.name || arc.label || String(arc);
-  };
-
-  const getArcValue = (arc: any) => {
-    // Adjust this based on your arc object structure
-    return typeof arc === "string" ? arc : arc.value || arc.id || String(arc);
-  };
-
   return (
-    <Card className="w-full max-w-2xl bg-gradient-card border-border shadow-lg">
+    <Card className="w-full max-w-2xl bg-card border-border shadow-lg">
       <CardContent className="space-y-8 pt-8">
         {/* Difficulty Selection */}
         <div className="space-y-4">
@@ -87,8 +116,8 @@ const GameSetupForm = ({
                 onClick={() => onDifficultyChange(level)}
                 className={`h-12 font-medium capitalize transition-all ${
                   selectedDifficulty === level
-                    ? "bg-primary text-primary-foreground shadow-glow"
-                    : "bg-secondary hover:bg-secondary-hover text-secondary-foreground border-border"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary hover:bg-secondary/80 text-secondary-foreground border-border"
                 }`}
               >
                 {level}
@@ -97,13 +126,14 @@ const GameSetupForm = ({
           </div>
 
           <div className="flex items-center space-x-3">
-            <Checkbox
+            <input
+              type="checkbox"
               id="unrated"
               checked={includeUnrated}
-              onCheckedChange={(checked) => onIncludeUnratedChange(!!checked)}
-              className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              onChange={(e) => onIncludeUnratedChange(e.target.checked)}
+              className=""
             />
-            <label htmlFor="unrated" className="text-sm text-muted-foreground cursor-pointer">
+            <label htmlFor="unrated" className="text-sm text-foreground cursor-pointer">
               Include Unrated Characters
             </label>
           </div>
@@ -112,20 +142,29 @@ const GameSetupForm = ({
         {/* Arc Selection */}
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-foreground">Story Arc Selection</h3>
-          <Select value={selectedArc} onValueChange={onArcChange}>
+          <Select value={selectedArc || ""} onValueChange={onArcChange}>
             <SelectTrigger className="bg-input hover:bg-input border-border text-foreground">
               <SelectValue placeholder="Select an arc" />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
-              {availableArcs.map((arc, index) => (
-                <SelectItem key={index} value={getArcValue(arc)} className="text-popover-foreground hover:bg-secondary">
-                  {getDisplayValue(arc)}
+              {filteredArcs.map((arc, index) => (
+                <SelectItem key={index} value={arc.name} className="text-popover-foreground hover:bg-secondary">
+                  <div className="grid grid-cols-[360px_80px_70px] w-full font-mono text-sm">
+                    <span className="text-left truncate text-foreground">{arc.name}</span>
+                    <span className="text-right text-muted-foreground text-xs">
+                      {arc.last_episode > 0 ? `Ep.${arc.last_episode}` : ""}
+                    </span>
+                    <span className="text-right text-muted-foreground text-xs">
+                      {arc.last_chapter > 0 ? `Ch.${arc.last_chapter}` : ""}
+                    </span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
+        {/* Rest of the component remains the same */}
         {/* Filler Character Settings */}
         <div className="space-y-6">
           <h3 className="text-xl font-semibold text-foreground">Filler Character Probability</h3>
@@ -139,6 +178,7 @@ const GameSetupForm = ({
               <Slider
                 value={fillerSliderValue}
                 onValueChange={handleFillerSliderChange}
+                min={0}
                 max={100}
                 step={5}
                 className="w-full"
@@ -146,19 +186,18 @@ const GameSetupForm = ({
             </div>
 
             <div className="flex items-center space-x-3">
-              <Checkbox
+              <input
+                type="checkbox"
                 id="non-tv"
                 checked={includeNonTVFillers}
-                onCheckedChange={(checked) => onIncludeNonTVFillersChange(!!checked)}
+                onChange={(e) => onIncludeNonTVFillersChange(e.target.checked)}
                 disabled={fillerPercentage === 0}
-                className={`border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary ${
-                  fillerPercentage === 0 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className=""
               />
               <label
                 htmlFor="non-tv"
                 className={`text-sm cursor-pointer ${
-                  fillerPercentage === 0 ? "text-disabled-foreground" : "text-muted-foreground"
+                  fillerPercentage === 0 ? "text-muted-foreground" : "text-foreground"
                 }`}
               >
                 Include Non-TV Content (Movies, Games, etc.)

@@ -35,7 +35,7 @@ const SpoilerProtectionModal = ({ isOpen, onClose, availableArcs }: SpoilerProte
                 <SelectValue placeholder="Select an arc" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-60">
-                {/* "All" option first */}
+                {/* "All Arcs" option first */}
                 <SelectItem value="All" className="text-popover-foreground hover:bg-secondary">
                   All Arcs
                 </SelectItem>

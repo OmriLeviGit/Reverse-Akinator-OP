@@ -204,12 +204,10 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             checked={includeNonTVContent}
             onChange={(e) => onIncludeNonTVContentChange(e.target.checked)}
             disabled={isNonTVContentDisabled}
-            className={`w-4 h-4 text-primary bg-input border-border rounded focus:ring-ring ${
-              isNonTVContentDisabled ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className=""
           />
           <span className={`text-sm ${isNonTVContentDisabled ? "text-muted-foreground" : "text-foreground"}`}>
-            Include Non-TV Content
+            Include Non-TV Content (Movies, Games, etc.)
           </span>
         </label>
       </div>

@@ -18,6 +18,11 @@ interface NavigationProps {
 const Navigation = ({ maxArcSeen, onMaxArcChange, availableArcs }: NavigationProps) => {
   const location = useLocation();
 
+  // Display "All Arcs" instead of "All"
+  const getDisplayText = (arcName: string) => {
+    return arcName === "All" ? "All" : arcName;
+  };
+
   return (
     <nav className="w-full border-b border-border bg-card shadow-sm">
       <div className="container mx-auto px-6 py-4">
@@ -56,14 +61,14 @@ const Navigation = ({ maxArcSeen, onMaxArcChange, availableArcs }: NavigationPro
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="bg-secondary hover:bg-secondary-hover border-border text-secondary-foreground"
+                  className="bg-secondary hover:bg-secondary-hover text-secondary-foreground hover:text-secondary-foreground-hover border border-border transition-all duration-200"
                 >
-                  Max Arc Seen: {maxArcSeen}
+                  Max Arc Seen: {getDisplayText(maxArcSeen)}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-popover border-border max-h-60 overflow-y-auto">
-                {/* "All" option first */}
+                {/* "All Arcs" option first */}
                 <DropdownMenuItem
                   onClick={() => onMaxArcChange("All")}
                   className="cursor-pointer hover:bg-secondary text-popover-foreground"
