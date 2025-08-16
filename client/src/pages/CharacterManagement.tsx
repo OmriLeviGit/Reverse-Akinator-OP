@@ -110,7 +110,7 @@ const CharacterManagement: React.FC = () => {
         {/* Adjust height to account for navigation */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
               {/* Filter Panel */}
               <aside className="lg:sticky lg:top-8 lg:h-fit">
                 {" "}

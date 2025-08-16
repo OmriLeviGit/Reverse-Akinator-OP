@@ -1,5 +1,13 @@
 import React, { useState } from "react";
 import { Character } from "../../types/character";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CharacterCardProps {
   character: Character;
@@ -58,7 +66,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
   return (
     <div
       className={`bg-card rounded-xl p-4 border border-border transition-all duration-200 ${
-        character.isIgnored ? "opacity-60" : "hover:bg-card/80"
+        character.isIgnored ? "opacity-60" : "hover:bg-secondary hover:border-secondary-hover"
       }`}
     >
       {/* Character Info */}
@@ -67,7 +75,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         {character.wikiLink ? (
           <a href={character.wikiLink} target="_blank" rel="noopener noreferrer" className="block">
             <h3
-              className="text-lg font-bold text-foreground mb-1 hover:text-primary transition-colors leading-tight"
+              className="text-lg font-bold text-foreground mb-1 transition-colors leading-tight"
               style={{
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
@@ -125,33 +133,71 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
       </div>
 
       {/* Actions - Fixed position */}
+      {/* Actions - Fixed position */}
       <div className="space-y-2">
         {/* Difficulty */}
         <div>
-          <select
-            value={character.difficulty || ""}
-            onChange={(e) => onRatingChange(character.id, e.target.value || null)}
-            className="w-full px-2 py-1 bg-input border border-border rounded text-foreground text-xs focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="" className="bg-popover text-popover-foreground">
-              Unrated
-            </option>
-            <option value="very-easy" className="bg-popover text-popover-foreground">
-              Very Easy
-            </option>
-            <option value="easy" className="bg-popover text-popover-foreground">
-              Easy
-            </option>
-            <option value="medium" className="bg-popover text-popover-foreground">
-              Medium
-            </option>
-            <option value="hard" className="bg-popover text-popover-foreground">
-              Hard
-            </option>
-            <option value="really-hard" className="bg-popover text-popover-foreground">
-              Really Hard
-            </option>
-          </select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between bg-input hover:bg-secondary text-foreground hover:text-foreground border-border text-xs h-8 px-2 py-1"
+              >
+                {character.difficulty === "" || !character.difficulty
+                  ? "Unrated"
+                  : character.difficulty === "very-easy"
+                  ? "Very Easy"
+                  : character.difficulty === "easy"
+                  ? "Easy"
+                  : character.difficulty === "medium"
+                  ? "Medium"
+                  : character.difficulty === "hard"
+                  ? "Hard"
+                  : character.difficulty === "really-hard"
+                  ? "Really Hard"
+                  : "Unrated"}
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
+              <DropdownMenuItem
+                onClick={() => onRatingChange(character.id, null)}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
+              >
+                Unrated
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onRatingChange(character.id, "very-easy")}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
+              >
+                Very Easy
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onRatingChange(character.id, "easy")}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
+              >
+                Easy
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onRatingChange(character.id, "medium")}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
+              >
+                Medium
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onRatingChange(character.id, "hard")}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
+              >
+                Hard
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onRatingChange(character.id, "really-hard")}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
+              >
+                Really Hard
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Ignore Button */}

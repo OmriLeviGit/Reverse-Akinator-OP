@@ -1,4 +1,12 @@
 import React from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../../types/characterManagement";
 
 interface CharacterFiltersProps {
@@ -63,59 +71,121 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
       {/* Sort Options */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-foreground mb-2">Sort By</label>
-        <select
-          value={sortOption}
-          onChange={(e) => onSortOptionChange(e.target.value as SortOption)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="alphabetical-az" className="bg-popover text-popover-foreground">
-            A-Z
-          </option>
-          <option value="alphabetical-za" className="bg-popover text-popover-foreground">
-            Z-A
-          </option>
-          <option value="difficulty-easy-hard" className="bg-popover text-popover-foreground">
-            Difficulty: Easy → Hard
-          </option>
-          <option value="difficulty-hard-easy" className="bg-popover text-popover-foreground">
-            Difficulty: Hard → Easy
-          </option>
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between bg-input hover:bg-secondary text-foreground hover:text-foreground border-border"
+            >
+              {sortOption === "alphabetical-az" && "A-Z"}
+              {sortOption === "alphabetical-za" && "Z-A"}
+              {sortOption === "difficulty-easy-hard" && "Difficulty: Easy → Hard"}
+              {sortOption === "difficulty-hard-easy" && "Difficulty: Hard → Easy"}
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
+            {" "}
+            <DropdownMenuItem
+              onClick={() => onSortOptionChange("alphabetical-az")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              A-Z
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onSortOptionChange("alphabetical-za")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Z-A
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onSortOptionChange("difficulty-easy-hard")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Difficulty: Easy → Hard
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onSortOptionChange("difficulty-hard-easy")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Difficulty: Hard → Easy
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Rating Filter */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-foreground mb-2">Difficulty Status</label>
-        <select
-          value={ratingFilter}
-          onChange={(e) => onRatingFilterChange(e.target.value as RatingFilter)}
-          className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="all" className="bg-popover text-popover-foreground">
-            All Difficulties
-          </option>
-          <option value="rated-only" className="bg-popover text-popover-foreground">
-            All Rated
-          </option>
-          <option value="unrated-only" className="bg-popover text-popover-foreground">
-            Unrated
-          </option>
-          <option value="very-easy" className="bg-popover text-popover-foreground">
-            Very Easy
-          </option>
-          <option value="easy" className="bg-popover text-popover-foreground">
-            Easy
-          </option>
-          <option value="medium" className="bg-popover text-popover-foreground">
-            Medium
-          </option>
-          <option value="hard" className="bg-popover text-popover-foreground">
-            Hard
-          </option>
-          <option value="really-hard" className="bg-popover text-popover-foreground">
-            Really Hard
-          </option>
-        </select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between bg-input hover:bg-secondary text-foreground hover:text-foreground border-border"
+            >
+              {ratingFilter === "all" && "All Difficulties"}
+              {ratingFilter === "rated-only" && "All Rated"}
+              {ratingFilter === "unrated-only" && "Unrated"}
+              {ratingFilter === "very-easy" && "Very Easy"}
+              {ratingFilter === "easy" && "Easy"}
+              {ratingFilter === "medium" && "Medium"}
+              {ratingFilter === "hard" && "Hard"}
+              {ratingFilter === "really-hard" && "Really Hard"}
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("all")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              All Difficulties
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("rated-only")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              All Rated
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("unrated-only")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Unrated
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("very-easy")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Very Easy
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("easy")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Easy
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("medium")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Medium
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("hard")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Hard
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onRatingFilterChange("really-hard")}
+              className="cursor-pointer hover:bg-secondary text-popover-foreground"
+            >
+              Really Hard
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Ignore Filter - Button Group */}
