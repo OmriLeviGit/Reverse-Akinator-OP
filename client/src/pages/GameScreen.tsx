@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import NavigationHeader from "../components/NavigationHeader";
 import GameInput from "../components/game/GameInput";
 import MessageArea from "../components/game/MessageArea";
 import GameActions from "../components/game/GameActions";
@@ -139,41 +137,37 @@ const GameScreen: React.FC = () => {
   // Show game screen
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Ocean Background */}
-      <div className="absolute inset-0 ocean-gradient"></div>
+      <div>
+        <div className="absolute inset-0 ocean-gradient"></div>
 
-      {/* Main Content */}
-      <div className="relative z-10 min-h-screen flex flex-col">
-        <Header />
-        <NavigationHeader />
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <main className="flex-1 container mx-auto px-4 py-4 max-w-4xl">
+            <GameInput
+              inputMessage={inputMessage}
+              onInputChange={setInputMessage}
+              onSendMessage={handleSendMessage}
+              disabled={isProcessing}
+            />
 
-        <main className="flex-1 container mx-auto px-4 py-4 max-w-4xl">
-          <GameInput
-            inputMessage={inputMessage}
-            onInputChange={setInputMessage}
-            onSendMessage={handleSendMessage}
-            disabled={isProcessing}
+            <MessageArea messages={messages} messagesEndRef={messagesEndRef} />
+
+            <GameActions
+              onHint={handleHint}
+              onMakeGuess={() => setShowCharacterSearch(true)}
+              onRevealCharacter={handleRevealCharacter}
+              disabled={isProcessing}
+            />
+          </main>
+        </div>
+
+        {showCharacterSearch && (
+          <CharacterSearch
+            characters={allCharacters.map((char) => char.name)}
+            onCharacterSelect={handleCharacterSelect}
+            onClose={() => setShowCharacterSearch(false)}
           />
-
-          <MessageArea messages={messages} messagesEndRef={messagesEndRef} />
-
-          <GameActions
-            onHint={handleHint}
-            onMakeGuess={() => setShowCharacterSearch(true)}
-            onRevealCharacter={handleRevealCharacter}
-            disabled={isProcessing}
-          />
-        </main>
+        )}
       </div>
-
-      {/* Character Search Modal */}
-      {showCharacterSearch && (
-        <CharacterSearch
-          characters={allCharacters.map((char) => char.name)}
-          onCharacterSelect={handleCharacterSelect}
-          onClose={() => setShowCharacterSearch(false)}
-        />
-      )}
     </div>
   );
 };

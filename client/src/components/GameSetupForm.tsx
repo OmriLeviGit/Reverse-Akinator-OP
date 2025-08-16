@@ -109,18 +109,23 @@ const GameSetupForm = ({
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-foreground">Character Difficulty</h3>
           <div className="grid grid-cols-3 gap-3">
-            {(["easy", "medium", "hard"] as const).map((level) => (
+            {[
+              { id: "easy", label: "Easy", description: "Characters rated 1-2" },
+              { id: "medium", label: "Medium", description: "Characters rated 2-4" },
+              { id: "hard", label: "Hard", description: "Characters rated 3-5" },
+            ].map((level) => (
               <Button
-                key={level}
-                variant={selectedDifficulty === level ? "default" : "outline"}
-                onClick={() => onDifficultyChange(level)}
-                className={`h-12 font-medium capitalize transition-all ${
-                  selectedDifficulty === level
+                key={level.id}
+                variant={selectedDifficulty === level.id ? "default" : "outline"}
+                onClick={() => onDifficultyChange(level.id as "easy" | "medium" | "hard")}
+                className={`h-16 font-medium transition-all flex flex-col justify-center items-center py-2 ${
+                  selectedDifficulty === level.id
                     ? "bg-primary text-primary-foreground"
-                    : "bg-secondary hover:bg-secondary/80 text-secondary-foreground border-border"
+                    : "bg-secondary hover:bg-secondary-hover text-secondary-foreground hover:text-secondary-foreground-hover border-border"
                 }`}
               >
-                {level}
+                <span className="capitalize font-semibold leading-none">{level.label}</span>
+                <span className="text-xs opacity-75 leading-none -mt-0.5">{level.description}</span>
               </Button>
             ))}
           </div>
@@ -141,7 +146,7 @@ const GameSetupForm = ({
 
         {/* Arc Selection */}
         <div className="space-y-4">
-          <h3 className="text-xl font-semibold text-foreground">Story Arc Selection</h3>
+          <h3 className="text-xl font-semibold text-foreground">Character Arc Limit</h3>
           <Select value={selectedArc || ""} onValueChange={onArcChange}>
             <SelectTrigger className="bg-input hover:bg-input border-border text-foreground">
               <SelectValue placeholder="Select an arc" />
@@ -149,12 +154,12 @@ const GameSetupForm = ({
             <SelectContent className="bg-popover border-border">
               {filteredArcs.map((arc, index) => (
                 <SelectItem key={index} value={arc.name} className="text-popover-foreground hover:bg-secondary">
-                  <div className="grid grid-cols-[360px_80px_70px] w-full font-mono text-sm">
+                  <div className="grid grid-cols-[440px_70px_60px] w-full font-mono text-sm">
                     <span className="text-left truncate text-foreground">{arc.name}</span>
-                    <span className="text-right text-muted-foreground text-xs">
+                    <span className="text-left text-muted-foreground text-xs">
                       {arc.last_episode > 0 ? `Ep.${arc.last_episode}` : ""}
                     </span>
-                    <span className="text-right text-muted-foreground text-xs">
+                    <span className="text-left text-muted-foreground text-xs">
                       {arc.last_chapter > 0 ? `Ch.${arc.last_chapter}` : ""}
                     </span>
                   </div>
@@ -166,9 +171,8 @@ const GameSetupForm = ({
 
         {/* Rest of the component remains the same */}
         {/* Filler Character Settings */}
-        <div className="space-y-6">
+        <div className="space-y-2">
           <h3 className="text-xl font-semibold text-foreground">Filler Character Probability</h3>
-
           <div className="space-y-4">
             <div className="space-y-3">
               <div className="flex justify-between items-center">

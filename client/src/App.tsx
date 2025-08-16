@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GameProvider } from "./contexts/AppContext";
 import Index from "./pages/Index";
 import GameScreen from "./pages/GameScreen";
-import CharacterRevealScreen from "./pages/CharacterRevealScreen";
 import CharacterManagement from "./pages/CharacterManagement";
 import NotFound from "./pages/NotFound";
 
@@ -18,7 +17,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/game" element={<GameScreen />} />
-            <Route path="/reveal" element={<CharacterRevealScreen />} />
             <Route path="/character-management" element={<CharacterManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

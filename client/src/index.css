@@ -106,6 +106,14 @@
   input[type="checkbox"]:focus-visible {
     outline: none;
   }
+
+  *:focus,
+  *:focus-visible,
+  *:focus-within {
+    outline: none !important;
+    box-shadow: none !important;
+    ring: none !important;
+  }
 }
 
 @layer base {

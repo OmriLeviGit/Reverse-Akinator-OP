@@ -1,7 +1,6 @@
-
-import React from 'react';
-import MessageBubble from '../MessageBubble';
-import { Message } from '../../hooks/useGameMessages';
+import React from "react";
+import MessageBubble from "./MessageBubble";
+import { Message } from "../../hooks/useGameMessages";
 
 interface MessageAreaProps {
   messages: Message[];
