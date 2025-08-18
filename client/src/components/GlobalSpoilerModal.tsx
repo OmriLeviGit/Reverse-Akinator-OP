@@ -1,24 +1,32 @@
-import { useState } from "react";
+// components/GlobalSpoilerModal.tsx
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAppContext } from "../contexts/AppContext";
 import { Arc } from "@/types";
 
-interface SpoilerProtectionModalProps {
-  isOpen: boolean;
-  onClose: (maxArcName: string) => void;
-  availableArcs: Arc[];
-}
-
-const SpoilerProtectionModal = ({ isOpen, onClose, availableArcs }: SpoilerProtectionModalProps) => {
+const GlobalSpoilerModal = () => {
+  const { availableArcs, updateGlobalArcLimit } = useAppContext();
+  const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
   const [selectedArcName, setSelectedArcName] = useState<string>("All");
 
+  // Check if modal should show on any page load
+  useEffect(() => {
+    const hasVisited = localStorage.getItem("hasVisitedBefore");
+    if (!hasVisited) {
+      setShowSpoilerModal(true);
+    }
+  }, []);
+
   const handleContinue = () => {
-    onClose(selectedArcName);
+    updateGlobalArcLimit(selectedArcName);
+    setShowSpoilerModal(false);
+    localStorage.setItem("hasVisitedBefore", "true");
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={showSpoilerModal} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md bg-card border-border">
         <DialogHeader className="text-center space-y-4">
           <DialogTitle className="text-2xl font-bold text-foreground">Spoiler Protection Setup</DialogTitle>
@@ -27,7 +35,6 @@ const SpoilerProtectionModal = ({ isOpen, onClose, availableArcs }: SpoilerProte
             content.
           </DialogDescription>
         </DialogHeader>
-
         <div className="space-y-6 pt-4">
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">Maximum Arc Seen</label>
@@ -49,7 +56,6 @@ const SpoilerProtectionModal = ({ isOpen, onClose, availableArcs }: SpoilerProte
               </SelectContent>
             </Select>
           </div>
-
           <Button
             onClick={handleContinue}
             className="w-full h-12 bg-primary hover:bg-primary-hover text-primary-foreground font-medium"
@@ -62,4 +68,4 @@ const SpoilerProtectionModal = ({ isOpen, onClose, availableArcs }: SpoilerProte
   );
 };
 
-export default SpoilerProtectionModal;
+export default GlobalSpoilerModal;

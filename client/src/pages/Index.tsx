@@ -2,16 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import GameSetupForm from "../components/GameSetupForm";
-import SpoilerProtectionModal from "../components/SpoilerProtectionModal";
 import { useAppContext } from "../contexts/AppContext";
 import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isStartingGame, setIsStartingGame] = useState(false);
-
-  // Spoiler protection state - now using arc names
-  const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
 
   const {
     startGame,
@@ -22,7 +18,6 @@ const Index = () => {
     updatePreferences,
     updateGlobalArcLimit,
     globalArcLimit,
-    setGlobalArcLimit,
   } = useAppContext();
 
   // Initialize local state from session data
@@ -52,20 +47,6 @@ const Index = () => {
     return index1 <= index2 ? arc1 : arc2;
   };
 
-  // Spoiler protection setup - check on first visit
-  useEffect(() => {
-    const hasVisited = localStorage.getItem("hasVisitedBefore");
-    if (!hasVisited) {
-      setShowSpoilerModal(true);
-    } else {
-      // Load saved max arc setting
-      const savedMaxArc = localStorage.getItem("globalArcLimit");
-      if (savedMaxArc) {
-        setGlobalArcLimit(savedMaxArc);
-      }
-    }
-  }, []);
-
   // Initialize preferences from sessionData and handle arc selection logic
   useEffect(() => {
     if (sessionData?.user_preferences && availableArcs.length > 0) {
@@ -78,7 +59,7 @@ const Index = () => {
       // Handle arc selection with spoiler protection
       const currentPreferredArc = prefs.preferredArc || globalArcLimit;
 
-      const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit); // Minimum between the max arc seen and the curent prefered arc
+      const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit); // Minimum between the max arc seen and the current preferred arc
 
       if (safeArc !== selectedArc) {
         setSelectedArc(safeArc);
@@ -116,13 +97,6 @@ const Index = () => {
       </div>
     );
   }
-
-  // Spoiler protection handlers
-  const handleSpoilerModalClose = (arcName: string) => {
-    updateGlobalArcLimit(arcName);
-    setShowSpoilerModal(false);
-    localStorage.setItem("hasVisitedBefore", "true");
-  };
 
   const handleMaxArcChange = (arcName: string) => {
     updateGlobalArcLimit(arcName);
@@ -232,13 +206,6 @@ const Index = () => {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent opacity-5 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Spoiler Protection Modal */}
-      <SpoilerProtectionModal
-        isOpen={showSpoilerModal}
-        onClose={handleSpoilerModalClose}
-        availableArcs={availableArcs}
-      />
     </div>
   );
 };
