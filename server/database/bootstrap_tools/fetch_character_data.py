@@ -90,7 +90,7 @@ def scrape_table_from_wikia(url, table_child):
         return df
 
     except requests.RequestException as e:
-        print(f"Error fetching data from {url}: {e}")
+        print(f"Error fetching database from {url}: {e}")
         return pd.DataFrame()
     except Exception as e:
         print(f"Error parsing table from {url}: {e}")
@@ -191,9 +191,9 @@ def handle_duplicate_ids(df):
 
 
 def scrape_character_data(output_file=None):
-    """Fetch and save character data from One Piece wikia"""
+    """Fetch and save character database from One Piece wikia"""
     if output_file is None:
-        output_file = Path(__file__).parent.parent / "data" / "character_data.csv"
+        output_file = Path(__file__).parent.parent / "character_data.csv"
 
     try:
         url1 = "https://onepiece.fandom.com/wiki/List_of_Canon_Characters"
@@ -272,10 +272,10 @@ def scrape_character_data(output_file=None):
             print(f"- Final columns: {combined_df.columns.tolist()}")
             print(f"- Saved to: {output_file}")
         else:
-            print("No character data could be fetched")
+            print("No character database could be fetched")
 
     except Exception as e:
-        print(f"Error fetching character data: {e}")
+        print(f"Error fetching character database: {e}")
 
 
 if __name__ == "__main__":

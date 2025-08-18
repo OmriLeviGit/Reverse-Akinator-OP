@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 import sys
 
-from server.data.db_models import DBCharacter, Arc, Base
+from server.database.db_models import DBCharacter, Arc, Base
 
 BASE_DIR = Path(__file__).parent  # Use pathlib.Path
 sys.path.append(str(BASE_DIR.parent))

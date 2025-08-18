@@ -10,7 +10,7 @@ import re
 
 
 def fetch_character_list(is_canon, debug=False):
-    """Fetch and save character data from the One Piece wiki"""
+    """Fetch and save character database from the One Piece wiki"""
     if is_canon:
         url = "https://onepiece.fandom.com/wiki/List_of_Canon_Characters"
         file_path = "table_canon.csv"
@@ -106,21 +106,21 @@ def get_main_info(chosen_name):
     desired_row_titles = ['Bounty', 'Age', 'Status', 'Occupations', 'Origin', 'Residence',
                           'Height', 'Affiliations']
 
-    data_items = soup.select('div.pi-item.pi-data')
+    data_items = soup.select('div.pi-item.pi-database')
 
     if not data_items:
-        data_items = soup.select('[data-source]')
+        data_items = soup.select('[database-source]')
 
     all_data = []
     for item in data_items:
-        label_elem = item.find('h3', class_='pi-data-label')
+        label_elem = item.find('h3', class_='pi-database-label')
         if not label_elem:
             continue
 
         label_text = label_elem.text.strip().rstrip(':')
 
         if any(title in label_text for title in desired_row_titles):
-            value_elem = item.find('div', class_='pi-data-value')
+            value_elem = item.find('div', class_='pi-database-value')
             if not value_elem:
                 continue
 
@@ -177,7 +177,7 @@ def get_devil_fruit(chosen_name, debug=False):
     fruit_string = ", ".join(all_strings)
 
     if debug:
-        print("Successfully fetched devil fruit data from the wiki")
+        print("Successfully fetched devil fruit database from the wiki")
 
     return fruit_string
 
@@ -205,11 +205,11 @@ def extract_data_from_wiki(chosen_name, debug=False):
 
     # Check the content directly
     if character_wiki_info.startswith("There is currently no text in this page"):
-        print(f"Cannot find character data in the wiki for the character: {chosen_name}")
+        print(f"Cannot find character database in the wiki for the character: {chosen_name}")
         return -1
 
     if debug:
-        print("Successfully fetched character data from the wiki")
+        print("Successfully fetched character database from the wiki")
 
     return character_wiki_info
 

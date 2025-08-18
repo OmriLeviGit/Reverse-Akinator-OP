@@ -126,9 +126,9 @@ def download_and_process_image(image_url, character_id, large_folder, avatar_fol
 
 
 def download_character_avatars(skip_existing=True):
-    csv_file = Path(__file__).parent.parent / "data" / "character_data.csv"
-    large_folder = Path(__file__).parent.parent / "data" / "img" / "lg_avatars"
-    avatar_folder = Path(__file__).parent.parent / "data" / "img" / "sm_avatars"
+    csv_file = Path(__file__).parent.parent / "character_data.csv"
+    large_folder = Path(__file__).parent.parent / "img" / "lg_avatars"
+    avatar_folder = Path(__file__).parent.parent / "img" / "sm_avatars"
 
     # Create output folders
     os.makedirs(large_folder, exist_ok=True)
@@ -146,6 +146,7 @@ def download_character_avatars(skip_existing=True):
             wiki_url = row['Wiki']
 
             if not wiki_url or not character_id:
+                print(f"Missing details: {character_id}, {wiki_url}")
                 continue
 
             if skip_existing:
@@ -183,17 +184,17 @@ def download_character_avatars(skip_existing=True):
 
 def regenerate_small_avatars(small_size=128):
     """Regenerate all small avatars from existing large ones with chosen size"""
-    large_folder = Path(__file__).parent.parent / "data" / "img" / "lg_avatars"
-    avatar_folder = Path(__file__).parent.parent / "data" / "img" / "sm_avatars"
+    lg_avatar_folder = Path(__file__).parent.parent / "img" / "lg_avatars"
+    sm_avatar_folder = Path(__file__).parent.parent / "img" / "sm_avatars"
 
     # Create output folder if it doesn't exist
-    os.makedirs(avatar_folder, exist_ok=True)
+    os.makedirs(sm_avatar_folder, exist_ok=True)
 
     successful_recreations = 0
     failed_recreations = []
 
     # Get all large avatar files
-    large_files = list(large_folder.glob("*.webp"))
+    large_files = list(lg_avatar_folder.glob("*.webp"))
 
     if not large_files:
         print("No large avatars found to recreate from!")
@@ -204,7 +205,7 @@ def regenerate_small_avatars(small_size=128):
     for large_file in large_files:
         character_id = large_file.stem  # filename without extension
 
-        if create_small_from_large(character_id, large_folder, avatar_folder, small_size):
+        if create_small_from_large(character_id, lg_avatar_folder, sm_avatar_folder, small_size):
             print(f"✓ Recreated: {character_id}")
             successful_recreations += 1
         else:

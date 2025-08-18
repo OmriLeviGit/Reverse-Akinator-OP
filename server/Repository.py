@@ -1,5 +1,5 @@
-from server.data.database import DatabaseManager
-from server.data.db_models import DBCharacter, Arc
+from server.database.database import DatabaseManager
+from server.database.db_models import DBCharacter, Arc
 from server.pydantic_schemas.character_schemas import Character
 
 

@@ -3,7 +3,7 @@ from typing import Optional, Dict, List
 from fastapi import Request
 
 from server.Repository import Repository
-from server.data.db_models import Arc
+from server.database.db_models import Arc
 from server.pydantic_schemas.character_schemas import Character
 
 
@@ -12,7 +12,7 @@ class SessionManager:
         self.request = request
 
     def has_session_data(self) -> bool:
-        """Check if session has been initialized with our app data"""
+        """Check if session has been initialized with our app database"""
         return "session_created" in self.request.session
 
     def create_initial_session(self):
@@ -32,10 +32,10 @@ class SessionManager:
         })
 
     def get_safe_session_data(self) -> Dict:
-        """Get all session data EXCEPT secret target_character"""
+        """Get all session database EXCEPT secret target_character"""
         session_copy = dict(self.request.session)
 
-        # Remove sensitive data from current_game
+        # Remove sensitive database from current_game
         if "current_game" in session_copy:
             game_copy = dict(session_copy["current_game"])
             # Remove the secret target character
@@ -79,7 +79,7 @@ class SessionManager:
         return "current_game" in self.request.session
 
     def get_current_game(self) -> Optional[Dict]:
-        """Get current game data (returns None if no active game)"""
+        """Get current game database (returns None if no active game)"""
         return self.request.session.get("current_game")
 
     def start_new_game(self, target_character, prompt):
@@ -135,7 +135,7 @@ class SessionManager:
         return len(self.get_guesses_made())
 
     def end_game(self):
-        """End current game and clear game data"""
+        """End current game and clear game database"""
         self.request.session.pop("current_game", None)
 
     # ===== SESSION METADATA =====
