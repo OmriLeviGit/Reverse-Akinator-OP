@@ -11,7 +11,6 @@ const Index = () => {
   const [isStartingGame, setIsStartingGame] = useState(false);
 
   // Spoiler protection state - now using arc names
-  const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
   const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
 
   const {
@@ -22,6 +21,8 @@ const Index = () => {
     charactersLoaded,
     updatePreferences,
     updateGlobalArcLimit,
+    globalArcLimit,
+    setGlobalArcLimit,
   } = useAppContext();
 
   // Initialize local state from session data
@@ -119,17 +120,11 @@ const Index = () => {
   // Spoiler protection handlers
   const handleSpoilerModalClose = (arcName: string) => {
     updateGlobalArcLimit(arcName);
-    setGlobalArcLimit(arcName);
     setShowSpoilerModal(false);
     localStorage.setItem("hasVisitedBefore", "true");
-    localStorage.setItem("globalArcLimit", arcName);
   };
 
   const handleMaxArcChange = (arcName: string) => {
-    setGlobalArcLimit(arcName);
-    localStorage.setItem("globalArcLimit", arcName);
-
-    // Update the backend global arc limit
     updateGlobalArcLimit(arcName);
   };
 

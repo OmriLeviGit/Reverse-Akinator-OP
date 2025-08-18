@@ -8,18 +8,8 @@ import { VirtualizedCharacterGrid } from "../components/character-management/Vir
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
 
 const CharacterManagement: React.FC = () => {
-  const { characters, isLoading, sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
+  const { characters, isLoading, sessionData, availableArcs, updateGlobalArcLimit, globalArcLimit } = useAppContext();
   const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
-
-  // Spoiler protection state (for Navigation component)
-  const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
-
-  // Initialize globalArcLimit from sessionData
-  React.useEffect(() => {
-    if (sessionData?.global_arc_limit) {
-      setGlobalArcLimit(sessionData.global_arc_limit);
-    }
-  }, [sessionData]);
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -64,8 +54,6 @@ const CharacterManagement: React.FC = () => {
 
   // Spoiler protection handler
   const handleMaxArcChange = (arcName: string) => {
-    setGlobalArcLimit(arcName);
-    localStorage.setItem("globalArcLimit", arcName);
     updateGlobalArcLimit(arcName);
   };
 
