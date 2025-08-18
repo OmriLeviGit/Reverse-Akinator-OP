@@ -4,6 +4,7 @@ import Navigation from "../components/Navigation";
 import GameSetupForm from "../components/GameSetupForm";
 import SpoilerProtectionModal from "../components/SpoilerProtectionModal";
 import { useAppContext } from "../contexts/AppContext";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -186,12 +187,12 @@ const Index = () => {
         includeUnrated,
       };
 
-      console.log("Starting game with settings:", gameSettings);
-      await startGame(gameSettings);
-
+      await startGame(gameSettings); // This calls your API
+      toast.success("Game started successfully!");
       navigate("/game");
     } catch (error: any) {
-      console.error("Failed to start game:", error);
+      const errorMessage = error.response?.data?.detail || error.message || "Something went wrong. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsStartingGame(false);
     }

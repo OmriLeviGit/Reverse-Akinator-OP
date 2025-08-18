@@ -1,6 +1,7 @@
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "sonner";
 import { GameProvider } from "./contexts/AppContext";
 import Index from "./pages/Index";
 import GameScreen from "./pages/GameScreen";
@@ -21,6 +22,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <Toaster position="top-right" />
         </BrowserRouter>
       </GameProvider>
     </TooltipProvider>

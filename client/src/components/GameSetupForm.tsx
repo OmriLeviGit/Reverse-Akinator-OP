@@ -66,25 +66,6 @@ const GameSetupForm = ({
 
   const filteredArcs = getFilteredArcs();
 
-  // Create options array with "All Arcs" only if globalArcLimit is "All"
-  const getSelectOptions = () => {
-    const options = [];
-
-    // Only add "All Arcs" option if user can see all arcs
-    if (globalArcLimit === "All") {
-      options.push({ name: "All", displayName: "All Arcs" });
-    }
-
-    // Add filtered arcs
-    filteredArcs.forEach((arc) => {
-      options.push({ name: arc.name, displayName: arc.name });
-    });
-
-    return options;
-  };
-
-  const selectOptions = getSelectOptions();
-
   // Set default selectedArc to globalArcLimit when availableArcs load or globalArcLimit changes
   useEffect(() => {
     if (globalArcLimit && availableArcs.length > 0 && (!selectedArc || selectedArc === "")) {

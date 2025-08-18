@@ -63,6 +63,7 @@ class DatabaseManager:
 
     def reset_database(self):
         """Drop and recreate all tables"""
+        print("\n", "=" * 20, "Database reset", "=" * 20)
         self.drop_tables()
         self.create_tables()
         self.load_initial_data()
@@ -157,4 +158,4 @@ class DatabaseManager:
 
 # Create global instance
 db_manager = DatabaseManager()
-db_manager.reset_database()
+# db_manager.reset_database()

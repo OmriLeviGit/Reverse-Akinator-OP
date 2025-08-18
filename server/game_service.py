@@ -11,20 +11,19 @@ from server.pydantic_schemas.game_schemas import GameStartRequest, GameQuestionR
 from server.Repository import Repository
 
 
-# def start_game(request: GameStartRequest) -> GameStartResponse:
 def start_game(request: GameStartRequest, session_mgr: SessionManager):
     """Initialize a new game session"""
 
     r = Repository()
     arc = r.get_arc_by_name(request.arc_selection)
 
-    choose_canon = request.filler_percentage < random.random()
+    choose_canon = request.filler_percentage < random.random() * 100
 
     if choose_canon:
         canon_characters = r.get_canon_characters(arc, request.difficulty_level)
         if not canon_characters:
             raise ValueError(
-                f"No canon characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
+                f"No Canon characters found for arc limit '{request.arc_selection}' at difficulty '{request.difficulty_level.title()}'")
         chosen_character = random.choice(canon_characters)
     else:
         if request.include_non_tv_fillers:
@@ -34,7 +33,7 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
 
         if not filler_characters:
             raise ValueError(
-                f"No filler characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
+                f"No Filler characters found for arc limit '{request.arc_selection}' at difficulty '{request.difficulty_level}'")
 
         chosen_character = random.choice(filler_characters)
 
@@ -42,7 +41,6 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
 
     prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
     session_mgr.start_new_game(chosen_character, prompt)
-
 
 
 def create_game_prompt(character: Character, last_arc: Arc):
