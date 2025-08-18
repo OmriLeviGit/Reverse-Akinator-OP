@@ -7,7 +7,7 @@ router = APIRouter()
 
 @router.get("/")
 def root(session_mgr: SessionManager = Depends(get_session_manager)):
-    session_mgr.clear_session()
+    session_mgr.clear_session() # While in development
     if not session_mgr.has_session_data():
         # Create new session
         session_mgr.create_initial_session()

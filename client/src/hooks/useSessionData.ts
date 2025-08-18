@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { generalApi } from "../services/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { sessionApi } from "../services/api"; // Updated import
 import { sessionService } from "../services/sessionService";
 import { SessionData, UserPreferences, Arc } from "../types";
 
 export const useSessionData = () => {
+  const queryClient = useQueryClient();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [availableArcs, setAvailableArcs] = useState<Arc[]>([]);
 
@@ -15,8 +16,7 @@ export const useSessionData = () => {
   } = useQuery({
     queryKey: ["initialData"],
     queryFn: async () => {
-      const savedPreferences = sessionService.loadSavedPreferences();
-      return generalApi.getInitialData(savedPreferences);
+      return sessionApi.getSessionData(); // Use new session API
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -26,10 +26,8 @@ export const useSessionData = () => {
       console.log("Initial data received:", initialData);
       setSessionData(initialData.session_data);
       setAvailableArcs(initialData.available_arcs);
-
       sessionService.saveSessionData(initialData.session_data);
       sessionService.saveAvailableArcs(initialData.available_arcs);
-
       console.log("Data saved to cookies");
     }
   }, [initialData]);
@@ -37,50 +35,53 @@ export const useSessionData = () => {
   useEffect(() => {
     if (!initialData && !initialDataLoading) {
       console.log("Attempting to load from cookies...");
-
       const savedSessionData = sessionService.loadSessionDataFromCookie();
       const savedArcs = sessionService.loadAvailableArcsFromCookie();
-
       if (savedSessionData) {
         setSessionData(savedSessionData);
       }
       if (savedArcs.length > 0) {
         setAvailableArcs(savedArcs);
       }
-
       console.log("Cookie loading complete");
     }
   }, [initialData, initialDataLoading]);
 
   const updatePreferences = (newPreferences: Partial<UserPreferences>) => {
     if (!sessionData) return;
-
     const updatedPreferences = {
       ...sessionData.user_preferences,
       ...newPreferences,
     };
-
     const updatedSessionData = {
       ...sessionData,
       user_preferences: updatedPreferences,
     };
-
     setSessionData(updatedSessionData);
     sessionService.saveSessionData(updatedSessionData);
     console.log("Preferences updated:", updatedPreferences);
   };
 
-  const updateGlobalArcLimit = (arcLimit: string) => {
+  const updateGlobalArcLimit = async (arcLimit: string) => {
     if (!sessionData) return;
 
-    const updatedSessionData = {
-      ...sessionData,
-      global_arc_limit: arcLimit,
-    };
+    try {
+      // Update server session
+      const response = await sessionApi.updateGlobalArcLimit(arcLimit);
 
-    setSessionData(updatedSessionData);
-    sessionService.saveSessionData(updatedSessionData);
-    console.log("Global arc limit updated:", arcLimit);
+      // Update local state with server response
+      setSessionData(response.session_data);
+      setAvailableArcs(response.available_arcs);
+      sessionService.saveSessionData(response.session_data);
+      sessionService.saveAvailableArcs(response.available_arcs);
+
+      // Invalidate characters cache so they refetch with new arc limit
+      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
+
+      console.log("Global arc limit updated on server and client:", arcLimit);
+    } catch (error) {
+      console.error("Failed to update global arc limit:", error);
+    }
   };
 
   return {

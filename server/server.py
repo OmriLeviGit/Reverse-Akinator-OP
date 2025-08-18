@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from server.routes.main import router as main_router
+from server.routes import session
 from server.routes.game import router as game_router
 from server.routes.characters import router as characters_router
 
@@ -19,7 +19,7 @@ app.add_middleware(
 )
 app.add_middleware(SessionMiddleware, secret_key="key")
 
-app.include_router(main_router)
+app.include_router(session.router)
 app.include_router(game_router)
 app.include_router(characters_router)
 

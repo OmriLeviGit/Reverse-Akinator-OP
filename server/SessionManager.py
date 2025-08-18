@@ -52,21 +52,23 @@ class SessionManager:
 
     def set_global_arc_limit(self, arc: str):
         """Set user's global spoiler arc limit"""
-        self.request.session["global_spoiler_arc"] = arc
+        self.request.session["global_arc_limit"] = arc
+        self.update_last_activity()
 
     def has_arc_preference(self) -> bool:
         """Check if user has set a spoiler preference"""
-        return "global_spoiler_arc" in self.request.session
+        return "global_arc_limit" in self.request.session
 
     # ===== USER PREFERENCES =====
     def get_preferences(self) -> Dict:
         """Get user preferences with defaults"""
         return self.request.session.get("user_preferences", {
-            "difficulty": "normal",
-            "preferred_arc": "east_blue",
-            "includeNonTVFillers": False,
-            "fillerPercentage": 0
-        })
+                "difficulty": "easy",
+                "preferredArc": "All",
+                "includeNonTVFillers": False,
+                "includeUnrated": False,
+                "fillerPercentage": 0
+            })
 
     def update_preferences(self, preferences: Dict):
         """Update user preferences"""

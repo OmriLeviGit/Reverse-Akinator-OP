@@ -3,20 +3,13 @@ import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-// Main API instance for /api/* endpoints
+// API instance for /api/* endpoints
 const api = axios.create({
   baseURL: `${apiUrl}/api`,
   headers: {
     "Content-Type": "application/json",
   },
-});
-
-// Root API instance for root endpoints
-const rootApi = axios.create({
-  baseURL: apiUrl, // Points directly to root
-  headers: {
-    "Content-Type": "application/json",
-  },
+  withCredentials: true, // Add this if missing
 });
 
 // Add response interceptor for error handling
@@ -28,16 +21,14 @@ api.interceptors.response.use(
   }
 );
 
-// General Management API
-// src/services/api.ts
-export const generalApi = {
-  getInitialData: async (preferences?: {
-    difficulty: string;
-    preferredArc: string;
-    includeNonTVFillers: boolean;
-    fillerPercentage: number;
-  }) => {
-    const response = await rootApi.get("/", { params: preferences || {} });
+export const sessionApi = {
+  getSessionData: async () => {
+    const response = await api.get("/session/");
+    return response.data;
+  },
+
+  updateGlobalArcLimit: async (arcLimit: string) => {
+    const response = await api.post("/session/update-arc-limit", { arc_limit: arcLimit });
     return response.data;
   },
 };
@@ -106,15 +97,6 @@ export const characterApi = {
 
   rateCharacter: async (characterId: string, difficulty: string) => {
     const response = await api.post("/characters/rate-character", { characterId, difficulty });
-    return response.data;
-  },
-};
-
-// Data Management API
-export const dataApi = {
-  getArcs: async () => {
-    const response = await api.get("/data/arcs");
-    console.log(response.data);
     return response.data;
   },
 };

@@ -118,13 +118,11 @@ const Index = () => {
 
   // Spoiler protection handlers
   const handleSpoilerModalClose = (arcName: string) => {
+    updateGlobalArcLimit(arcName);
     setGlobalArcLimit(arcName);
     setShowSpoilerModal(false);
     localStorage.setItem("hasVisitedBefore", "true");
     localStorage.setItem("globalArcLimit", arcName);
-
-    // Update the backend global arc limit
-    updateGlobalArcLimit(arcName);
   };
 
   const handleMaxArcChange = (arcName: string) => {

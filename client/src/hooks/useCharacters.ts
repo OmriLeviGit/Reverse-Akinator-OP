@@ -9,9 +9,9 @@ export const useCharacters = () => {
     isLoading: isLoadingCharacters,
     error: characterError,
   } = useQuery({
-    queryKey: ["allCharacters"],
-    queryFn: characterApi.getCharacters, // Keep your existing API call
-    staleTime: 5 * 60 * 1000, // Add stale time for consistency
+    queryKey: ["allCharacters"], // Simple query key, no arc limit needed
+    queryFn: characterApi.getCharacters,
+    staleTime: 5 * 60 * 1000,
   });
 
   const allCharacters = charactersData?.characters || [];
@@ -22,19 +22,25 @@ export const useCharacters = () => {
     if (isLoadingCharacters) {
       console.log("🔄 Loading characters in background...");
     } else if (allCharacters.length > 0) {
-      console.log("✅ Characters loaded:", allCharacters.length, "characters available");
+      console.log(
+        `✅ Characters loaded: ${allCharacters.length} characters available (up to arc: ${
+          charactersData?.arc || "unknown"
+        })`
+      );
     }
-  }, [isLoadingCharacters, allCharacters.length]);
+  }, [isLoadingCharacters, allCharacters.length, charactersData?.arc]);
 
   return {
     allCharacters,
-    characters: allCharacters, // Add alias for compatibility
+    characters: allCharacters,
     isLoadingCharacters,
-    charactersLoaded, // Add this for the AppContext
+    charactersLoaded,
     characterError: characterError as Error | null,
+    currentArcLimit: charactersData?.arc,
   };
 };
 
+// Keep your useCharacterRatings the same but fix the mutations to use setQueryData instead of setQueriesData
 export const useCharacterRatings = () => {
   const queryClient = useQueryClient();
 
@@ -44,6 +50,7 @@ export const useCharacterRatings = () => {
     onMutate: async ({ characterId, difficulty }) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
+
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
@@ -53,6 +60,7 @@ export const useCharacterRatings = () => {
           ),
         };
       });
+
       return { previousCharacters };
     },
     onError: (err, variables, context) => {
@@ -67,6 +75,7 @@ export const useCharacterRatings = () => {
     onMutate: async (characterId: string) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
+
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
@@ -76,6 +85,7 @@ export const useCharacterRatings = () => {
           ),
         };
       });
+
       return { previousCharacters };
     },
     onError: (err, variables, context) => {

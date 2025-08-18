@@ -26,7 +26,7 @@ const CharacterManagement: React.FC = () => {
   const [ignoreFilter, setIgnoreFilter] = useState<IgnoreFilter>("all");
   const [contentFilter, setContentFilter] = useState<ContentFilter>("all");
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>("all");
-  const [includeNonTVContent, setIncludeNonTVContent] = useState(true);
+  const [includeNonTVContent, setIncludeNonTVContent] = useState(false);
   const [sortOption, setSortOption] = useState<SortOption>("alphabetical-az");
 
   // Create character ratings lookup
