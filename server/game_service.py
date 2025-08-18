@@ -2,11 +2,11 @@ import json
 import random
 
 from server.SessionManager import SessionManager
-from server.db_models import Arc
-from server.schemas.character_schemas import Character
+from server.data.db_models import Arc
+from server.pydantic_schemas.character_schemas import Character
 import google.generativeai as genai
 
-from server.schemas.game_schemas import GameStartRequest, GameQuestionRequest
+from server.pydantic_schemas.game_schemas import GameStartRequest, GameQuestionRequest
 
 from server.Repository import Repository
 

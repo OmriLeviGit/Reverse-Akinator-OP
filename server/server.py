@@ -4,11 +4,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
-from server.Repository import Repository
-from server.SessionManager import SessionManager, get_session_manager
-from server.routes import create_game_router, create_characters_router
+from server.routes.main import router as main_router
+from server.routes.game import router as game_router
+from server.routes.characters import router as characters_router
 
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,39 +17,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 app.add_middleware(SessionMiddleware, secret_key="key")
 
-game_router = create_game_router()
-characters_router = create_characters_router()
-
+app.include_router(main_router)
 app.include_router(game_router)
 app.include_router(characters_router)
-
-
-@app.get("/")
-def root(session_mgr: SessionManager = Depends(get_session_manager)):
-    session_mgr.clear_session()
-    if not session_mgr.has_session_data():
-        # Create new session
-        session_mgr.create_initial_session()
-        status = "created"
-
-    else:
-        # Update existing session
-        session_mgr.update_last_activity()
-        status = "existing"
-
-    r = Repository()
-    arc_limit = session_mgr.get_global_arc_limit()
-    available_arcs = r.get_arcs_before(arc_limit)
-
-    return {
-        "message": "API is running",
-        "session_status": status,
-        "session_data": session_mgr.get_safe_session_data(),
-        "available_arcs": available_arcs,
-    }
 
 @app.get("/{path:path}")
 def catch_all_get(path: str):

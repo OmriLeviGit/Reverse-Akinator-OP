@@ -3,8 +3,8 @@ from typing import Optional, Dict, List
 from fastapi import Request
 
 from server.Repository import Repository
-from server.db_models import Arc
-from server.schemas.character_schemas import Character
+from server.data.db_models import Arc
+from server.pydantic_schemas.character_schemas import Character
 
 
 class SessionManager:

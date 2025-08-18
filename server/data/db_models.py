@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from server.schemas.character_schemas import Character
+from server.pydantic_schemas.character_schemas import Character
 
 Base = declarative_base()
 

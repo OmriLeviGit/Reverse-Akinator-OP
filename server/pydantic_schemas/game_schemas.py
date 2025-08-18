@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from server.schemas.character_schemas import Character
+from server.pydantic_schemas.character_schemas import Character
 
 
 # Request models
