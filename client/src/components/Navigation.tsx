@@ -10,12 +10,12 @@ import {
 import { Arc } from "@/types";
 
 interface NavigationProps {
-  maxArcSeen: string;
+  globalArcLimit: string;
   onMaxArcChange: (arcName: string) => void;
   availableArcs: Arc[];
 }
 
-const Navigation = ({ maxArcSeen, onMaxArcChange, availableArcs }: NavigationProps) => {
+const Navigation = ({ globalArcLimit, onMaxArcChange, availableArcs }: NavigationProps) => {
   const location = useLocation();
 
   // Display "All Arcs" instead of "All"
@@ -63,7 +63,7 @@ const Navigation = ({ maxArcSeen, onMaxArcChange, availableArcs }: NavigationPro
                   variant="outline"
                   className="bg-secondary hover:bg-secondary-hover text-secondary-foreground hover:text-secondary-foreground-hover border border-border transition-all duration-200"
                 >
-                  Max Arc Seen: {getDisplayText(maxArcSeen)}
+                  Max Arc Seen: {getDisplayText(globalArcLimit)}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>

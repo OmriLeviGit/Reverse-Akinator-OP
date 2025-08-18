@@ -12,12 +12,12 @@ const CharacterManagement: React.FC = () => {
   const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
 
   // Spoiler protection state (for Navigation component)
-  const [maxArcSeen, setMaxArcSeen] = useState<string>("All");
+  const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
 
-  // Initialize maxArcSeen from sessionData
+  // Initialize globalArcLimit from sessionData
   React.useEffect(() => {
     if (sessionData?.global_arc_limit) {
-      setMaxArcSeen(sessionData.global_arc_limit);
+      setGlobalArcLimit(sessionData.global_arc_limit);
     }
   }, [sessionData]);
 
@@ -64,8 +64,8 @@ const CharacterManagement: React.FC = () => {
 
   // Spoiler protection handler
   const handleMaxArcChange = (arcName: string) => {
-    setMaxArcSeen(arcName);
-    localStorage.setItem("maxArcSeen", arcName);
+    setGlobalArcLimit(arcName);
+    localStorage.setItem("globalArcLimit", arcName);
     updateGlobalArcLimit(arcName);
   };
 
@@ -102,7 +102,7 @@ const CharacterManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <Navigation maxArcSeen={maxArcSeen} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
+      <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
 
       {/* Main Content */}
       <div className="h-[calc(100vh-theme(spacing.16))] overflow-y-auto">

@@ -23,7 +23,8 @@ const SpoilerProtectionModal = ({ isOpen, onClose, availableArcs }: SpoilerProte
         <DialogHeader className="text-center space-y-4">
           <DialogTitle className="text-2xl font-bold text-foreground">Spoiler Protection Setup</DialogTitle>
           <DialogDescription className="text-muted-foreground text-base leading-relaxed">
-            What's the latest story arc you've seen? This will prevent spoilers from later content.
+            What's the latest story arc you've seen and read (manga included)? This will prevent spoilers from later
+            content.
           </DialogDescription>
         </DialogHeader>
 

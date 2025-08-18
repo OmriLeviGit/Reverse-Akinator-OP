@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Arc } from "@/types";
 
 interface GameSetupFormProps {
-  maxArcSeen: string;
+  globalArcLimit: string;
   availableArcs: Arc[];
   selectedDifficulty: "easy" | "medium" | "hard";
   onDifficultyChange: (difficulty: "easy" | "medium" | "hard") => void;
@@ -24,7 +24,7 @@ interface GameSetupFormProps {
   isLoading: boolean;
 }
 const GameSetupForm = ({
-  maxArcSeen,
+  globalArcLimit,
   availableArcs,
   selectedDifficulty,
   onDifficultyChange,
@@ -47,31 +47,31 @@ const GameSetupForm = ({
     setFillerSliderValue([fillerPercentage]);
   }, [fillerPercentage]);
 
-  // Filter arcs based on maxArcSeen (spoiler protection)
+  // Filter arcs based on globalArcLimit (spoiler protection)
   const getFilteredArcs = () => {
-    if (maxArcSeen === "All") {
+    if (globalArcLimit === "All") {
       // Return all arcs in reverse order (newest first)
       return [...availableArcs].reverse();
     }
 
-    // Find the index of maxArcSeen arc in the original array
-    const maxArcIndex = availableArcs.findIndex((arc) => arc.name === maxArcSeen);
+    // Find the index of globalArcLimit arc in the original array
+    const maxArcIndex = availableArcs.findIndex((arc) => arc.name === globalArcLimit);
     if (maxArcIndex === -1) {
       return [...availableArcs].reverse(); // Fallback to all arcs reversed
     }
 
-    // Get arcs from beginning up to and including maxArcSeen, then reverse
+    // Get arcs from beginning up to and including globalArcLimit, then reverse
     return availableArcs.slice(0, maxArcIndex + 1).reverse();
   };
 
   const filteredArcs = getFilteredArcs();
 
-  // Create options array with "All Arcs" only if maxArcSeen is "All"
+  // Create options array with "All Arcs" only if globalArcLimit is "All"
   const getSelectOptions = () => {
     const options = [];
 
     // Only add "All Arcs" option if user can see all arcs
-    if (maxArcSeen === "All") {
+    if (globalArcLimit === "All") {
       options.push({ name: "All", displayName: "All Arcs" });
     }
 
@@ -85,13 +85,13 @@ const GameSetupForm = ({
 
   const selectOptions = getSelectOptions();
 
-  // Set default selectedArc to maxArcSeen when availableArcs load or maxArcSeen changes
+  // Set default selectedArc to globalArcLimit when availableArcs load or globalArcLimit changes
   useEffect(() => {
-    if (maxArcSeen && availableArcs.length > 0 && (!selectedArc || selectedArc === "")) {
-      console.log("Setting default arc to:", maxArcSeen);
-      onArcChange(maxArcSeen);
+    if (globalArcLimit && availableArcs.length > 0 && (!selectedArc || selectedArc === "")) {
+      console.log("Setting default arc to:", globalArcLimit);
+      onArcChange(globalArcLimit);
     }
-  }, [maxArcSeen, availableArcs, selectedArc, onArcChange]);
+  }, [globalArcLimit, availableArcs, selectedArc, onArcChange]);
 
   const handleFillerSliderChange = (value: number[]) => {
     setFillerSliderValue(value);

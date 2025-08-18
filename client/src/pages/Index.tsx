@@ -10,14 +10,13 @@ const Index = () => {
   const [isStartingGame, setIsStartingGame] = useState(false);
 
   // Spoiler protection state - now using arc names
-  const [maxArcSeen, setMaxArcSeen] = useState<string>("All");
+  const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
   const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
 
   const {
     startGame,
     sessionData,
     availableArcs,
-    characters,
     isLoading,
     charactersLoaded,
     updatePreferences,
@@ -43,7 +42,7 @@ const Index = () => {
     const index2 = availableArcs.findIndex((arc) => arc.name === arc2);
 
     // If either arc is not found, return the found one or fallback
-    if (index1 === -1 && index2 === -1) return maxArcSeen; // fallback
+    if (index1 === -1 && index2 === -1) return globalArcLimit; // fallback
     if (index1 === -1) return arc2;
     if (index2 === -1) return arc1;
 
@@ -58,9 +57,9 @@ const Index = () => {
       setShowSpoilerModal(true);
     } else {
       // Load saved max arc setting
-      const savedMaxArc = localStorage.getItem("maxArcSeen");
+      const savedMaxArc = localStorage.getItem("globalArcLimit");
       if (savedMaxArc) {
-        setMaxArcSeen(savedMaxArc);
+        setGlobalArcLimit(savedMaxArc);
       }
     }
   }, []);
@@ -75,45 +74,29 @@ const Index = () => {
       setIncludeUnrated(prefs.includeUnrated || false);
 
       // Handle arc selection with spoiler protection
-      const currentPreferredArc = prefs.preferred_arc || maxArcSeen;
+      const currentPreferredArc = prefs.preferred_arc || globalArcLimit;
 
-      // Determine which arc to use: the earlier between current preference and maxArcSeen
-      const safeArc = getEarlierArc(currentPreferredArc, maxArcSeen);
+      const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit); // Minimum between the max arc seen and the curent prefered arc
 
-      console.log("Arc selection logic:", {
-        currentPreferredArc,
-        maxArcSeen,
-        safeArc,
-        selectedArc,
-      });
-
-      // Only update if the safe arc is different from what's currently selected
       if (safeArc !== selectedArc) {
         setSelectedArc(safeArc);
-        // Update preferences to reflect the safe choice
         updatePreferences({ preferred_arc: safeArc });
       }
     }
-  }, [sessionData, maxArcSeen, availableArcs]); // Remove selectedArc from dependencies to avoid loops
+  }, [sessionData, globalArcLimit, availableArcs]); // Remove selectedArc from dependencies to avoid loops
 
-  // Handle maxArcSeen changes and update arc selection accordingly
+  // Handle globalArcLimit changes and update arc selection accordingly
   useEffect(() => {
-    if (maxArcSeen && selectedArc && availableArcs.length > 0) {
-      // When maxArcSeen changes, ensure selectedArc doesn't exceed it
-      const safeArc = getEarlierArc(selectedArc, maxArcSeen);
+    if (globalArcLimit && selectedArc && availableArcs.length > 0) {
+      // When globalArcLimit changes, ensure selectedArc doesn't exceed it
+      const safeArc = getEarlierArc(selectedArc, globalArcLimit);
 
       if (safeArc !== selectedArc) {
-        console.log("Updating selectedArc due to maxArcSeen change:", {
-          oldSelectedArc: selectedArc,
-          maxArcSeen,
-          newSelectedArc: safeArc,
-        });
-
         setSelectedArc(safeArc);
         updatePreferences({ preferred_arc: safeArc });
       }
     }
-  }, [maxArcSeen, availableArcs]); // Don't include selectedArc here to avoid loops
+  }, [globalArcLimit, availableArcs]); // Don't include selectedArc here to avoid loops
 
   // Show loading screen ONLY until essential data is loaded
   if (isLoading || !sessionData || availableArcs.length === 0) {
@@ -134,18 +117,18 @@ const Index = () => {
 
   // Spoiler protection handlers
   const handleSpoilerModalClose = (arcName: string) => {
-    setMaxArcSeen(arcName);
+    setGlobalArcLimit(arcName);
     setShowSpoilerModal(false);
     localStorage.setItem("hasVisitedBefore", "true");
-    localStorage.setItem("maxArcSeen", arcName);
+    localStorage.setItem("globalArcLimit", arcName);
 
     // Update the backend global arc limit
     updateGlobalArcLimit(arcName);
   };
 
   const handleMaxArcChange = (arcName: string) => {
-    setMaxArcSeen(arcName);
-    localStorage.setItem("maxArcSeen", arcName);
+    setGlobalArcLimit(arcName);
+    localStorage.setItem("globalArcLimit", arcName);
 
     // Update the backend global arc limit
     updateGlobalArcLimit(arcName);
@@ -217,7 +200,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <Navigation maxArcSeen={maxArcSeen} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
+      <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
 
       {/* Title Section */}
       <div className="container mx-auto px-6 py-8">
@@ -231,7 +214,7 @@ const Index = () => {
       <main className="container mx-auto px-6 pb-12">
         <div className="flex justify-center">
           <GameSetupForm
-            maxArcSeen={maxArcSeen}
+            globalArcLimit={globalArcLimit}
             availableArcs={availableArcs}
             selectedDifficulty={selectedDifficulty}
             onDifficultyChange={handleDifficultyChange}
