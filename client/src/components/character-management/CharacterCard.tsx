@@ -48,11 +48,11 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
   const imageContent =
     character.id && !imageError ? (
       <img
-        src={`/assets/sm_avatars/${character.id}.webp`}
+        src={`/img/sm_avatars/${character.id}.webp`}
         alt={character.name}
         className="w-full h-full object-cover"
         onError={() => {
-          console.log(`❌ Failed to load: ${character.name} - /assets/sm_avatars/${character.id}.webp`);
+          console.log(`❌ Failed to load: ${character.name} - /img/sm_avatars/${character.id}.webp`);
           setImageError(true);
         }}
         onLoad={() => setImageError(false)}
