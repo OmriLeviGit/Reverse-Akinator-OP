@@ -18,6 +18,15 @@ interface UseCharacterSearchProps {
   }>;
 }
 
+// Utility function to remove accents/diacritics
+const removeAccents = (text: string): string => {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+};
+
 export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} }: UseCharacterSearchProps) => {
   return useMemo(() => {
     // If no search term, return all characters
@@ -25,9 +34,15 @@ export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} 
       return characters;
     }
 
+    // Add normalized versions of searchable fields to each character
+    const charactersWithNormalized = characters.map((character) => ({
+      ...character,
+      normalizedName: removeAccents(character.name),
+    }));
+
     // Consistent default options for ALL uses
     const defaultOptions = {
-      keys: ["name"],
+      keys: ["name", "normalizedName"], // Search both original and normalized names
       threshold: 0.2, // More strict matching by default
       includeScore: true,
       minMatchCharLength: 1,
@@ -39,8 +54,11 @@ export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} 
     const fuseOptions = { ...defaultOptions, ...searchOptions };
 
     // Create Fuse instance and search
-    const fuse = new Fuse(characters, fuseOptions);
-    const searchResults = fuse.search(searchTerm);
+    const fuse = new Fuse(charactersWithNormalized, fuseOptions);
+
+    // Normalize the search term as well
+    const normalizedSearchTerm = removeAccents(searchTerm);
+    const searchResults = fuse.search(normalizedSearchTerm);
 
     return searchResults.map((result) => result.item);
   }, [characters, searchTerm, searchOptions]);
