@@ -187,8 +187,7 @@ const Index = () => {
         includeUnrated,
       };
 
-      await startGame(gameSettings); // This calls your API
-      toast.success("Game started successfully!");
+      await startGame(gameSettings);
       navigate("/game");
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || "Something went wrong. Please try again.";

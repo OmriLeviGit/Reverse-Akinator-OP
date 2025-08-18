@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CharacterImage } from "../CharacterImage";
 
 interface CharacterCardProps {
   character: Character;
@@ -44,24 +45,6 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
     // For everything else (Non-TV), don't show episode/chapter
     return "";
   };
-
-  const imageContent =
-    character.id && !imageError ? (
-      <img
-        src={`/img/sm_avatars/${character.id}.webp`}
-        alt={character.name}
-        className="w-full h-full object-cover"
-        onError={() => {
-          console.log(`❌ Failed to load: ${character.name} - /img/sm_avatars/${character.id}.webp`);
-          setImageError(true);
-        }}
-        onLoad={() => setImageError(false)}
-      />
-    ) : (
-      <div className="w-full h-full flex items-center justify-center">
-        <span className="text-muted-foreground text-xs">N/A</span>
-      </div>
-    );
 
   return (
     <div
@@ -107,18 +90,18 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         )}
 
         {/* Character Image - Clickable */}
-        <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-border mb-3 mx-auto bg-muted">
+        <div className="mb-3 mx-auto flex justify-center">
           {character.wikiLink ? (
             <a
               href={character.wikiLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full h-full hover:opacity-80 transition-opacity"
+              className="block hover:opacity-80 transition-opacity"
             >
-              {imageContent}
+              <CharacterImage character={character} size="large" />
             </a>
           ) : (
-            imageContent
+            <CharacterImage character={character} size="large" />
           )}
         </div>
 
@@ -132,7 +115,6 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
         </div>
       </div>
 
-      {/* Actions - Fixed position */}
       {/* Actions - Fixed position */}
       <div className="space-y-2">
         {/* Difficulty */}
