@@ -52,8 +52,8 @@ def get_image_from_wiki(wiki_url):
         return None
 
 
-def download_and_process_image(image_url, character_id, large_folder, avatar_folder):
-    """Download image and create both sizes directly"""
+def download_and_create_large(image_url, character_id, large_folder):
+    """Download image and create only the large version"""
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
     }
@@ -71,31 +71,58 @@ def download_and_process_image(image_url, character_id, large_folder, avatar_fol
 
         # Crop to top-center square
         img_square = crop_top_square(img)
-        original_size = img_square.size[0]  # Square, so width = height
+        original_size = img_square.size[0]
 
-        # Create large version (always 256x256)
+        # Create large version (256x256)
         large_img = img_square.resize((256, 256), Image.Resampling.LANCZOS)
         large_path = large_folder / f"{character_id}.webp"
 
         if original_size > 256:
-            large_img.save(large_path, 'WEBP', quality=90, optimize=True)  # Downscaling
+            large_img.save(large_path, 'WEBP', quality=90, optimize=True)
         else:
-            large_img.save(large_path, 'WEBP', quality=100, optimize=True)  # Upscaling
-
-        # Same logic for avatar
-        avatar_img = img_square.resize((64, 64), Image.Resampling.LANCZOS)
-        avatar_path = avatar_folder / f"{character_id}.webp"
-
-        if original_size > 64:
-            avatar_img.save(avatar_path, 'WEBP', quality=90, optimize=True)  # Downscaling
-        else:
-            avatar_img.save(avatar_path, 'WEBP', quality=100, optimize=True)  # Upscaling
+            large_img.save(large_path, 'WEBP', quality=100, optimize=True)
 
         return True
 
     except Exception as e:
-        print(f"Error processing image for {character_id}: {e}")
+        print(f"Error creating large avatar for {character_id}: {e}")
         return False
+
+
+def create_small_from_large(character_id, large_folder, avatar_folder, small_size=128):
+    """Create small avatar from existing large avatar"""
+    large_path = large_folder / f"{character_id}.webp"
+
+    if not large_path.exists():
+        print(f"Large avatar not found for {character_id}")
+        return False
+
+    try:
+        # Load the large avatar
+        large_img = Image.open(large_path)
+
+        # Create small version
+        avatar_img = large_img.resize((small_size, small_size), Image.Resampling.LANCZOS)
+        avatar_path = avatar_folder / f"{character_id}.webp"
+
+        # Since we're downscaling from 256x256, always use quality=90
+        avatar_img.save(avatar_path, 'WEBP', quality=90, optimize=True)
+
+        return True
+
+    except Exception as e:
+        print(f"Error creating small avatar for {character_id}: {e}")
+        return False
+
+
+def download_and_process_image(image_url, character_id, large_folder, avatar_folder):
+    """Download and create both sizes (calls both functions)"""
+    # Create large first
+    if not download_and_create_large(image_url, character_id, large_folder):
+        return False
+
+    # Then create small from large
+    return create_small_from_large(character_id, large_folder, avatar_folder)
 
 
 def download_character_avatars(skip_existing=True):
@@ -147,13 +174,52 @@ def download_character_avatars(skip_existing=True):
                 print(f"✗ Failed: {character_id}")
                 failed_downloads.append(character_id)
 
-            time.sleep(1)
+            time.sleep(0.5)
 
     print(f"\nProcessing complete!")
     print(f"Successful: {successful_downloads}")
     print(f"Failed: {len(failed_downloads)} \n  {failed_downloads}")
     print(f"Skipped: {skipped_count}")
 
+def regenerate_small_avatars(small_size=128):
+    """Regenerate all small avatars from existing large ones with chosen size"""
+    large_folder = Path(__file__).parent.parent / "data" / "img" / "lg_avatars"
+    avatar_folder = Path(__file__).parent.parent / "data" / "img" / "sm_avatars"
+
+    # Create output folder if it doesn't exist
+    os.makedirs(avatar_folder, exist_ok=True)
+
+    successful_recreations = 0
+    failed_recreations = []
+
+    # Get all large avatar files
+    large_files = list(large_folder.glob("*.webp"))
+
+    if not large_files:
+        print("No large avatars found to recreate from!")
+        return
+
+    print(f"Recreating {len(large_files)} small avatars with size {small_size}x{small_size}...")
+
+    for large_file in large_files:
+        character_id = large_file.stem  # filename without extension
+
+        if create_small_from_large(character_id, large_folder, avatar_folder, small_size):
+            print(f"✓ Recreated: {character_id}")
+            successful_recreations += 1
+        else:
+            print(f"✗ Failed: {character_id}")
+            failed_recreations.append(character_id)
+
+    print(f"\nRecreation complete!")
+    print(f"Successful: {successful_recreations}")
+    print(f"Failed: {len(failed_recreations)} - {failed_recreations}")
+
 
 if __name__ == "__main__":
-    download_character_avatars(skip_existing=True)
+    recreate_sm_avatars = False
+
+    if recreate_sm_avatars:
+        regenerate_small_avatars(small_size=128)
+    else:
+        download_character_avatars(skip_existing=True)

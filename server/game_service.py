@@ -27,7 +27,6 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
                 f"No canon characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
         chosen_character = random.choice(canon_characters)
     else:
-        # doesnt take percentages into account yet
         if request.include_non_tv_fillers:
             filler_characters = r.get_non_canon_characters(arc, request.difficulty_level)
         else:

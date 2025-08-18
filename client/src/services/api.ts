@@ -80,31 +80,20 @@ export const gameApi = {
 
 // Character Data API
 export const characterApi = {
-  getAllCharacters: async () => {
-    console.log("🔍 About to call /api/characters/up-to");
-    const response = await api.get("/characters/up-to"); // ✅ Use axios api instance
-    console.log("📡 Response:", response.status);
-    console.log(response.data);
-    return response.data; // axios automatically parses JSON
+  getCharacters: async () => {
+    console.log("🔍 About to call /api/characters/until");
+    const response = await api.get("/characters/until");
+    console.log("Response:", response.status, response.data);
+    return response.data;
   },
 
-  getCharacters: async () => {
+  getAllCharacters: async () => {
     const response = await api.get("/characters");
     return response.data;
   },
 
   getCharacterById: async (id: string) => {
     const response = await api.get(`/characters/${id}`);
-    return response.data;
-  },
-
-  searchCharacters: async (params: { query?: string; arc?: string; filler?: string; difficulty?: string }) => {
-    const response = await api.get("/characters/search", { params });
-    return response.data;
-  },
-
-  getIgnoredCharacters: async () => {
-    const response = await api.get("/characters/ignored-characters");
     return response.data;
   },
 

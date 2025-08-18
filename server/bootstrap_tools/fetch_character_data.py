@@ -1,10 +1,43 @@
 import os
 import re
+import unicodedata
 from io import StringIO
 from pathlib import Path
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
+import urllib.parse
+
+
+def sanitize_filename(filename):
+    """Convert accented characters to unaccented equivalents, handle filesystem chars"""
+    if not filename:
+        return filename
+
+    # Normalize to decomposed form (separates base chars from accents)
+    filename = unicodedata.normalize('NFD', filename)
+
+    # Remove combining characters (accents, diacritics) but keep base letters
+    filename = ''.join(char for char in filename
+                       if unicodedata.category(char) != 'Mn')
+
+    # Handle filesystem problematic characters
+    replacements = {
+        '/': '_',
+        '\\': '_',
+        ':': '_',
+        '*': '_',
+        '?': '_',
+        '"': '_',
+        '<': '_',
+        '>': '_',
+        '|': '_',
+    }
+
+    for old, new in replacements.items():
+        filename = filename.replace(old, new)
+
+    return filename
 
 
 def scrape_table_from_wikia(url, table_child):
@@ -14,10 +47,13 @@ def scrape_table_from_wikia(url, table_child):
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        table = soup.select_one(f"table.fandom-table:nth-child({table_child})")
+        # Changed: Get tables by index instead of nth-child
+        tables = soup.find_all('table', class_='fandom-table')
 
-        if not table:
-            raise ValueError(f"Table with selector 'table.fandom-table:nth-child({table_child})' not found")
+        if len(tables) < table_child:
+            raise ValueError(f"Only {len(tables)} fandom-table(s) found, but requested table {table_child}")
+
+        table = tables[table_child - 1]  # Convert to 0-based index
 
         # Extract links from Name column (second column, index 1)
         links_data = []
@@ -76,13 +112,16 @@ def clean_dataframe(df):
 
 
 def extract_id_from_wiki_url(url):
-    """Extract the page identifier from the Wiki URL"""
+    """Extract the page identifier from the Wiki URL and decode it"""
     if pd.isna(url) or not isinstance(url, str):
         return None
 
     base_url = "https://onepiece.fandom.com/wiki/"
     if url.startswith(base_url):
-        return url[len(base_url):]
+        encoded_id = url[len(base_url):]
+        # URL decode the ID
+        decoded_id = urllib.parse.unquote(encoded_id)
+        return decoded_id
     return None
 
 
@@ -107,7 +146,7 @@ def handle_duplicate_ids(df):
     if df.empty or 'ID' not in df.columns:
         return df
 
-    # Find duplicates
+    # Find duplicates based on sanitized IDs
     id_counts = df['ID'].value_counts()
     duplicate_ids = id_counts[id_counts > 1].index
 
@@ -136,10 +175,12 @@ def handle_duplicate_ids(df):
         best_row_idx = duplicate_rows_sorted.index[0]
         rows_to_drop.extend(duplicate_rows_sorted.index[1:].tolist())
 
-        # Clean the name
-        id_name = re.sub(r'_', ' ', duplicate_id)
-        id_name = re.sub(r'#', ' - ', id_name)
-        df.at[best_row_idx, 'Name'] = id_name
+        # Clean the name using original Wiki ID
+        if 'Wiki_ID' in df.columns and not pd.isna(df.at[best_row_idx, 'Wiki_ID']):
+            original_id = df.at[best_row_idx, 'Wiki_ID']
+            id_name = re.sub(r'_', ' ', original_id)
+            id_name = re.sub(r'#', ' - ', id_name)
+            df.at[best_row_idx, 'Name'] = id_name
 
     # Remove duplicate rows
     if rows_to_drop:
@@ -157,8 +198,8 @@ def scrape_character_data(output_file=None):
     try:
         url1 = "https://onepiece.fandom.com/wiki/List_of_Canon_Characters"
         url2 = "https://onepiece.fandom.com/wiki/List_of_Non-Canon_Characters"
-        table_child1 = 8
-        table_child2 = 6
+        table_child1 = 1
+        table_child2 = 1
 
         df1 = scrape_table_from_wikia(url1, table_child1)
         df1 = clean_dataframe(df1)
@@ -192,10 +233,13 @@ def scrape_character_data(output_file=None):
         cleaned_dfs = []
         for df in [df1, df2]:
             if not df.empty:
-                # Add ID column by extracting from Wiki URLs
+                # Extract original ID from Wiki URLs (unsanitized)
                 if 'Wiki' in df.columns:
-                    df['ID'] = df['Wiki'].apply(extract_id_from_wiki_url)
+                    df['Wiki_ID'] = df['Wiki'].apply(extract_id_from_wiki_url)
+                    # Create sanitized ID for filenames
+                    df['ID'] = df['Wiki_ID'].apply(sanitize_filename)
                 else:
+                    df['Wiki_ID'] = pd.NA
                     df['ID'] = pd.NA
 
                 for col in final_columns:
@@ -212,6 +256,10 @@ def scrape_character_data(output_file=None):
 
             # Handle duplicate IDs before final processing
             combined_df = handle_duplicate_ids(combined_df)
+
+            # Remove the temporary Wiki_ID column if it exists
+            if 'Wiki_ID' in combined_df.columns:
+                combined_df = combined_df.drop('Wiki_ID', axis=1)
 
             combined_df = combined_df.drop_duplicates()
             combined_df = combined_df.sort_values('Name', na_position='last').reset_index(drop=True)

@@ -52,8 +52,8 @@ def create_game_router():
 def create_characters_router():
     characters_router = APIRouter(prefix="/api/characters", tags=["characters"])
 
-    @characters_router.get("/up-to", response_model=CharactersResponse)
-    def get_characters_up_to(session_mgr: SessionManager = Depends(get_session_manager)):
+    @characters_router.get("/until", response_model=CharactersResponse)
+    def get_characters_until(session_mgr: SessionManager = Depends(get_session_manager)):
 
 
         arc = session_mgr.get_global_arc_limit()

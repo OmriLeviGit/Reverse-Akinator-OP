@@ -10,7 +10,7 @@ export const useCharacters = () => {
     error: characterError,
   } = useQuery({
     queryKey: ["allCharacters"],
-    queryFn: characterApi.getAllCharacters, // Keep your existing API call
+    queryFn: characterApi.getCharacters, // Keep your existing API call
     staleTime: 5 * 60 * 1000, // Add stale time for consistency
   });
 
