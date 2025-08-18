@@ -15,7 +15,7 @@ export const sessionService = {
 
     return {
       difficulty: "easy",
-      preferred_arc: "All",
+      preferredArc: "All",
       includeNonTVFillers: false,
       fillerPercentage: 0,
       includeUnrated: false,

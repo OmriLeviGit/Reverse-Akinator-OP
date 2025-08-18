@@ -75,13 +75,13 @@ const Index = () => {
       setIncludeUnrated(prefs.includeUnrated || false);
 
       // Handle arc selection with spoiler protection
-      const currentPreferredArc = prefs.preferred_arc || globalArcLimit;
+      const currentPreferredArc = prefs.preferredArc || globalArcLimit;
 
       const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit); // Minimum between the max arc seen and the curent prefered arc
 
       if (safeArc !== selectedArc) {
         setSelectedArc(safeArc);
-        updatePreferences({ preferred_arc: safeArc });
+        updatePreferences({ preferredArc: safeArc });
       }
     }
   }, [sessionData, globalArcLimit, availableArcs]); // Remove selectedArc from dependencies to avoid loops
@@ -94,7 +94,7 @@ const Index = () => {
 
       if (safeArc !== selectedArc) {
         setSelectedArc(safeArc);
-        updatePreferences({ preferred_arc: safeArc });
+        updatePreferences({ preferredArc: safeArc });
       }
     }
   }, [globalArcLimit, availableArcs]); // Don't include selectedArc here to avoid loops
@@ -148,7 +148,7 @@ const Index = () => {
 
   const handleArcChange = (arc: string) => {
     setSelectedArc(arc);
-    updatePreferences({ preferred_arc: arc });
+    updatePreferences({ preferredArc: arc });
   };
 
   const handleFillerPercentageChange = (value: number) => {

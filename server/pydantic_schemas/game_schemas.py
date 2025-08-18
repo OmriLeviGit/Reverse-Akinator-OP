@@ -8,6 +8,7 @@ class GameStartRequest(BaseModel):
    arc_selection: str = Field(alias="arcSelection")
    filler_percentage: float = Field(alias="fillerPercentage")
    include_non_tv_fillers: bool = Field(alias="includeNonTVFillers")
+   include_unrated: bool = Field(alias="includeUnrated")
    difficulty_level: str = Field(alias="difficultyLevel")
 
 class GameQuestionRequest(BaseModel):

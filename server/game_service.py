@@ -17,23 +17,36 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
     r = Repository()
     arc = r.get_arc_by_name(request.arc_selection)
 
-    choose_canon = request.filler_percentage < random.random() * 100
+    random_num = random.random() * 100
+    choose_canon = request.filler_percentage < random_num
 
     if choose_canon:
-        canon_characters = r.get_canon_characters(arc, request.difficulty_level)
+        canon_characters = r.get_canon_characters(
+            arc,
+            request.difficulty_level,
+            include_unrated=request.include_unrated
+        )
         if not canon_characters:
             raise ValueError(
-                f"No Canon characters found for arc limit '{request.arc_selection}' at difficulty '{request.difficulty_level.title()}'")
+                f"No canon characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
         chosen_character = random.choice(canon_characters)
     else:
         if request.include_non_tv_fillers:
-            filler_characters = r.get_non_canon_characters(arc, request.difficulty_level)
+            filler_characters = r.get_non_canon_characters(
+                arc,
+                request.difficulty_level,
+                include_unrated=request.include_unrated
+            )
         else:
-            filler_characters = r.get_filler_characters(arc, request.difficulty_level)
+            filler_characters = r.get_filler_characters(
+                arc,
+                request.difficulty_level,
+                include_unrated=request.include_unrated
+            )
 
         if not filler_characters:
             raise ValueError(
-                f"No Filler characters found for arc limit '{request.arc_selection}' at difficulty '{request.difficulty_level}'")
+                f"No filler characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
 
         chosen_character = random.choice(filler_characters)
 

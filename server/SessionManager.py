@@ -23,8 +23,9 @@ class SessionManager:
             "global_arc_limit": "All",
             "user_preferences": {
                 "difficulty": "easy",
-                "preferred_arc": "All",
+                "preferredArc": "All",
                 "includeNonTVFillers": False,
+                "includeUnrated": False,
                 "fillerPercentage": 0
             },
             "session_created": now,

@@ -8,7 +8,7 @@ class Repository:
         self.db_manager = DatabaseManager()
 
     def _build_base_query(self, session, arc: Arc | None = None, difficulty_level: str | None = None,
-                          include_ignored: bool | None = None):
+                          include_ignored: bool | None = None, include_unrated: bool = False):
         """
         Build base query with common filters applied at database level
         If a parameter is None, don't apply that filter (show everything for that criteria)
@@ -21,7 +21,16 @@ class Repository:
 
         # Filter by difficulty - None means show all difficulties
         if difficulty_level is not None:
-            query = query.filter(DBCharacter.difficulty == difficulty_level)
+            if include_unrated:
+                # Include both the specified difficulty AND unrated (empty/null) characters
+                query = query.filter(
+                    (DBCharacter.difficulty == difficulty_level) |
+                    (DBCharacter.difficulty.is_(None)) |
+                    (DBCharacter.difficulty == "")
+                )
+            else:
+                # Only the specified difficulty
+                query = query.filter(DBCharacter.difficulty == difficulty_level)
 
         # Arc filtering - None means show all characters regardless of arc
         if arc is not None and arc.name != "All":
@@ -39,7 +48,7 @@ class Repository:
 
         return query
 
-    def get_characters_up_to(self, arc: Arc, include_ignored: bool = False) -> list[Character]:
+    def get_characters_until(self, arc: Arc, include_ignored: bool = False) -> list[Character]:
         """
         Get all characters up to a specific arc
         """
@@ -107,26 +116,14 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_filtered_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
-        """
-        Get characters filtered by arc and difficulty using database-level filtering
-        """
-        session = self.db_manager.get_session()
-        try:
-            query = self._build_base_query(session, arc, difficulty_level)
-            characters = query.all()
-            return [char.to_pydantic() for char in characters]
 
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_filler_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
+    def get_filler_characters(self, arc: Arc, difficulty_level: str, include_unrated: bool = False) -> list[Character]:
         """
         Get filler characters filtered by arc and difficulty using database-level filtering
         """
         session = self.db_manager.get_session()
         try:
-            query = self._build_base_query(session, arc, difficulty_level)
+            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated)
             query = query.filter(DBCharacter.filler_status.ilike("filler"))
 
             characters = query.all()
@@ -135,13 +132,13 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_canon_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
+    def get_canon_characters(self, arc: Arc, difficulty_level: str, include_unrated: bool = False) -> list[Character]:
         """
         Get canon characters filtered by arc and difficulty using database-level filtering
         """
         session = self.db_manager.get_session()
         try:
-            query = self._build_base_query(session, arc, difficulty_level)
+            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated)
             query = query.filter(DBCharacter.filler_status.ilike("canon"))
 
             characters = query.all()
@@ -150,13 +147,13 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_non_canon_characters(self, arc: Arc, difficulty_level: str) -> list[Character]:
+    def get_non_canon_characters(self, arc: Arc, difficulty_level: str, include_unrated: bool = False) -> list[Character]:
         """
         Get non-canon characters (everything except canon) filtered by arc and difficulty
         """
         session = self.db_manager.get_session()
         try:
-            query = self._build_base_query(session, arc, difficulty_level)
+            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated)
             query = query.filter(~DBCharacter.filler_status.ilike("canon"))
 
             characters = query.all()

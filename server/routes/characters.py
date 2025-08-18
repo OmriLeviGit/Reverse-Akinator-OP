@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api/characters", tags=["characters"])
 def get_characters_until(session_mgr: SessionManager = Depends(get_session_manager)):
     arc = session_mgr.get_global_arc_limit()
     try:
-        characters = Repository().get_characters_up_to(arc, include_ignored=True)
+        characters = Repository().get_characters_until(arc, include_ignored=True)
         return CharactersResponse(
             characters=characters,
             count=len(characters),

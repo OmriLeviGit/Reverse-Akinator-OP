@@ -1,6 +1,6 @@
 export interface UserPreferences {
   difficulty: string;
-  preferred_arc: string;
+  preferredArc: string;
   includeNonTVFillers: boolean;
   fillerPercentage: number;
   includeUnrated: boolean;
