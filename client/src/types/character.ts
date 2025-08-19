@@ -5,12 +5,10 @@ export interface Character {
 
   description: string | null;
 
-  arc: string | null;
   chapter: number | null;
   episode: number | null;
 
-  fillerStatus: "Canon" | "Filler" | "Filler-Non-TV";
-  source: string | null;
+  fillerStatus: string;
 
   difficulty: string | null;
   isIgnored: boolean;

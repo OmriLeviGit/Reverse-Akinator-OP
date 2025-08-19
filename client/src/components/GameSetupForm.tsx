@@ -203,13 +203,6 @@ const GameSetupForm = ({
             </div>
           </div>
         )}
-
-        {/* Starting Game Loading */}
-        {isStartingGame && (
-          <div className="text-center">
-            <p className="text-muted-foreground">Starting game...</p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -1,170 +1,231 @@
-// import React, { useState, useEffect } from "react";
-// import { Button } from "@/components/ui/button";
-// import { useNavigate } from "react-router-dom";
-// import Header from "../components/Header";
-// import NavigationHeader from "../components/NavigationHeader";
-// import { useAppContext } from "../contexts/AppContext";
-// import { useCharacterRatings } from "../hooks/useCharacterRatings";
-// import { DifficultyRating } from "@/components/DifficultyRating";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Play, EyeOff, Eye, ExternalLink, Home } from "lucide-react";
+import Navigation from "../components/Navigation";
+import { CharacterImage } from "../components/CharacterImage";
+import CharacterDifficultyDropdown from "../components/CharacterDifficultyDropdown";
+import { useAppContext } from "../contexts/AppContext";
+import { useGameSession } from "../hooks/useGameSession";
+import { useUserPreferences } from "../hooks/useUserPreferences";
+import { useCharacterRatings } from "@/hooks/useCharacterRatings";
+import { Character } from "../types/character";
+import { toast } from "sonner";
+import CharacterIgnoreButton from "@/components/CharacterIgnoreButton";
 
-// const CharacterRevealScreen: React.FC = () => {
-//   const navigate = useNavigate();
-//   const { currentCharacter, startGame, currentGameSession } = useAppContext();
-//   const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
-//   const [showConfirmation, setShowConfirmation] = useState<"added" | "removed" | null>(null);
+interface RevealData {
+  character: Character;
+  questionsAsked: number;
+  guessesMade: number;
+}
 
-//   // Redirect to home if no current character or game session
-//   useEffect(() => {
-//     if (!currentCharacter || !currentGameSession) {
-//       navigate("/");
-//     }
-//   }, [currentCharacter, currentGameSession, navigate]);
+const CharacterRevealScreen: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { availableArcs, updateGlobalArcLimit, globalArcLimit } = useAppContext();
+  const { startGame } = useGameSession();
+  const { preferences } = useUserPreferences();
+  const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
 
-//   // Don't render anything if no character data
-//   if (!currentCharacter) {
-//     return null;
-//   }
+  const [isStartingNewGame, setIsStartingNewGame] = useState(false);
+  const [character, setCharacter] = useState<Character | null>(null);
+  const [gameStats, setGameStats] = useState<{ questionsAsked: number; guessesMade: number } | null>(null);
 
-//   const currentRating = currentCharacter.difficulty; // This is now a string
+  // Get data from navigation state
+  useEffect(() => {
+    const revealData = location.state as RevealData | null;
 
-//   const handleRating = (rating: string) => {
-//     // Changed from number to string
-//     setCharacterRating(currentCharacter.name, rating);
-//   };
+    if (revealData?.character) {
+      setCharacter(revealData.character);
+      setGameStats({
+        questionsAsked: revealData.questionsAsked,
+        guessesMade: revealData.guessesMade,
+      });
+    } else {
+      // No data passed, redirect to home
+      navigate("/");
+    }
+  }, [location.state, navigate]);
 
-//   const handleIgnoreCharacter = () => {
-//     const wasIgnored = currentCharacter.isIgnored;
+  const handleMaxArcChange = (arcName: string) => {
+    updateGlobalArcLimit(arcName);
+  };
 
-//     toggleIgnoreCharacter(currentCharacter.name);
+  const handleRatingChange = (characterId: string, difficulty: string | null) => {
+    if (!character) return;
 
-//     // Show appropriate message and confirmation based on previous state
-//     if (wasIgnored) {
-//       setShowConfirmation("removed");
-//     } else {
-//       setShowConfirmation("added");
-//     }
+    const difficultyValue = difficulty || "";
+    setCharacterRating(characterId, difficultyValue);
 
-//     // Hide confirmation after 3 seconds
-//     setTimeout(() => setShowConfirmation(null), 3000);
-//   };
+    // Update local state to reflect the change
+    setCharacter((prev) => (prev ? { ...prev, difficulty: difficultyValue } : null));
+  };
 
-//   const handlePlayAgain = async () => {
-//     try {
-//       const gameSettings = {
-//         arcSelection: "all",
-//         fillerPercentage: 0,
-//         includeNonTVFillers: false,
-//         difficultyLevel: "easy",
-//       };
+  const handleIgnoreToggle = (characterId: string) => {
+    if (!character) return;
 
-//       await startGame(gameSettings);
-//       navigate("/game");
-//     } catch (error: any) {
-//       console.error("Failed to start new game:", error);
-//       navigate("/");
-//     }
-//   };
+    toggleIgnoreCharacter(characterId);
 
-//   return (
-//     <div className="min-h-screen relative overflow-hidden">
-//       {/* Ocean Background without Animation */}
-//       <div className="absolute inset-0 ocean-gradient"></div>
+    // Update local state to reflect the change
+    const newIgnoreState = !character.isIgnored;
+    setCharacter((prev) => (prev ? { ...prev, isIgnored: newIgnoreState } : null));
 
-//       {/* Main Content */}
-//       <div className="relative z-10 min-h-screen flex flex-col">
-//         <Header />
-//         <NavigationHeader />
+    const message = newIgnoreState ? "Character added to ignore list" : "Character removed from ignore list";
+    console.log(message);
+  };
 
-//         <main className="flex-1 container mx-auto px-4 py-8">
-//           <div className="max-w-2xl mx-auto">
-//             {/* Character Reveal Card */}
-//             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 ship-shadow border border-white/20">
-//               <div className="text-center mb-6">
-//                 <h2 className="text-3xl font-bold text-white mb-2">Character Revealed!</h2>
-//                 <div className="w-16 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 mx-auto rounded-full"></div>
-//               </div>
+  const handlePlayAgain = async () => {
+    setIsStartingNewGame(true);
 
-//               {/* Character Image */}
-//               <div className="flex justify-center mb-6">
-//                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white/30 ship-shadow">
-//                   <img
-//                     src={currentCharacter.image}
-//                     alt={currentCharacter.name}
-//                     className="w-full h-full object-cover"
-//                   />
-//                 </div>
-//               </div>
+    try {
+      const gameSettings = {
+        arcSelection: preferences.preferredArc,
+        fillerPercentage: preferences.fillerPercentage,
+        includeNonTVFillers: preferences.includeNonTVFillers,
+        difficultyLevel: preferences.difficulty,
+        includeUnrated: preferences.includeUnrated,
+      };
 
-//               {/* Character Name */}
-//               <h3 className="text-2xl font-bold text-center pirate-text mb-4">{currentCharacter.name}</h3>
+      await startGame(gameSettings);
+      navigate("/game");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.detail || error.message || "Failed to start new game";
+      toast.error(errorMessage);
+      navigate("/");
+    } finally {
+      setIsStartingNewGame(false);
+    }
+  };
 
-//               {/* Character Description */}
-//               <div className="bg-white/20 rounded-xl p-4 mb-4">
-//                 <p className="text-white leading-relaxed text-center">{currentCharacter.description}</p>
-//               </div>
+  const handleBackToHome = () => {
+    navigate("/");
+  };
 
-//               {/* Character Information */}
-//               <div className="text-left mb-6 space-y-1">
-//                 <a
-//                   href={currentCharacter.wikiLink}
-//                   target="_blank"
-//                   rel="noopener noreferrer"
-//                   className="text-blue-300 hover:text-blue-200 underline transition-colors text-sm block"
-//                 >
-//                   View on wiki
-//                 </a>
-//               </div>
+  // Don't render anything if no character data
+  if (!character || !gameStats) {
+    return null;
+  }
 
-//               {/* Difficulty Rating System */}
-//               <div className="mb-8">
-//                 <h4 className="text-lg font-semibold text-white text-center mb-4">
-//                   How difficult was this character to guess?
-//                 </h4>
-//                 <DifficultyRating currentRating={currentRating} onRatingChange={handleRating} />
-//               </div>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
 
-//               {/* Action Buttons */}
-//               <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
-//                 <Button
-//                   onClick={handlePlayAgain}
-//                   className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
-//                 >
-//                   Play Again
-//                 </Button>
-//                 <Button
-//                   onClick={handleIgnoreCharacter}
-//                   className={`font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 ${
-//                     currentCharacter.isIgnored
-//                       ? "bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
-//                       : "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white"
-//                   }`}
-//                 >
-//                   {currentCharacter.isIgnored ? "Remove from Ignore List" : "Add to Ignore List"}
-//                 </Button>
-//               </div>
+      {/* Header */}
+      <div className="container mx-auto px-6 py-8">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Character Reveal</h1>
+          <p className="text-muted-foreground text-lg">Here's the character you were trying to guess</p>
+        </div>
+      </div>
 
-//               {/* Confirmation Messages */}
-//               {showConfirmation && (
-//                 <div className="text-center">
-//                   {showConfirmation === "added" && (
-//                     <p className="text-green-300 text-sm">Character added to ignore list!</p>
-//                   )}
-//                   {showConfirmation === "removed" && (
-//                     <p className="text-red-300 text-sm">Character removed from ignore list!</p>
-//                   )}
-//                 </div>
-//               )}
-//             </div>
-//           </div>
-//         </main>
+      {/* Main Content */}
+      <main className="container mx-auto px-6 pb-12">
+        <div className="max-w-4xl mx-auto">
+          <Card className="border-border/40 shadow-lg overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-0">
+              {/* Character Image */}
+              <div className="relative overflow-hidden bg-muted/30 flex items-center justify-center p-8">
+                <CharacterImage character={character} size="large" />
+              </div>
 
-//         {/* Footer */}
-//         <footer className="py-6 text-center">
-//           <p className="text-white/70 text-sm">Thanks for playing the One Piece Character Guessing Game!</p>
-//         </footer>
-//       </div>
-//     </div>
-//   );
-// };
+              {/* Character Details */}
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex-1">
+                    <h2 className="text-3xl font-bold text-foreground mb-2">{character.name}</h2>
+                    {character.wikiLink && (
+                      <a
+                        href={character.wikiLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-primary hover:text-primary/80 transition-colors text-sm"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        View on wiki
+                      </a>
+                    )}
+                  </div>
+                </div>
 
-// export default CharacterRevealScreen;
+                {/* Character Description */}
+                <div className="bg-muted/30 rounded-lg p-4 mb-6">
+                  <p className="text-foreground leading-relaxed">
+                    {character.description || "No description available for this character."}
+                  </p>
+                </div>
+
+                {/* Game Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-foreground">{gameStats.questionsAsked}</div>
+                    <div className="text-sm text-muted-foreground">Questions Asked</div>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <div className="text-2xl font-bold text-foreground">{gameStats.guessesMade}</div>
+                    <div className="text-sm text-muted-foreground">Guesses Made</div>
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                {/* Rating and Ignore Controls */}
+                <div className="space-y-4 mb-6">
+                  <h3 className="text-lg font-semibold text-foreground">Rate this character</h3>
+
+                  {/* Difficulty Rating Dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      How difficult was this character to guess?
+                    </label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <CharacterDifficultyDropdown character={character} onRatingChange={handleRatingChange} />
+                      <CharacterIgnoreButton character={character} onIgnoreToggle={handleIgnoreToggle} />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button
+                    onClick={handlePlayAgain}
+                    disabled={isStartingNewGame}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                  >
+                    {isStartingNewGame ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Play Again
+                      </>
+                    )}
+                  </Button>
+                  <Button onClick={handleBackToHome} variant="outline">
+                    <Home className="h-4 w-4 mr-2" />
+                    Back to Home
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </main>
+
+      {/* Background decorative elements */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent opacity-5 rounded-full blur-3xl"></div>
+      </div>
+    </div>
+  );
+};
+
+export default CharacterRevealScreen;

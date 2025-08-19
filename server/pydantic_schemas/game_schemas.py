@@ -2,6 +2,8 @@
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 
+from server.pydantic_schemas.character_schemas import Character
+
 
 class GameStartRequest(BaseModel):
     arc_selection: str = Field(alias="arcSelection")
@@ -54,7 +56,7 @@ class GameGuessResponse(BaseModel):
 
 
 class GameRevealResponse(BaseModel):
-    character: Dict[str, Any]
+    character: Character
     questions_asked: int = Field(alias="questionsAsked")
     guesses_made: int = Field(alias="guessesMade")
 

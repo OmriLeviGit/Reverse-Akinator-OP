@@ -1,0 +1,46 @@
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
+
+interface CharacterIgnoreButtonProps {
+  character: {
+    id: string;
+    isIgnored: boolean;
+  };
+  onIgnoreToggle: (characterId: string) => void;
+  variant?: "full" | "compact";
+}
+
+const CharacterIgnoreButton: React.FC<CharacterIgnoreButtonProps> = ({
+  character,
+  onIgnoreToggle,
+  variant = "full",
+}) => {
+  const isCompact = variant === "compact";
+
+  return (
+    <Button
+      onClick={() => onIgnoreToggle(character.id)}
+      variant="outline"
+      className={`w-full ${isCompact ? "text-xs h-8 px-2 py-1" : ""} ${
+        character.isIgnored
+          ? "bg-green-500/20 text-green-300 hover:bg-green-500/30 hover:text-green-100 border-green-500/50"
+          : "bg-red-500/20 text-red-300 hover:bg-red-500/30 hover:text-red-100 border-red-500/50"
+      }`}
+    >
+      {character.isIgnored ? (
+        <>
+          <Eye className={isCompact ? "h-3 w-3 mr-1" : "h-4 w-4 mr-2"} />
+          {isCompact ? "Unignore Character" : "Remove from Ignore List"}
+        </>
+      ) : (
+        <>
+          <EyeOff className={isCompact ? "h-3 w-3 mr-1" : "h-4 w-4 mr-2"} />
+          {isCompact ? "Ignore Character" : "Add to Ignore List"}
+        </>
+      )}
+    </Button>
+  );
+};
+
+export default CharacterIgnoreButton;

@@ -80,9 +80,7 @@ const GameScreen: React.FC = () => {
 
       // Check if game ended
       if (answer.toLowerCase().includes("congratulations") || answer.toLowerCase().includes("character was")) {
-        setTimeout(() => {
-          handleRevealCharacter();
-        }, 2000);
+        handleRevealCharacter();
       }
     } catch (error) {
       console.error("Error processing message:", error);
@@ -118,13 +116,11 @@ const GameScreen: React.FC = () => {
   };
 
   const handleRevealCharacter = async () => {
-    console.log("🎭 handleRevealCharacter called");
-
     try {
       const result = await revealCharacter();
       console.log("✅ Character revealed:", result);
       navigate("/reveal", {
-        state: { character: result.character, questionsAsked: result.questionsAsked, guessesMade: result.guessesMade },
+        state: result,
       });
     } catch (error) {
       console.error("❌ Failed to reveal character:", error);

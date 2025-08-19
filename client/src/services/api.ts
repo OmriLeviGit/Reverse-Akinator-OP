@@ -49,19 +49,16 @@ export const gameApi = {
   },
 
   askQuestion: async (question: string) => {
-    // ← Simplified - no gameSessionId needed
     const response = await api.post("/game/question", { question });
     return response.data;
   },
 
   makeGuess: async (characterName: string) => {
-    // ← Simplified parameter name
     const response = await api.post("/game/guess", { characterName });
     return response.data;
   },
 
   revealCharacter: async () => {
-    // ← No parameters needed
     const response = await api.post("/game/reveal");
     return response.data;
   },

@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from server import game_service
 from server.SessionManager import SessionManager, get_session_manager
+from server.pydantic_schemas.character_schemas import Character
 from server.pydantic_schemas.game_schemas import (
     GameStartResponse, GameStartRequest,
     GameQuestionResponse, GameQuestionRequest,
@@ -65,11 +66,13 @@ def reveal_character_route(session_mgr: SessionManager = Depends(get_session_man
         if not session_mgr.has_active_game():
             raise HTTPException(status_code=400, detail="No active game session")
 
-        character = session_mgr.get_target_character()
+        character_data = session_mgr.get_target_character()
         questions_asked = session_mgr.get_questions_asked()
         guesses_made = session_mgr.get_guess_count()
 
         session_mgr.end_game()
+
+        character = Character(**character_data)
 
         return GameRevealResponse(
             character=character,

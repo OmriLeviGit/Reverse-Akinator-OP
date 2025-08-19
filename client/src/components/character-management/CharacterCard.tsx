@@ -9,6 +9,8 @@ import {
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CharacterImage } from "../CharacterImage";
+import CharacterDifficultyDropdown from "../CharacterDifficultyDropdown";
+import CharacterIgnoreButton from "../CharacterIgnoreButton";
 
 interface CharacterCardProps {
   character: Character;
@@ -49,7 +51,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
   return (
     <div
       className={`bg-card rounded-xl p-4 border border-border transition-all duration-200 ${
-        character.isIgnored ? "opacity-60" : "hover:bg-secondary hover:border-secondary-hover"
+        character.isIgnored ? "opacity-60" : ""
       }`}
     >
       {/* Character Info */}
@@ -118,81 +120,8 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
       {/* Actions - Fixed position */}
       <div className="space-y-2">
         {/* Difficulty */}
-        <div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between bg-input hover:bg-secondary text-foreground hover:text-foreground border-border text-xs h-8 px-2 py-1"
-              >
-                {character.difficulty === "" || !character.difficulty
-                  ? "Unrated"
-                  : character.difficulty === "very-easy"
-                  ? "Very Easy"
-                  : character.difficulty === "easy"
-                  ? "Easy"
-                  : character.difficulty === "medium"
-                  ? "Medium"
-                  : character.difficulty === "hard"
-                  ? "Hard"
-                  : character.difficulty === "really-hard"
-                  ? "Really Hard"
-                  : "Unrated"}
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
-              <DropdownMenuItem
-                onClick={() => onRatingChange(character.id, null)}
-                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
-              >
-                Unrated
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onRatingChange(character.id, "very-easy")}
-                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
-              >
-                Very Easy
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onRatingChange(character.id, "easy")}
-                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
-              >
-                Easy
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onRatingChange(character.id, "medium")}
-                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
-              >
-                Medium
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onRatingChange(character.id, "hard")}
-                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
-              >
-                Hard
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onRatingChange(character.id, "really-hard")}
-                className="cursor-pointer hover:bg-secondary text-popover-foreground text-xs"
-              >
-                Really Hard
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Ignore Button */}
-        <button
-          onClick={() => onIgnoreToggle(character.id)}
-          className={`w-full px-2 py-1 rounded text-xs font-medium transition-colors ${
-            character.isIgnored
-              ? "bg-green-500/20 text-green-300 hover:bg-green-500/30"
-              : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
-          }`}
-        >
-          {character.isIgnored ? "Unignore" : "Ignore"}
-        </button>
+        <CharacterDifficultyDropdown character={character} onRatingChange={onRatingChange} size="small" />
+        <CharacterIgnoreButton character={character} onIgnoreToggle={onIgnoreToggle} variant="compact" />
       </div>
     </div>
   );

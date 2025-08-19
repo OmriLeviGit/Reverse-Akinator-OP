@@ -8,6 +8,7 @@ import GlobalSpoilerModal from "./components/GlobalSpoilerModal";
 import Index from "./pages/Index";
 import GameScreen from "./pages/GameScreen";
 import CharacterManagement from "./pages/CharacterManagement";
+import CharacterRevealScreen from "./pages/CharacterRevealScreen";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/character-management" element={<CharacterManagement />} />
             <Route path="/game" element={<GameScreen />} />
+            <Route path="/reveal" element={<CharacterRevealScreen />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <GlobalSpoilerModal />
