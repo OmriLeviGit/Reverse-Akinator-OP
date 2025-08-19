@@ -3,7 +3,7 @@ from typing import Optional, Dict, List
 from fastapi import Request
 
 from server.Repository import Repository
-from server.database.db_models import Arc
+from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
 
 
@@ -21,7 +21,7 @@ class SessionManager:
 
         self.request.session.update({
             "global_arc_limit": "All",
-            "user_preferences": {
+            "userPreferences": {
                 "difficulty": "easy",
                 "preferredArc": "All",
                 "includeNonTVFillers": False,

@@ -66,14 +66,6 @@ const GameSetupForm = ({
 
   const filteredArcs = getFilteredArcs();
 
-  // Set default selectedArc to globalArcLimit when availableArcs load or globalArcLimit changes
-  useEffect(() => {
-    if (globalArcLimit && availableArcs.length > 0 && (!selectedArc || selectedArc === "")) {
-      console.log("Setting default arc to:", globalArcLimit);
-      onArcChange(globalArcLimit);
-    }
-  }, [globalArcLimit, availableArcs, selectedArc, onArcChange]);
-
   const handleFillerSliderChange = (value: number[]) => {
     setFillerSliderValue(value);
     onFillerPercentageChange(value[0]);
@@ -138,10 +130,10 @@ const GameSetupForm = ({
                   <div className="grid grid-cols-[440px_70px_60px] w-full font-mono text-sm">
                     <span className="text-left truncate text-foreground">{arc.name}</span>
                     <span className="text-left text-muted-foreground text-xs">
-                      {arc.last_episode > 0 ? `Ep.${arc.last_episode}` : ""}
+                      {arc.episode > 0 ? `Ep.${arc.episode}` : ""}
                     </span>
                     <span className="text-left text-muted-foreground text-xs">
-                      {arc.last_chapter > 0 ? `Ch.${arc.last_chapter}` : ""}
+                      {arc.chapter > 0 ? `Ch.${arc.chapter}` : ""}
                     </span>
                   </div>
                 </SelectItem>

@@ -1,6 +1,7 @@
 from server.database.database import DatabaseManager
-from server.database.db_models import DBCharacter, Arc
+from server.database.db_models import DBCharacter, DBArc
 from server.pydantic_schemas.character_schemas import Character
+from server.pydantic_schemas.arc_schemas import Arc
 
 
 class Repository:
@@ -34,16 +35,26 @@ class Repository:
 
         # Arc filtering - None means show all characters regardless of arc
         if arc is not None and arc.name != "All":
-            if arc.last_chapter is not None:
+            # Convert Pydantic Arc to DBArc
+            if arc.name == "All":
+                db_arc = DBArc(name="All")
+            else:
+                db_arc = session.query(DBArc).filter(DBArc.name == arc.name).first()
+                if not db_arc:
+                    # If arc not found in DB, create a temporary one with the Pydantic values
+                    db_arc = DBArc(name=arc.name, last_chapter=arc.chapter, last_episode=arc.episode)
+
+            # Now use the DBArc object
+            if db_arc.last_chapter is not None:
                 query = query.filter(
                     (DBCharacter.chapter.is_(None)) |
-                    (DBCharacter.chapter <= arc.last_chapter)
+                    (DBCharacter.chapter <= db_arc.last_chapter)
                 )
 
-            if arc.last_episode is not None:
+            if db_arc.last_episode is not None:
                 query = query.filter(
                     (DBCharacter.effective_episode.is_(None)) |
-                    (DBCharacter.effective_episode <= arc.last_episode)
+                    (DBCharacter.effective_episode <= db_arc.last_episode)
                 )
 
         return query
@@ -168,9 +179,12 @@ class Repository:
 
         try:
             if arc_name == "All":
-                return Arc(name="All")
+                db_arc = DBArc(name="All")
+            else:
+                db_arc = session.query(DBArc).filter(DBArc.name == arc_name).first()
 
-            return session.query(Arc).filter(Arc.name == arc_name).first()
+            return db_arc.to_pydantic()
+
         finally:
             self.db_manager.close_session(session)
 
@@ -178,9 +192,12 @@ class Repository:
         session = self.db_manager.get_session()
         try:
             if arc.name == "All":
-                return session.query(Arc).all()
+                arc_list = session.query(DBArc).all()
+            else:
+                # Use arc.chapter instead of arc.last_chapter since it's now a Pydantic model
+                arc_list = session.query(DBArc).filter(DBArc.last_chapter <= arc.chapter).all()
 
-            return session.query(Arc).filter(Arc.last_chapter <= arc.last_chapter).all()
+            return [db_arc.to_pydantic() for db_arc in arc_list]
 
         finally:
             self.db_manager.close_session(session)

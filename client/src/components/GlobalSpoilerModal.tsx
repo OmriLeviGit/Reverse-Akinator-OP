@@ -4,12 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppContext } from "../contexts/AppContext";
-import { Arc } from "@/types";
 
 const GlobalSpoilerModal = () => {
   const { availableArcs, updateGlobalArcLimit } = useAppContext();
   const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
-  const [selectedArcName, setSelectedArcName] = useState<string>("All");
+  const [selectedGlobalArcName, setSelectedGlobalArcName] = useState<string>("All");
 
   // Check if modal should show on any page load
   useEffect(() => {
@@ -20,7 +19,7 @@ const GlobalSpoilerModal = () => {
   }, []);
 
   const handleContinue = () => {
-    updateGlobalArcLimit(selectedArcName);
+    updateGlobalArcLimit(selectedGlobalArcName);
     setShowSpoilerModal(false);
     localStorage.setItem("hasVisitedBefore", "true");
   };
@@ -38,7 +37,7 @@ const GlobalSpoilerModal = () => {
         <div className="space-y-6 pt-4">
           <div className="space-y-3">
             <label className="text-sm font-medium text-foreground">Maximum Arc Seen</label>
-            <Select value={selectedArcName} onValueChange={setSelectedArcName}>
+            <Select value={selectedGlobalArcName} onValueChange={setSelectedGlobalArcName}>
               <SelectTrigger className="bg-input hover:bg-input border-border text-foreground">
                 <SelectValue placeholder="Select an arc" />
               </SelectTrigger>

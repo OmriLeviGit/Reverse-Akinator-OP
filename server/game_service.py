@@ -2,7 +2,7 @@ import json
 import random
 
 from server.SessionManager import SessionManager
-from server.database.db_models import Arc
+from server.database.db_models import DBArc
 from server.pydantic_schemas.character_schemas import Character
 import google.generativeai as genai
 
@@ -56,7 +56,7 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
     session_mgr.start_new_game(chosen_character, prompt)
 
 
-def create_game_prompt(character: Character, last_arc: Arc):
+def create_game_prompt(character: Character, last_arc: DBArc):
     """Create the initial prompt for the LLM"""
     # Build appearance info from character object
     appearance_parts = []

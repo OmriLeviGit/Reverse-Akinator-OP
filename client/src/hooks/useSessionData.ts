@@ -24,10 +24,10 @@ export const useSessionData = () => {
   useEffect(() => {
     if (initialData) {
       console.log("Initial data received:", initialData);
-      setSessionData(initialData.session_data);
-      setAvailableArcs(initialData.available_arcs);
-      sessionService.saveSessionData(initialData.session_data);
-      sessionService.saveAvailableArcs(initialData.available_arcs);
+      setSessionData(initialData.sessionData);
+      setAvailableArcs(initialData.availableArcs);
+      sessionService.saveSessionData(initialData.sessionData);
+      sessionService.saveAvailableArcs(initialData.availableArcs);
       console.log("Data saved to cookies");
     }
   }, [initialData]);
@@ -50,12 +50,12 @@ export const useSessionData = () => {
   const updatePreferences = (newPreferences: Partial<UserPreferences>) => {
     if (!sessionData) return;
     const updatedPreferences = {
-      ...sessionData.user_preferences,
+      ...sessionData.userPreferences,
       ...newPreferences,
     };
     const updatedSessionData = {
       ...sessionData,
-      user_preferences: updatedPreferences,
+      userPreferences: updatedPreferences,
     };
     setSessionData(updatedSessionData);
     sessionService.saveSessionData(updatedSessionData);
@@ -69,11 +69,13 @@ export const useSessionData = () => {
       // Update server session
       const response = await sessionApi.updateGlobalArcLimit(arcLimit);
 
+      console.log("@@@@@", response.sessionData);
+
       // Update local state with server response
-      setSessionData(response.session_data);
-      setAvailableArcs(response.available_arcs);
-      sessionService.saveSessionData(response.session_data);
-      sessionService.saveAvailableArcs(response.available_arcs);
+      setSessionData(response.sessionData);
+      setAvailableArcs(response.availableArcs);
+      sessionService.saveSessionData(response.sessionData);
+      sessionService.saveAvailableArcs(response.availableArcs);
 
       // Invalidate characters cache so they refetch with new arc limit
       queryClient.invalidateQueries({ queryKey: ["allCharacters"] });

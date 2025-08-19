@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 import sys
 
-from server.database.db_models import DBCharacter, Arc, Base
+from server.database.db_models import DBCharacter, DBArc, Base
 
 BASE_DIR = Path(__file__).parent  # Use pathlib.Path
 sys.path.append(str(BASE_DIR.parent))
@@ -74,7 +74,7 @@ class DatabaseManager:
             if session.query(DBCharacter).count() == 0:
                 self.load_characters_from_csv()
 
-            if session.query(Arc).count() == 0:
+            if session.query(DBArc).count() == 0:
                 self.load_arcs_from_json()
         finally:
             self.close_session(session)
@@ -144,7 +144,7 @@ class DatabaseManager:
                 data = json.load(file)
 
                 for arc_data in data:
-                    arc = Arc(**arc_data)
+                    arc = DBArc(**arc_data)
                     session.add(arc)
 
             session.commit()

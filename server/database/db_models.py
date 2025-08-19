@@ -4,6 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from server.pydantic_schemas.character_schemas import Character
+from server.pydantic_schemas.arc_schemas import Arc
 
 Base = declarative_base()
 
@@ -88,7 +89,7 @@ class DBCharacter(Base):
         """Get the effective episode number - now just delegates to effective_episode property"""
         return self.effective_episode
 
-class Arc(Base):
+class DBArc(Base):
     __tablename__ = 'arcs'
 
     name = Column(String(100), primary_key=True)
@@ -105,8 +106,16 @@ class Arc(Base):
             'last_episode': self.last_episode
         }
 
+    def to_pydantic(self) -> Arc:
+        """Convert SQLAlchemy model to Pydantic model"""
+        return Arc(
+            name=self.name,
+            chapter=self.last_chapter,
+            episode=self.last_episode
+        )
+
     @staticmethod
-    def get_earlier_arc(arc1: 'Arc', arc2: 'Arc') -> 'Arc':
+    def get_earlier_arc(arc1: 'DBArc', arc2: 'DBArc') -> 'DBArc':
         """
         Compare two arcs and return the earlier one
         """

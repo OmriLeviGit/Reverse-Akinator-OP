@@ -49,37 +49,37 @@ const Index = () => {
 
   // Initialize preferences from sessionData and handle arc selection logic
   useEffect(() => {
-    if (sessionData?.user_preferences && availableArcs.length > 0) {
-      const prefs = sessionData.user_preferences;
-      setSelectedDifficulty((prefs.difficulty as "easy" | "medium" | "hard") || "easy");
-      setIncludeNonTVFillers(prefs.includeNonTVFillers);
-      setFillerPercentage(prefs.fillerPercentage);
-      setIncludeUnrated(prefs.includeUnrated || false);
+    if (!sessionData?.userPreferences || availableArcs.length === 0 || !globalArcLimit) {
+      return; // Wait for all required data
+    }
 
-      // Handle arc selection with spoiler protection
-      const currentPreferredArc = prefs.preferredArc || globalArcLimit;
+    const prefs = sessionData.userPreferences;
 
-      const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit); // Minimum between the max arc seen and the current preferred arc
+    console.log("session data = ", sessionData);
 
-      if (safeArc !== selectedArc) {
-        setSelectedArc(safeArc);
+    // Set other preferences (these are stable)
+    setSelectedDifficulty((prefs.difficulty as "easy" | "medium" | "hard") || "easy");
+    setIncludeNonTVFillers(prefs.includeNonTVFillers);
+    setFillerPercentage(prefs.fillerPercentage);
+    setIncludeUnrated(prefs.includeUnrated || false);
+
+    // Handle arc selection with spoiler protection
+    console.log("prefs", prefs.preferredArc, globalArcLimit);
+    const currentPreferredArc = prefs.preferredArc || globalArcLimit;
+    const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit);
+
+    console.log("safe", currentPreferredArc, safeArc);
+
+    // Only update if actually different AND not empty
+    if (safeArc && safeArc !== selectedArc) {
+      console.log("Setting arc from effect:", safeArc);
+      setSelectedArc(safeArc);
+      // Only update preferences if it's actually different from what's stored
+      if (safeArc !== prefs.preferredArc) {
         updatePreferences({ preferredArc: safeArc });
       }
     }
-  }, [sessionData, globalArcLimit, availableArcs]); // Remove selectedArc from dependencies to avoid loops
-
-  // Handle globalArcLimit changes and update arc selection accordingly
-  useEffect(() => {
-    if (globalArcLimit && selectedArc && availableArcs.length > 0) {
-      // When globalArcLimit changes, ensure selectedArc doesn't exceed it
-      const safeArc = getEarlierArc(selectedArc, globalArcLimit);
-
-      if (safeArc !== selectedArc) {
-        setSelectedArc(safeArc);
-        updatePreferences({ preferredArc: safeArc });
-      }
-    }
-  }, [globalArcLimit, availableArcs]); // Don't include selectedArc here to avoid loops
+  }, [sessionData, globalArcLimit, availableArcs]);
 
   // Show loading screen ONLY until essential data is loaded
   if (isLoading || !sessionData || availableArcs.length === 0) {

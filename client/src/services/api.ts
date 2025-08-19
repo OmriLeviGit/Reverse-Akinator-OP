@@ -28,7 +28,7 @@ export const sessionApi = {
   },
 
   updateGlobalArcLimit: async (arcLimit: string) => {
-    const response = await api.post("/session/update-arc-limit", { arc_limit: arcLimit });
+    const response = await api.post("/session/update-arc-limit", { arcLimit });
     return response.data;
   },
 };

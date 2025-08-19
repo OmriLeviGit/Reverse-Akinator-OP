@@ -7,8 +7,8 @@ export interface UserPreferences {
 }
 
 export interface SessionData {
-  global_arc_limit: string;
-  user_preferences: UserPreferences;
-  session_created: string;
-  last_activity: string;
+  globalArcLimit: string;
+  userPreferences: UserPreferences;
+  sessionCreated: string;
+  lastActivity: string;
 }

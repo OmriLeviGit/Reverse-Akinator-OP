@@ -7,7 +7,7 @@ export const sessionService = {
     if (savedSessionData) {
       try {
         const parsed = JSON.parse(savedSessionData);
-        return parsed.user_preferences;
+        return parsed.userPreferences;
       } catch (error) {
         console.error("Failed to parse saved preferences:", error);
       }

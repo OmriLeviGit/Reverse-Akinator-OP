@@ -42,8 +42,8 @@ const GameScreen: React.FC = () => {
 
   // Initialize globalArcLimit from sessionData
   useEffect(() => {
-    if (sessionData?.global_arc_limit) {
-      setGlobalArcLimit(sessionData.global_arc_limit);
+    if (sessionData?.globalArcLimit) {
+      setGlobalArcLimit(sessionData.globalArcLimit);
     }
   }, [sessionData]);
 
