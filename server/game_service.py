@@ -1,13 +1,10 @@
-import json
 import random
 
 from server.SessionManager import SessionManager
-from server.database.db_models import DBArc
 from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
-import google.generativeai as genai
 
-from server.pydantic_schemas.game_schemas import GameStartRequest, GameQuestionRequest
+from server.pydantic_schemas.game_schemas import GameStartRequest
 
 from server.Repository import Repository
 
@@ -61,13 +58,65 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
     session_mgr.start_new_game(chosen_character, game_settings, prompt)
 
 
-def create_game_prompt(character: Character, last_arc: Arc):
+def ask_question(question: str, session_mgr: SessionManager) -> str:
+    """Process a question about the character"""
+    try:
+        if not session_mgr.has_active_game():
+            raise ValueError("No active game session")
+
+        # Add user question to conversation
+        session_mgr.add_conversation_message("user", question)
+
+        # Get current conversation for context
+        conversation = session_mgr.get_conversation()
+
+        # Generate response using LLM (currently mocked)
+        response = generate_llm_response(question, conversation)
+
+        # Add AI response to conversation
+        session_mgr.add_conversation_message("assistant", response)
+
+        return response
+
+    except Exception as e:
+        raise ValueError(f"Error processing question: {str(e)}")
+
+
+def make_guess(character_name: str, session_mgr: SessionManager) -> dict:
+    """Process a character guess"""
+    try:
+        if not session_mgr.has_active_game():
+            raise ValueError("No active game session")
+
+        target_character = session_mgr.get_target_character()
+        is_correct = character_name.lower() == target_character["name"].lower()
+
+        # Record the guess
+        session_mgr.add_guess(character_name, is_correct)
+
+        if is_correct:
+            message = f"Congratulations! You guessed correctly - it was {target_character['name']}!"
+            return {
+                "is_correct": True,
+                "message": message,
+                "character": target_character
+            }
+        else:
+            message = f"Sorry, that's not correct. The character is not {character_name}. Try asking more questions!"
+            return {
+                "is_correct": False,
+                "message": message
+            }
+
+    except Exception as e:
+        raise ValueError(f"Error processing guess: {str(e)}")
+
+
+def create_game_prompt(character: Character, last_arc: Arc) -> str:
     """Create the initial prompt for the LLM"""
     # Build appearance info from character object
     appearance_parts = []
 
-    # if character.arc:
-    #     appearance_parts.append(f"Arc: {character.arc}")
     if character.chapter:
         appearance_parts.append(f"Chapter: {character.chapter}")
     if character.episode:
@@ -79,7 +128,18 @@ def create_game_prompt(character: Character, last_arc: Arc):
         # add here to not add spoilers beyond session
         pass
 
-    instructions = ""
+    instructions = """
+You are playing a character guessing game. You are roleplaying as a specific One Piece character.
+The user will ask you yes/no questions to try to guess who you are.
+
+RULES:
+1. Only answer with "Yes", "No", or "I can't answer that"
+2. Be helpful but don't make it too easy
+3. Don't reveal your name directly
+4. Stay in character
+5. If asked about spoilers beyond the user's arc limit, say "I can't answer that"
+
+"""
 
     character_prompt = f"""
 <character_profile>
@@ -97,42 +157,25 @@ Remember to follow the game instructions exactly. Wait for the user's first ques
     return instructions + character_prompt
 
 
-def ask_question(request: GameQuestionRequest, session_mgr: SessionManager) -> str:
-    """Process a yes/no question about the character"""
-    try:
-        question = request.questionText
+def generate_llm_response(user_input: str, conversation: list, debug=True) -> str:
+    """Generate LLM response (currently mocked)"""
 
-        if session_mgr.has_active_game():
-            return "Game not found. Please start a new game."
-
-        game = session_mgr.get_current_game()
-
-        # Generate response using LLM
-        response_dict = generate_llm_response(question, game['conversation'])
-
-        return response_dict.get("response", "I didn't understand that question.")
-
-
-    except Exception as e:
-        return f"Error processing question: {str(e)}"
-
-
-# ignore bugs here
-def generate_llm_response(user_input, conversation, debug=True):
+    # Mock responses for testing
     if debug:
-        return {"response": "yes" if "yes" in user_input.lower() else "no"}
+        responses = [
+            "Yes, that's correct!",
+            "No, that's not right.",
+            "I can't answer that question.",
+            "That's partially correct.",
+            "Yes, you're on the right track!",
+            "No, try a different approach."
+        ]
+        return random.choice(responses)
 
-    conversation.append({"role": "user", "content": user_input})
-    full_prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation])
+    # TODO: Implement actual LLM integration here
+    # conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation])
+    # model = genai.GenerativeModel("gemini-2.0-flash-exp")
+    # response = model.generate_content(conversation_text)
+    # return response.text
 
-    model = genai.GenerativeModel("gemini-2.0-flash-exp")
-    generation_config = {
-        "response_mime_type": "application/json",
-        "response_schema": schema
-    }
-
-    response = model.generate_content(full_prompt, generation_config=generation_config)
-    response_dict = json.loads(response.candidates[0].content.parts[0].text)
-
-    conversation.append({"role": "system", "content": response_dict.get("response", "")})
-    return response_dict
+    return "I'm not sure how to answer that."

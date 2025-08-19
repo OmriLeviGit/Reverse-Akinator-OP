@@ -48,24 +48,21 @@ export const gameApi = {
     return response.data;
   },
 
-  askQuestion: async (gameSessionId: string, questionText: string) => {
-    const response = await api.post("/game/question", {
-      gameSessionId,
-      questionText,
-    });
+  askQuestion: async (question: string) => {
+    // ← Simplified - no gameSessionId needed
+    const response = await api.post("/game/question", { question });
     return response.data;
   },
 
-  revealCharacter: async (gameSessionId: string) => {
-    const response = await api.post("/game/reveal", { gameSessionId });
+  makeGuess: async (characterName: string) => {
+    // ← Simplified parameter name
+    const response = await api.post("/game/guess", { characterName });
     return response.data;
   },
 
-  makeGuess: async (gameSessionId: string, guessedCharacter: string) => {
-    const response = await api.post("/game/guess", {
-      gameSessionId,
-      guessedCharacter,
-    });
+  revealCharacter: async () => {
+    // ← No parameters needed
+    const response = await api.post("/game/reveal");
     return response.data;
   },
 };

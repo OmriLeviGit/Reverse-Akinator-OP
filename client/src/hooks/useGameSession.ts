@@ -1,69 +1,61 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+// src/hooks/useGameSession.ts
 import { gameApi } from "../services/api";
-import { GameSession, GameSettings } from "../types";
+import { useAppContext } from "../contexts/AppContext";
 
 export const useGameSession = () => {
-  const [currentGameSession, setCurrentGameSession] = useState<GameSession | null>(null);
+  const { currentGameSession, setCurrentGameSession } = useAppContext();
 
-  const questionMutation = useMutation({
-    mutationFn: (questionText: string) => gameApi.askQuestion(currentGameSession!.gameSessionId, questionText),
-  });
-
-  const startGameMutation = useMutation({
-    mutationFn: gameApi.startGame,
-    onSuccess: (data) => {
-      setCurrentGameSession({
-        gameSessionId: data.gameSessionId,
-        gameState: data.gameState,
-      });
-    },
-  });
-
-  const revealMutation = useMutation({
-    mutationFn: () => gameApi.revealCharacter(currentGameSession!.gameSessionId),
-    onSuccess: (data) => {
-      setCurrentGameSession((prev) =>
-        prev
-          ? {
-              ...prev,
-              currentCharacter: data.character,
-              gameState: data.gameState,
-            }
-          : null
-      );
-    },
-  });
-
-  const guessMutation = useMutation({
-    mutationFn: (guess: string) => gameApi.makeGuess(currentGameSession!.gameSessionId, guess),
-  });
-
-  const startGame = async (settings: GameSettings) => {
-    await startGameMutation.mutateAsync(settings);
+  const startGame = async (settings: any) => {
+    try {
+      const response = await gameApi.startGame(settings);
+      const gameSession = {
+        gameId: response.gameId,
+        isActive: true,
+      };
+      setCurrentGameSession(gameSession);
+      return gameSession;
+    } catch (error) {
+      console.error("Failed to start game:", error);
+      throw error;
+    }
   };
 
   const askQuestion = async (question: string) => {
-    if (!currentGameSession) throw new Error("No active game session");
-    return await questionMutation.mutateAsync(question);
+    try {
+      const response = await gameApi.askQuestion(question);
+      return response.answer;
+    } catch (error) {
+      console.error("Failed to ask question:", error);
+      throw error;
+    }
+  };
+
+  const makeGuess = async (characterName: string) => {
+    try {
+      const response = await gameApi.makeGuess(characterName);
+      return response;
+    } catch (error) {
+      console.error("Failed to make guess:", error);
+      throw error;
+    }
   };
 
   const revealCharacter = async () => {
-    if (!currentGameSession) throw new Error("No active game session");
-    return await revealMutation.mutateAsync();
-  };
-
-  const makeGuess = async (guess: string) => {
-    if (!currentGameSession) throw new Error("No active game session");
-    return await guessMutation.mutateAsync(guess);
+    try {
+      const response = await gameApi.revealCharacter();
+      setCurrentGameSession(null); // This will also clear localStorage
+      return response;
+    } catch (error) {
+      console.error("Failed to reveal character:", error);
+      throw error;
+    }
   };
 
   return {
     currentGameSession,
-    currentCharacter: currentGameSession?.currentCharacter || null,
     startGame,
     askQuestion,
-    revealCharacter,
     makeGuess,
+    revealCharacter,
   };
 };

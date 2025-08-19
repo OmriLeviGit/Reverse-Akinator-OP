@@ -1,13 +1,9 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useSessionData } from "../hooks/useSessionData";
 import { useCharacters } from "../hooks/useCharacters";
-import { useGameSession } from "../hooks/useGameSession";
-import { SessionData, Arc, Character, GameSession, GameSettings } from "../types";
+import { SessionData, Arc, Character, GameSession } from "../types";
 
 interface AppContextType {
-  // Game Session State
-  currentGameSession: GameSession | null;
-  currentCharacter: Character | null;
   // Server data
   sessionData: SessionData | null;
   availableArcs: Arc[];
@@ -17,12 +13,10 @@ interface AppContextType {
   // Global Arc Limit State
   globalArcLimit: string;
   setGlobalArcLimit: (arcLimit: string) => void;
-  // Game Actions
-  startGame: (settings: GameSettings) => Promise<void>;
-  askQuestion: (question: string) => Promise<any>;
-  revealCharacter: () => Promise<any>;
-  makeGuess: (guess: string) => Promise<any>;
-  // Server Actions (no more preference actions - those will be localStorage)
+  // Game Session State
+  currentGameSession: GameSession | null;
+  setCurrentGameSession: (session: GameSession | null) => void;
+  // Server Actions
   updateGlobalArcLimit: (arcLimit: string) => void;
   refreshInitialData: () => void;
 }
@@ -30,13 +24,23 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // ✅ useSessionData no longer returns updatePreferences
   const { sessionData, availableArcs, isLoading, updateGlobalArcLimit, refreshInitialData } = useSessionData();
 
-  // Global arc limit state - prioritize localStorage
   const [globalArcLimit, setGlobalArcLimit] = useState<string>(() => {
     const saved = localStorage.getItem("globalArcLimit") || "All";
+    console.log("🚀 AppContext initializing with localStorage value:", saved);
     return saved;
+  });
+
+  // Game session state
+  const [currentGameSession, setCurrentGameSession] = useState<GameSession | null>(() => {
+    const saved = localStorage.getItem("currentGameSession");
+    try {
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      localStorage.removeItem("currentGameSession");
+      return null;
+    }
   });
 
   // Track if we've already synced to avoid infinite loops
@@ -45,13 +49,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Sync server session with localStorage preference on startup (only once)
   useEffect(() => {
     if (hasSynced || !sessionData) return; // Prevent multiple syncs
-
     const savedArcLimit = localStorage.getItem("globalArcLimit");
-
     if (savedArcLimit && savedArcLimit !== "All") {
       updateGlobalArcLimit(savedArcLimit);
     }
-    setHasSynced(true); // Mark as synced
+    setHasSynced(true);
   }, [sessionData, hasSynced, updateGlobalArcLimit]);
 
   // Enhanced updateGlobalArcLimit that updates both local state and localStorage
@@ -61,14 +63,21 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     updateGlobalArcLimit(arcLimit);
   };
 
+  // Enhanced setCurrentGameSession that syncs with localStorage
+  const handleSetCurrentGameSession = (session: GameSession | null) => {
+    setCurrentGameSession(session);
+    if (session) {
+      localStorage.setItem("currentGameSession", JSON.stringify(session));
+    } else {
+      localStorage.removeItem("currentGameSession");
+    }
+  };
+
   const { characters, charactersLoaded } = useCharacters();
-  const { currentGameSession, currentCharacter, startGame, askQuestion, revealCharacter, makeGuess } = useGameSession();
 
   return (
     <AppContext.Provider
       value={{
-        currentGameSession,
-        currentCharacter,
         sessionData,
         availableArcs,
         characters,
@@ -76,11 +85,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         charactersLoaded,
         globalArcLimit,
         setGlobalArcLimit,
-        startGame,
-        askQuestion,
-        revealCharacter,
-        makeGuess,
-        // ✅ Removed updatePreferences - Index will handle localStorage directly
+        currentGameSession,
+        setCurrentGameSession: handleSetCurrentGameSession,
         updateGlobalArcLimit: handleUpdateGlobalArcLimit,
         refreshInitialData,
       }}

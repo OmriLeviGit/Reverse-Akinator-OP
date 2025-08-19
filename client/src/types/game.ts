@@ -1,9 +1,6 @@
-import { Character } from "./character";
-
 export interface GameSession {
-  gameSessionId: string;
-  gameState: string;
-  currentCharacter?: Character;
+  gameId: string;
+  isActive: boolean;
 }
 
 export interface GameSettings {

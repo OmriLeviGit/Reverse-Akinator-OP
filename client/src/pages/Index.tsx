@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import GameSetupForm from "../components/GameSetupForm";
 import { useAppContext } from "../contexts/AppContext";
+import { useGameSession } from "../hooks/useGameSession";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { toast } from "sonner";
 
@@ -10,9 +11,10 @@ const Index = () => {
   const navigate = useNavigate();
   const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const { startGame, sessionData, availableArcs, isLoading, charactersLoaded, updateGlobalArcLimit, globalArcLimit } =
+  const { sessionData, availableArcs, isLoading, charactersLoaded, updateGlobalArcLimit, globalArcLimit } =
     useAppContext();
 
+  const { startGame } = useGameSession();
   const { preferences, updatePreferences } = useUserPreferences();
 
   // Helper function to determine which arc is earlier
@@ -45,7 +47,7 @@ const Index = () => {
     const currentPreferredArc = preferences.preferredArc || globalArcLimit;
     const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit);
 
-    console.log("Arc spoiler check:", {
+    console.log("🔍 Arc spoiler check:", {
       currentPreferredArc,
       globalArcLimit,
       safeArc,
@@ -53,6 +55,7 @@ const Index = () => {
 
     // Only update if the safe arc is different from current preference
     if (safeArc !== preferences.preferredArc) {
+      console.log("📝 Updating preferredArc due to spoiler protection:", safeArc);
       updatePreferences({ preferredArc: safeArc });
     }
   }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences]);
@@ -109,6 +112,7 @@ const Index = () => {
   const handleStart = async () => {
     if (!charactersLoaded) {
       console.log("⏳ Characters still loading, please wait...");
+      toast.warning("Please wait for characters to finish loading...");
       return;
     }
 
@@ -123,7 +127,11 @@ const Index = () => {
         includeUnrated: preferences.includeUnrated,
       };
 
-      await startGame(gameSettings);
+      console.log("🎮 Starting game with settings:", gameSettings);
+
+      const gameSession = await startGame(gameSettings);
+      console.log("✅ Game started successfully:", gameSession);
+
       navigate("/game");
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || error.message || "Something went wrong. Please try again.";

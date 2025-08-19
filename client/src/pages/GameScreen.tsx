@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import { useGameMessages } from "../hooks/useGameMessages";
+import { useGameSession } from "../hooks/useGameSession";
 import { useAppContext } from "../contexts/AppContext";
-import { gameApi } from "../services/api";
 import { useCharacters } from "@/hooks/useCharacters";
 import { useCharacterSearch } from "../hooks/useCharacterSearch";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,8 @@ import { CharacterList } from "../components/game/CharacterList";
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
-  const { currentGameSession, revealCharacter, sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
+  const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
+  const { currentGameSession, askQuestion, makeGuess, revealCharacter } = useGameSession();
   const { allCharacters, isLoadingCharacters } = useCharacters();
   const { messages, addMessage, messagesEndRef } = useGameMessages();
 
@@ -33,6 +34,7 @@ const GameScreen: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
   const [characterSearchTerm, setCharacterSearchTerm] = useState("");
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Use the character search hook
   const filteredCharacters = useCharacterSearch({
@@ -49,35 +51,20 @@ const GameScreen: React.FC = () => {
 
   // Redirect to home if no active game session
   useEffect(() => {
-    if (!currentGameSession) {
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+      return;
+    }
+
+    if (!currentGameSession?.isActive) {
       navigate("/");
     }
-  }, [currentGameSession, navigate]);
+  }, [currentGameSession, navigate, isInitialLoad]);
 
   // Don't render anything if no game session
-  if (!currentGameSession) {
+  if (!currentGameSession?.isActive) {
     return null;
   }
-
-  const askQuestion = async (question: string) => {
-    try {
-      const data = await gameApi.askQuestion(currentGameSession.gameSessionId, question);
-      return data.answer;
-    } catch (error) {
-      console.error("Error asking question:", error);
-      throw error;
-    }
-  };
-
-  const makeGuess = async (guess: string) => {
-    try {
-      const data = await gameApi.makeGuess(currentGameSession.gameSessionId, guess);
-      return data;
-    } catch (error) {
-      console.error("Error making guess:", error);
-      throw error;
-    }
-  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isProcessing) return;
@@ -91,6 +78,7 @@ const GameScreen: React.FC = () => {
       const answer = await askQuestion(userInput);
       addMessage(answer, false);
 
+      // Check if game ended
       if (answer.toLowerCase().includes("congratulations") || answer.toLowerCase().includes("character was")) {
         setTimeout(() => {
           handleRevealCharacter();
@@ -104,16 +92,16 @@ const GameScreen: React.FC = () => {
     }
   };
 
-  const handleCharacterSelect = async (character: string) => {
+  const handleCharacterSelect = async (characterName: string) => {
     if (isProcessing) return;
 
     setIsProcessing(true);
-    addMessage(`I guess it's ${character}!`, true);
+    addMessage(`I guess it's ${characterName}!`, true);
 
     try {
-      const guessResult = await makeGuess(character);
+      const guessResult = await makeGuess(characterName);
 
-      if (guessResult.is_correct) {
+      if (guessResult.isCorrect) {
         addMessage(guessResult.message, false);
         setTimeout(() => {
           handleRevealCharacter();
@@ -135,7 +123,9 @@ const GameScreen: React.FC = () => {
     try {
       const result = await revealCharacter();
       console.log("✅ Character revealed:", result);
-      navigate("/reveal");
+      navigate("/reveal", {
+        state: { character: result.character, questionsAsked: result.questionsAsked, guessesMade: result.guessesMade },
+      });
     } catch (error) {
       console.error("❌ Failed to reveal character:", error);
     }
@@ -157,7 +147,6 @@ const GameScreen: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Character Guessing Game</h1>
-            {/* <p className="text-muted-foreground">Ask questions to guess the mystery character</p> */}
           </div>
         </div>
       </div>
