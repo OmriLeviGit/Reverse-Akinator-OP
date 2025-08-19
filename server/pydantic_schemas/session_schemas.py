@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field
-from typing import Any
 
 from server.pydantic_schemas.arc_schemas import Arc
 
@@ -11,10 +10,17 @@ class UpdateArcLimitRequest(BaseModel):
         populate_by_name = True
 
 
+class SessionDataResponse(BaseModel):
+    global_arc_limit: str = Field(alias="globalArcLimit")
+    session_created: str = Field(alias="sessionCreated")
+    last_activity: str = Field(alias="lastActivity")
+
+    class Config:
+        populate_by_name = True
+
 class SessionResponse(BaseModel):
     message: str
-    session_status: str = Field(alias="sessionStatus")
-    session_data: dict[str, Any] = Field(alias="sessionData")
+    session_data: SessionDataResponse = Field(alias="sessionData")  # ← Changed from dict[str, Any]
     available_arcs: list[Arc] = Field(alias="availableArcs")
 
     class Config:
@@ -23,7 +29,7 @@ class SessionResponse(BaseModel):
 
 class UpdateArcLimitResponse(BaseModel):
     success: bool
-    session_data: dict[str, Any] = Field(alias="sessionData")
+    session_data: SessionDataResponse = Field(alias="sessionData")  # ← Changed from dict[str, Any]
     available_arcs: list[Arc] = Field(alias="availableArcs")
 
     class Config:

@@ -3,6 +3,7 @@ import random
 
 from server.SessionManager import SessionManager
 from server.database.db_models import DBArc
+from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
 import google.generativeai as genai
 
@@ -17,6 +18,7 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
     r = Repository()
     arc = r.get_arc_by_name(request.arc_selection)
 
+    # Game logic stays the same...
     random_num = random.random() * 100
     choose_canon = request.filler_percentage < random_num
 
@@ -32,17 +34,11 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
         chosen_character = random.choice(canon_characters)
     else:
         if request.include_non_tv_fillers:
-            filler_characters = r.get_non_canon_characters(
-                arc,
-                request.difficulty_level,
-                include_unrated=request.include_unrated
-            )
+            filler_characters = r.get_non_canon_characters(arc, request.difficulty_level,
+                                                           include_unrated=request.include_unrated)
         else:
-            filler_characters = r.get_filler_characters(
-                arc,
-                request.difficulty_level,
-                include_unrated=request.include_unrated
-            )
+            filler_characters = r.get_filler_characters(arc, request.difficulty_level,
+                                                        include_unrated=request.include_unrated)
 
         if not filler_characters:
             raise ValueError(
@@ -52,11 +48,20 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager):
 
     print(f"Chosen character: {chosen_character.name}")
 
+    # Convert request to game settings dict
+    game_settings = {
+        "arc_selection": request.arc_selection,
+        "filler_percentage": request.filler_percentage,
+        "include_non_tv_fillers": request.include_non_tv_fillers,
+        "difficulty_level": request.difficulty_level,
+        "include_unrated": request.include_unrated,
+    }
+
     prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
-    session_mgr.start_new_game(chosen_character, prompt)
+    session_mgr.start_new_game(chosen_character, game_settings, prompt)
 
 
-def create_game_prompt(character: Character, last_arc: DBArc):
+def create_game_prompt(character: Character, last_arc: Arc):
     """Create the initial prompt for the LLM"""
     # Build appearance info from character object
     appearance_parts = []

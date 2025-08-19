@@ -40,10 +40,11 @@ export const gameApi = {
     fillerPercentage: number;
     includeNonTVFillers: boolean;
     difficultyLevel: string;
+    includeUnrated: boolean;
   }) => {
+    console.log("🎮 Starting game with settings:", settings);
     const response = await api.post("/game/start", settings);
-
-    console.log("data", response.data);
+    console.log("🎮 Game start response:", response.data);
     return response.data;
   },
 
@@ -72,7 +73,6 @@ export const gameApi = {
 // Character Data API
 export const characterApi = {
   getCharacters: async () => {
-    console.log("🔍 About to call /api/characters/until");
     const response = await api.get("/characters/until");
     console.log("Response:", response.status, response.data);
     return response.data;

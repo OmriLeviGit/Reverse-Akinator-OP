@@ -9,7 +9,7 @@ export const useCharacters = () => {
     isLoading: isLoadingCharacters,
     error: characterError,
   } = useQuery({
-    queryKey: ["allCharacters"], // Simple query key, no arc limit needed
+    queryKey: ["allCharacters"],
     queryFn: characterApi.getCharacters,
     staleTime: 5 * 60 * 1000,
   });
@@ -20,7 +20,7 @@ export const useCharacters = () => {
   // Add logging like in the original AppContext
   useEffect(() => {
     if (isLoadingCharacters) {
-      console.log("🔄 Loading characters in background...");
+      console.log("🔄 Loadng characters in background...");
     } else if (allCharacters.length > 0) {
       console.log(
         `✅ Characters loaded: ${allCharacters.length} characters available (up to arc: ${

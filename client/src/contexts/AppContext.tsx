@@ -2,7 +2,7 @@ import React, { createContext, useContext, ReactNode, useState, useEffect } from
 import { useSessionData } from "../hooks/useSessionData";
 import { useCharacters } from "../hooks/useCharacters";
 import { useGameSession } from "../hooks/useGameSession";
-import { SessionData, Arc, Character, GameSession, UserPreferences, GameSettings } from "../types";
+import { SessionData, Arc, Character, GameSession, GameSettings } from "../types";
 
 interface AppContextType {
   // Game Session State
@@ -22,8 +22,7 @@ interface AppContextType {
   askQuestion: (question: string) => Promise<any>;
   revealCharacter: () => Promise<any>;
   makeGuess: (guess: string) => Promise<any>;
-  // Preference Actions
-  updatePreferences: (preferences: Partial<UserPreferences>) => void;
+  // Server Actions (no more preference actions - those will be localStorage)
   updateGlobalArcLimit: (arcLimit: string) => void;
   refreshInitialData: () => void;
 }
@@ -31,13 +30,12 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { sessionData, availableArcs, isLoading, updatePreferences, updateGlobalArcLimit, refreshInitialData } =
-    useSessionData();
+  // ✅ useSessionData no longer returns updatePreferences
+  const { sessionData, availableArcs, isLoading, updateGlobalArcLimit, refreshInitialData } = useSessionData();
 
   // Global arc limit state - prioritize localStorage
   const [globalArcLimit, setGlobalArcLimit] = useState<string>(() => {
     const saved = localStorage.getItem("globalArcLimit") || "All";
-    console.log("🚀 AppContext initializing with localStorage value:", saved);
     return saved;
   });
 
@@ -49,19 +47,15 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (hasSynced || !sessionData) return; // Prevent multiple syncs
 
     const savedArcLimit = localStorage.getItem("globalArcLimit");
-    console.log("🔄 Syncing localStorage to server. Saved value:", savedArcLimit);
 
     if (savedArcLimit && savedArcLimit !== "All") {
-      console.log("📤 Sending saved preference to server:", savedArcLimit);
       updateGlobalArcLimit(savedArcLimit);
     }
-
     setHasSynced(true); // Mark as synced
   }, [sessionData, hasSynced, updateGlobalArcLimit]);
 
   // Enhanced updateGlobalArcLimit that updates both local state and localStorage
   const handleUpdateGlobalArcLimit = (arcLimit: string) => {
-    console.log("💾 Updating global arc limit:", arcLimit);
     setGlobalArcLimit(arcLimit);
     localStorage.setItem("globalArcLimit", arcLimit);
     updateGlobalArcLimit(arcLimit);
@@ -86,7 +80,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         askQuestion,
         revealCharacter,
         makeGuess,
-        updatePreferences,
+        // ✅ Removed updatePreferences - Index will handle localStorage directly
         updateGlobalArcLimit: handleUpdateGlobalArcLimit,
         refreshInitialData,
       }}

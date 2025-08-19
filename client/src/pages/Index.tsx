@@ -3,29 +3,17 @@ import { useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import GameSetupForm from "../components/GameSetupForm";
 import { useAppContext } from "../contexts/AppContext";
+import { useUserPreferences } from "../hooks/useUserPreferences";
 import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const {
-    startGame,
-    sessionData,
-    availableArcs,
-    isLoading,
-    charactersLoaded,
-    updatePreferences,
-    updateGlobalArcLimit,
-    globalArcLimit,
-  } = useAppContext();
+  const { startGame, sessionData, availableArcs, isLoading, charactersLoaded, updateGlobalArcLimit, globalArcLimit } =
+    useAppContext();
 
-  // Initialize local state from session data
-  const [selectedArc, setSelectedArc] = useState("");
-  const [fillerPercentage, setFillerPercentage] = useState(0);
-  const [includeNonTVFillers, setIncludeNonTVFillers] = useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<"easy" | "medium" | "hard">("easy");
-  const [includeUnrated, setIncludeUnrated] = useState(false);
+  const { preferences, updatePreferences } = useUserPreferences();
 
   // Helper function to determine which arc is earlier
   const getEarlierArc = (arc1: string, arc2: string): string => {
@@ -47,39 +35,27 @@ const Index = () => {
     return index1 <= index2 ? arc1 : arc2;
   };
 
-  // Initialize preferences from sessionData and handle arc selection logic
+  // Handle arc selection with spoiler protection when globalArcLimit changes
   useEffect(() => {
-    if (!sessionData?.userPreferences || availableArcs.length === 0 || !globalArcLimit) {
-      return; // Wait for all required data
+    if (availableArcs.length === 0 || !globalArcLimit) {
+      return; // Wait for required data
     }
 
-    const prefs = sessionData.userPreferences;
-
-    console.log("session data = ", sessionData);
-
-    // Set other preferences (these are stable)
-    setSelectedDifficulty((prefs.difficulty as "easy" | "medium" | "hard") || "easy");
-    setIncludeNonTVFillers(prefs.includeNonTVFillers);
-    setFillerPercentage(prefs.fillerPercentage);
-    setIncludeUnrated(prefs.includeUnrated || false);
-
-    // Handle arc selection with spoiler protection
-    console.log("prefs", prefs.preferredArc, globalArcLimit);
-    const currentPreferredArc = prefs.preferredArc || globalArcLimit;
+    // Apply spoiler protection to current preferredArc
+    const currentPreferredArc = preferences.preferredArc || globalArcLimit;
     const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit);
 
-    console.log("safe", currentPreferredArc, safeArc);
+    console.log("Arc spoiler check:", {
+      currentPreferredArc,
+      globalArcLimit,
+      safeArc,
+    });
 
-    // Only update if actually different AND not empty
-    if (safeArc && safeArc !== selectedArc) {
-      console.log("Setting arc from effect:", safeArc);
-      setSelectedArc(safeArc);
-      // Only update preferences if it's actually different from what's stored
-      if (safeArc !== prefs.preferredArc) {
-        updatePreferences({ preferredArc: safeArc });
-      }
+    // Only update if the safe arc is different from current preference
+    if (safeArc !== preferences.preferredArc) {
+      updatePreferences({ preferredArc: safeArc });
     }
-  }, [sessionData, globalArcLimit, availableArcs]);
+  }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences]);
 
   // Show loading screen ONLY until essential data is loaded
   if (isLoading || !sessionData || availableArcs.length === 0) {
@@ -102,27 +78,21 @@ const Index = () => {
     updateGlobalArcLimit(arcName);
   };
 
-  // Game setup handlers that update both local state and preferences
+  // Game setup handlers that update localStorage preferences
   const handleDifficultyChange = (difficulty: "easy" | "medium" | "hard") => {
-    setSelectedDifficulty(difficulty);
     updatePreferences({ difficulty });
   };
 
   const handleIncludeUnratedChange = (includeUnrated: boolean) => {
-    setIncludeUnrated(includeUnrated);
     updatePreferences({ includeUnrated });
   };
 
   const handleArcChange = (arc: string) => {
-    setSelectedArc(arc);
     updatePreferences({ preferredArc: arc });
   };
 
   const handleFillerPercentageChange = (value: number) => {
-    setFillerPercentage(value);
-
     if (value === 0) {
-      setIncludeNonTVFillers(false);
       updatePreferences({
         fillerPercentage: value,
         includeNonTVFillers: false,
@@ -133,7 +103,6 @@ const Index = () => {
   };
 
   const handleIncludeNonTVFillersChange = (include: boolean) => {
-    setIncludeNonTVFillers(include);
     updatePreferences({ includeNonTVFillers: include });
   };
 
@@ -147,11 +116,11 @@ const Index = () => {
 
     try {
       const gameSettings = {
-        arcSelection: selectedArc,
-        fillerPercentage,
-        includeNonTVFillers,
-        difficultyLevel: selectedDifficulty,
-        includeUnrated,
+        arcSelection: preferences.preferredArc,
+        fillerPercentage: preferences.fillerPercentage,
+        includeNonTVFillers: preferences.includeNonTVFillers,
+        difficultyLevel: preferences.difficulty,
+        includeUnrated: preferences.includeUnrated,
       };
 
       await startGame(gameSettings);
@@ -183,15 +152,15 @@ const Index = () => {
           <GameSetupForm
             globalArcLimit={globalArcLimit}
             availableArcs={availableArcs}
-            selectedDifficulty={selectedDifficulty}
+            selectedDifficulty={preferences.difficulty}
             onDifficultyChange={handleDifficultyChange}
-            includeUnrated={includeUnrated}
+            includeUnrated={preferences.includeUnrated}
             onIncludeUnratedChange={handleIncludeUnratedChange}
-            selectedArc={selectedArc}
+            selectedArc={preferences.preferredArc}
             onArcChange={handleArcChange}
-            fillerPercentage={fillerPercentage}
+            fillerPercentage={preferences.fillerPercentage}
             onFillerPercentageChange={handleFillerPercentageChange}
-            includeNonTVFillers={includeNonTVFillers}
+            includeNonTVFillers={preferences.includeNonTVFillers}
             onIncludeNonTVFillersChange={handleIncludeNonTVFillersChange}
             onStart={handleStart}
             isStartingGame={isStartingGame}

@@ -3,13 +3,15 @@ from pydantic import BaseModel, Field
 from server.pydantic_schemas.character_schemas import Character
 
 
-# Request models
 class GameStartRequest(BaseModel):
    arc_selection: str = Field(alias="arcSelection")
-   filler_percentage: float = Field(alias="fillerPercentage")
+   filler_percentage: int = Field(alias="fillerPercentage")
    include_non_tv_fillers: bool = Field(alias="includeNonTVFillers")
-   include_unrated: bool = Field(alias="includeUnrated")
    difficulty_level: str = Field(alias="difficultyLevel")
+   include_unrated: bool = Field(alias="includeUnrated")
+
+   class Config:
+      populate_by_name = True
 
 class GameQuestionRequest(BaseModel):
    question: str
