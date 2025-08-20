@@ -1,13 +1,5 @@
 import React, { useState } from "react";
 import { Character } from "../../types/character";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { CharacterImage } from "../CharacterImage";
 import CharacterDifficultyDropdown from "../CharacterDifficultyDropdown";
 import CharacterIgnoreButton from "../CharacterIgnoreButton";
@@ -19,8 +11,6 @@ interface CharacterCardProps {
 }
 
 export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatingChange, onIgnoreToggle }) => {
-  const [imageError, setImageError] = useState(false);
-
   const getFillerStatusDisplay = (status: string) => {
     switch (status) {
       case "Canon":
@@ -100,10 +90,10 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatin
               rel="noopener noreferrer"
               className="block hover:opacity-80 transition-opacity"
             >
-              <CharacterImage character={character} size="large" />
+              <CharacterImage character={character} size="medium" />
             </a>
           ) : (
-            <CharacterImage character={character} size="large" />
+            <CharacterImage character={character} size="medium" />
           )}
         </div>
 

@@ -29,7 +29,7 @@ export const CharacterListItem: React.FC<CharacterListItemProps> = ({ character,
 
     const timeout = setTimeout(() => {
       setShowPreview(true);
-    }, 1000); // 2 seconds delay
+    }, 1000);
     setHoverTimeout(timeout);
   };
 
@@ -59,7 +59,7 @@ export const CharacterListItem: React.FC<CharacterListItemProps> = ({ character,
         onMouseLeave={handleMouseLeave}
       >
         <div className="flex items-center space-x-3 w-full">
-          <CharacterImage character={character} size="medium" />
+          <CharacterImage character={character} size="small" />
           <div className="flex-1 min-w-0">
             <p className="text-sm leading-tight">{character.name}</p>
           </div>

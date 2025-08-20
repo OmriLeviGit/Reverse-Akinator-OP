@@ -7,15 +7,18 @@ interface CharacterImageProps {
   className?: string;
 }
 
-export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size = "medium", className = "" }) => {
+export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size = "small", className = "" }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
   const sizeClasses = {
-    small: "w-8 h-8",
-    medium: "w-16 h-16",
-    large: "w-32 h-32",
+    small: "w-16 h-16",
+    medium: "w-32 h-32",
+    large: "w-full h-full",
   };
+
+  // Determine image path based on size
+  const imagePath = size === "large" ? `/img/lg_avatars/${character.id}.webp` : `/img/sm_avatars/${character.id}.webp`;
 
   return (
     <div
@@ -37,7 +40,7 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
 
       {/* Actual image */}
       <img
-        src={`/img/sm_avatars/${character.id}.webp`}
+        src={imagePath}
         alt={character.name}
         className={`w-full h-full object-cover transition-opacity duration-200 ${
           imageLoaded ? "opacity-100" : "opacity-0"
@@ -47,7 +50,7 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
           setImageError(false);
         }}
         onError={() => {
-          console.log(`❌ Failed to load: ${character.name} - /img/sm_avatars/${character.id}.webp`);
+          console.log(`❌ Failed to load: ${character.name} - ${imagePath}`);
           setImageError(true);
           setImageLoaded(false);
         }}
