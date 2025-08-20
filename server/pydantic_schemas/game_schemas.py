@@ -19,6 +19,7 @@ class GameStartRequest(BaseModel):
 class GameStartResponse(BaseModel):
     message: str
     game_id: str = Field(alias="gameId")
+    character_pool: list[Character] = Field(alias="characterPool")
 
     class Config:
         populate_by_name = True

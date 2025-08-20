@@ -4,7 +4,6 @@ import Navigation from "../components/Navigation";
 import { useGameMessages } from "../hooks/useGameMessages";
 import { useGameSession } from "../hooks/useGameSession";
 import { useAppContext } from "../contexts/AppContext";
-import { useCharacters } from "@/hooks/useCharacters";
 import { useCharacterSearch } from "../hooks/useCharacterSearch";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,7 +26,6 @@ const GameScreen: React.FC = () => {
   const navigate = useNavigate();
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
   const { currentGameSession, askQuestion, makeGuess, revealCharacter } = useGameSession();
-  const { allCharacters, isLoadingCharacters } = useCharacters();
   const { messages, addMessage, messagesEndRef } = useGameMessages();
 
   const [inputMessage, setInputMessage] = useState("");
@@ -35,10 +33,13 @@ const GameScreen: React.FC = () => {
   const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
   const [characterSearchTerm, setCharacterSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  // const [isLoadingImages, setIsLoadingImages] = useState(true);
 
-  // Use the character search hook
+  const gameCharacters = currentGameSession.characterPool;
+
+  // Use the character search hook with game characters
   const filteredCharacters = useCharacterSearch({
-    characters: allCharacters,
+    characters: gameCharacters,
     searchTerm: characterSearchTerm,
   });
 
@@ -210,7 +211,7 @@ const GameScreen: React.FC = () => {
             <Card className="h-full flex flex-col border-border/40 shadow-sm">
               <CharacterList
                 characters={filteredCharacters}
-                isLoading={isLoadingCharacters}
+                isLoading={false}
                 searchTerm={characterSearchTerm}
                 onSearchChange={setCharacterSearchTerm}
                 onCharacterSelect={handleCharacterSelect}
@@ -220,7 +221,7 @@ const GameScreen: React.FC = () => {
               {/* Footer */}
               <div className="p-4 border-t border-border/40 flex-shrink-0 space-y-3">
                 <p className="text-xs text-muted-foreground text-center">
-                  {filteredCharacters.length} of {allCharacters.length} characters
+                  {filteredCharacters.length} of {gameCharacters.length} viable characters
                 </p>
 
                 <AlertDialog>
@@ -246,12 +247,6 @@ const GameScreen: React.FC = () => {
             </Card>
           </div>
         </div>
-      </div>
-
-      {/* Background decorative elements */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary opacity-5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent opacity-5 rounded-full blur-3xl"></div>
       </div>
     </div>
   );

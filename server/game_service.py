@@ -9,53 +9,65 @@ from server.pydantic_schemas.game_schemas import GameStartRequest
 from server.Repository import Repository
 
 
-def start_game(request: GameStartRequest, session_mgr: SessionManager):
+def start_game(request: GameStartRequest, session_mgr: SessionManager) -> list[Character]:
     """Initialize a new game session"""
 
+    # Extract request parameters
+    until_arc, include_unrated, difficulty_level, filler_percentage, include_non_tv_fillers = (
+        request.arc_selection, request.include_unrated, request.difficulty_level,
+        request.filler_percentage, request.include_non_tv_fillers
+    )
+
     r = Repository()
-    arc = r.get_arc_by_name(request.arc_selection)
+    arc = r.get_arc_by_name(until_arc)
 
-    # Game logic stays the same...
+    # Get all possible characters based on filters
+    canon_characters = r.get_canon_characters(arc, difficulty_level, include_unrated)
+
+    filler_characters = []
+    if filler_percentage > 0:
+        if include_non_tv_fillers:
+            filler_characters = r.get_non_canon_characters(arc, difficulty_level, include_unrated)
+        else:
+            filler_characters = r.get_filler_characters(arc, difficulty_level, include_unrated)
+
+    # Validate we have characters available
+    if not canon_characters and not filler_characters:
+        raise ValueError(
+            f"No characters found for arc '{until_arc}' at difficulty {difficulty_level}")
+
+    # Choose character type based on filler percentage
     random_num = random.random() * 100
-    choose_canon = request.filler_percentage < random_num
+    choose_canon = filler_percentage < random_num
 
-    if choose_canon:
-        canon_characters = r.get_canon_characters(
-            arc,
-            request.difficulty_level,
-            include_unrated=request.include_unrated
-        )
-        if not canon_characters:
-            raise ValueError(
-                f"No canon characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
+    if choose_canon and canon_characters:
+        chosen_character = random.choice(canon_characters)
+    elif filler_characters:
+        chosen_character = random.choice(filler_characters)
+    elif canon_characters:
         chosen_character = random.choice(canon_characters)
     else:
-        if request.include_non_tv_fillers:
-            filler_characters = r.get_non_canon_characters(arc, request.difficulty_level,
-                                                           include_unrated=request.include_unrated)
-        else:
-            filler_characters = r.get_filler_characters(arc, request.difficulty_level,
-                                                        include_unrated=request.include_unrated)
-
-        if not filler_characters:
-            raise ValueError(
-                f"No filler characters found for arc limit '{request.arc_selection}' at difficulty {request.difficulty_level}")
-
-        chosen_character = random.choice(filler_characters)
+        raise ValueError("No valid characters available for selection")
 
     print(f"Chosen character: {chosen_character.name}")
 
-    # Convert request to game settings dict
+    # Combine and sort all possible characters
+    all_characters = canon_characters + filler_characters
+    character_list = sorted(all_characters, key=lambda char: char.name)
+
+    # Create game settings
     game_settings = {
-        "arc_selection": request.arc_selection,
-        "filler_percentage": request.filler_percentage,
-        "include_non_tv_fillers": request.include_non_tv_fillers,
-        "difficulty_level": request.difficulty_level,
-        "include_unrated": request.include_unrated,
+        "arc_selection": until_arc,
+        "filler_percentage": filler_percentage,
+        "include_non_tv_fillers": include_non_tv_fillers,
+        "difficulty_level": difficulty_level,
+        "include_unrated": include_unrated,
     }
 
     prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
     session_mgr.start_new_game(chosen_character, game_settings, prompt)
+
+    return character_list
 
 
 def ask_question(question: str, session_mgr: SessionManager) -> str:

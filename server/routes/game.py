@@ -17,12 +17,14 @@ router = APIRouter(prefix="/api/game", tags=["game"])
 @router.post("/start", response_model=GameStartResponse)
 def start_game_route(request: GameStartRequest, session_mgr: SessionManager = Depends(get_session_manager)):
     try:
-        game_service.start_game(request, session_mgr)
+        character_pool = game_service.start_game(request, session_mgr)
 
         return GameStartResponse(
             message="Game started successfully",
-            game_id=session_mgr.get_game_id()
+            gameId=session_mgr.get_game_id(),
+            characterPool=character_pool
         )
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -37,8 +39,9 @@ def ask_question_route(request: GameQuestionRequest, session_mgr: SessionManager
 
         return GameQuestionResponse(
             answer=answer,
-            questions_asked=session_mgr.get_questions_asked()
+            questionsAsked=session_mgr.get_questions_asked()
         )
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -52,9 +55,9 @@ def make_guess_route(request: GameGuessRequest, session_mgr: SessionManager = De
         result = game_service.make_guess(request.character_name, session_mgr)
 
         return GameGuessResponse(
-            is_correct=result["is_correct"],
+            isCorrect=result["is_correct"],
             message=result["message"],
-            target_character=result.get("character")  # Only returned if correct
+            targetCharacter=result.get("character")
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -76,8 +79,8 @@ def reveal_character_route(session_mgr: SessionManager = Depends(get_session_man
 
         return GameRevealResponse(
             character=character,
-            questions_asked=questions_asked,
-            guesses_made=guesses_made
+            questionsAsked=questions_asked,
+            guessesMade=guesses_made
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

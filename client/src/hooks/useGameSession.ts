@@ -9,8 +9,9 @@ export const useGameSession = () => {
     try {
       const response = await gameApi.startGame(settings);
       const gameSession = {
-        gameId: response.gameId,
         isActive: true,
+        gameId: response.gameId,
+        characterPool: response.characterPool,
       };
       setCurrentGameSession(gameSession);
       return gameSession;

@@ -25,8 +25,8 @@ def get_session_data(session_mgr: SessionManager = Depends(get_session_manager))
 
     return SessionResponse(
         message="API is running",
-        session_data=SessionDataResponse.model_validate(raw_session_data),
-        available_arcs=all_arcs,
+        sessionData=SessionDataResponse.model_validate(raw_session_data),
+        availableArcs=all_arcs,
     )
 
 
@@ -43,8 +43,8 @@ def update_arc_limit(request: UpdateArcLimitRequest, session_mgr: SessionManager
 
         return UpdateArcLimitResponse(
             success=True,
-            session_data=SessionDataResponse.model_validate(raw_session_data),  # ← Fixed
-            available_arcs=all_arcs,
+            sessionData=SessionDataResponse.model_validate(raw_session_data),  # ← Fixed
+            availableArcs=all_arcs,
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

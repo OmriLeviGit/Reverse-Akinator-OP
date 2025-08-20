@@ -27,8 +27,8 @@ def toggle_ignore_character(request: ToggleIgnoreRequest):
         character = Repository().toggle_character_ignore(request.character_id)
         return ToggleIgnoreResponse(
             success=True,
-            character_id=character.id,
-            is_ignored=character.is_ignored
+            characterId=character.id,
+            isIgnored=character.is_ignored
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -40,7 +40,7 @@ def rate_character(request: RateCharacterRequest):
 
         return RateCharacterResponse(
             success=True,
-            character_id=character.id,
+            characterId=character.id,
             difficulty=character.difficulty
         )
 

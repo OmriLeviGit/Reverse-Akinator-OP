@@ -1,6 +1,9 @@
+import { Character } from "./character";
+
 export interface GameSession {
-  gameId: string;
   isActive: boolean;
+  gameId: string;
+  characterPool: Character[];
 }
 
 export interface GameSettings {

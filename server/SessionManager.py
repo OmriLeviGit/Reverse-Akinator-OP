@@ -63,7 +63,6 @@ class SessionManager:
     def start_new_game(self, target_character, game_settings: Dict, prompt: str):
         """Start a new game with given character, game settings, and prompt"""
         target_dict = target_character.model_dump()
-        print(f"Starting a new game for character: {target_dict}")
 
         self.request.session["current_game"] = {
             "game_id": f"game_{datetime.now().timestamp()}",  # Simple game ID

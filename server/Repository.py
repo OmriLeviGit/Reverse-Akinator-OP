@@ -9,7 +9,7 @@ class Repository:
         self.db_manager = DatabaseManager()
 
     def _build_base_query(self, session, arc: Arc | None = None, difficulty_level: str | None = None,
-                          include_ignored: bool | None = None, include_unrated: bool = False):
+                          include_unrated: bool = False, include_ignored: bool = True):
         """
         Build base query with common filters applied at database level
         If a parameter is None, don't apply that filter (show everything for that criteria)
@@ -17,7 +17,7 @@ class Repository:
         query = session.query(DBCharacter)
 
         # Filter ignored characters - None means show all (ignored and non-ignored)
-        if include_ignored is False:  # Only filter if explicitly set to False
+        if not include_ignored:  # Only filter if explicitly set to False
             query = query.filter(DBCharacter.is_ignored == False)
 
         # Filter by difficulty - None means show all difficulties
@@ -128,28 +128,13 @@ class Repository:
             self.db_manager.close_session(session)
 
 
-    def get_filler_characters(self, arc: Arc, difficulty_level: str, include_unrated: bool = False) -> list[Character]:
-        """
-        Get filler characters filtered by arc and difficulty using database-level filtering
-        """
-        session = self.db_manager.get_session()
-        try:
-            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated)
-            query = query.filter(DBCharacter.filler_status.ilike("filler"))
-
-            characters = query.all()
-            return [char.to_pydantic() for char in characters]
-
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_canon_characters(self, arc: Arc, difficulty_level: str, include_unrated: bool = False) -> list[Character]:
+    def get_canon_characters(self, arc: Arc, difficulty_level: str,  include_unrated: bool, include_ignored: bool = False) -> list[Character]:
         """
         Get canon characters filtered by arc and difficulty using database-level filtering
         """
         session = self.db_manager.get_session()
         try:
-            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated)
+            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated, include_ignored=include_ignored)
             query = query.filter(DBCharacter.filler_status.ilike("canon"))
 
             characters = query.all()
@@ -158,13 +143,29 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_non_canon_characters(self, arc: Arc, difficulty_level: str, include_unrated: bool = False) -> list[Character]:
+
+    def get_filler_characters(self, arc: Arc, difficulty_level: str,  include_unrated: bool, include_ignored: bool = False) -> list[Character]:
+        """
+        Get filler characters filtered by arc and difficulty using database-level filtering
+        """
+        session = self.db_manager.get_session()
+        try:
+            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated, include_ignored=include_ignored)
+            query = query.filter(DBCharacter.filler_status.ilike("filler"))
+
+            characters = query.all()
+            return [char.to_pydantic() for char in characters]
+
+        finally:
+            self.db_manager.close_session(session)
+
+    def get_non_canon_characters(self, arc: Arc, difficulty_level: str,  include_unrated: bool, include_ignored: bool = False) -> list[Character]:
         """
         Get non-canon characters (everything except canon) filtered by arc and difficulty
         """
         session = self.db_manager.get_session()
         try:
-            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated)
+            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated, include_ignored=include_ignored)
             query = query.filter(~DBCharacter.filler_status.ilike("canon"))
 
             characters = query.all()
