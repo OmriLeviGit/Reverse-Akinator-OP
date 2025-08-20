@@ -28,16 +28,17 @@ const CharacterRevealScreen: React.FC = () => {
   const { availableArcs, updateGlobalArcLimit, globalArcLimit } = useAppContext();
   const { startGame } = useGameSession();
   const { preferences } = useUserPreferences();
-  const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
+  const { getCharacterById, setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
 
   const [isStartingNewGame, setIsStartingNewGame] = useState(false);
-  const [needsScroll, setNeedsScroll] = useState(false);
-  const textRef = useRef<HTMLParagraphElement>(null);
 
   // Get data directly from navigation state
   const revealData = location.state as RevealData | null;
+  const { character: originalCharacter, questionsAsked, guessesMade } = revealData;
 
-  const { character, questionsAsked, guessesMade } = revealData;
+  // Get live character data with current ignore/rating status
+  const liveCharacter = getCharacterById(originalCharacter.id);
+  const character = liveCharacter || originalCharacter; // Fallback to original
 
   // Redirect if no data
   useEffect(() => {
@@ -90,13 +91,6 @@ const CharacterRevealScreen: React.FC = () => {
     return null;
   }
 
-  useEffect(() => {
-    if (textRef.current) {
-      const contentHeight = textRef.current.scrollHeight;
-      setNeedsScroll(contentHeight > 96);
-    }
-  }, [character.description]);
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -114,14 +108,18 @@ const CharacterRevealScreen: React.FC = () => {
       <main className="container mx-auto px-6 pb-12">
         <div className="max-w-6xl mx-auto">
           <Card className="border-border/40 shadow-lg overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-0">
+            <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-0 h-[650px]">
               {/* Character Image */}
-              <div className="relative overflow-hidden bg-muted/30 flex items-center justify-center p-8">
-                <CharacterImage character={character} size="large" />
+              <div className="relative overflow-hidden bg-muted/30 flex items-center justify-center p-4 h-full">
+                <CharacterImage
+                  character={character}
+                  size="large"
+                  className="!max-w-[350px] !max-h-full !w-auto !h-auto object-cover object-top"
+                />
               </div>
 
               {/* Character Details */}
-              <div className="p-8">
+              <div className="p-8 ">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h2 className="text-3xl font-bold text-foreground mb-2">{character.name}</h2>
@@ -142,18 +140,14 @@ const CharacterRevealScreen: React.FC = () => {
                 {/* Character Description */}
 
                 <div className="bg-muted/30 rounded-lg p-4 mb-6">
-                  {needsScroll ? (
-                    <ScrollArea className="h-24">
-                      <p className="text-foreground leading-relaxed pr-4">
-                        {character.description || "No description available for this character."}
-                      </p>
-                    </ScrollArea>
-                  ) : (
-                    <p ref={textRef} className="text-foreground leading-relaxed">
+                  <ScrollArea className="h-24">
+                    <p className="text-foreground leading-relaxed pr-4">
                       {character.description || "No description available for this character."}
                     </p>
-                  )}
+                  </ScrollArea>
                 </div>
+
+                <Separator className="my-6" />
 
                 {/* Game Stats */}
                 <div className="grid grid-cols-2 gap-4 mb-6">

@@ -11,17 +11,15 @@ export const useCharacterRatings = () => {
     onMutate: async ({ characterId, difficulty }) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
-
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map(
-            (char: Character) => (char.id === characterId ? { ...char, difficulty } : char) // ✅ Fixed!
+          characters: old.characters.map((char: Character) =>
+            char.id === characterId ? { ...char, difficulty } : char
           ),
         };
       });
-
       return { previousCharacters };
     },
     onError: (err, variables, context) => {
@@ -36,17 +34,15 @@ export const useCharacterRatings = () => {
     onMutate: async (characterId: string) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
       const previousCharacters = queryClient.getQueryData(["allCharacters"]);
-
       queryClient.setQueryData(["allCharacters"], (old: any) => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map(
-            (char: Character) => (char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char) // ✅ Fixed!
+          characters: old.characters.map((char: Character) =>
+            char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char
           ),
         };
       });
-
       return { previousCharacters };
     },
     onError: (err, variables, context) => {
@@ -65,5 +61,9 @@ export const useCharacterRatings = () => {
       toggleIgnoreMutation.mutate(characterId);
     },
     isUpdatingIgnoreList: toggleIgnoreMutation.isPending,
+    getCharacterById: (characterId: string): Character | undefined => {
+      const data = queryClient.getQueryData(["allCharacters"]) as any;
+      return data?.characters?.find((char: Character) => char.id === characterId);
+    },
   };
 };

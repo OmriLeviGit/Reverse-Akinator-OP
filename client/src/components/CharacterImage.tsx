@@ -22,7 +22,7 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
 
   return (
     <div
-      className={`${sizeClasses[size]} rounded border border-border/20 overflow-hidden flex-shrink-0 relative ${className}`}
+      className={`${sizeClasses[size]} rounded-lg border border-border/20 overflow-hidden flex-shrink-0 relative ${className}`}
     >
       {/* Loading skeleton */}
       {!imageLoaded && !imageError && (
