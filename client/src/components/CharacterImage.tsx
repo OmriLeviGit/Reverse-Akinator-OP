@@ -10,6 +10,7 @@ interface CharacterImageProps {
 export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size = "small", className = "" }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   const sizeClasses = {
     small: "w-16 h-16",
@@ -17,8 +18,44 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
     large: "w-full h-full",
   };
 
-  // Determine image path based on size
-  const imagePath = size === "large" ? `/img/lg_avatars/${character.id}.webp` : `/img/sm_avatars/${character.id}.webp`;
+  // Determine image paths based on size
+  const characterImagePath =
+    size === "large" ? `/img/lg_avatars/${character.id}.webp` : `/img/sm_avatars/${character.id}.webp`;
+
+  const fallbackImagePath =
+    size === "large" ? `/img/lg_avatars/_NoPicAvailable.webp` : `/img/sm_avatars/_NoPicAvailable.webp`;
+
+  // Current image path based on fallback state
+  const currentImagePath = usingFallback ? fallbackImagePath : characterImagePath;
+
+  const handleImageError = () => {
+    console.log(`❌ Failed to load: ${character.name} - ${currentImagePath}`);
+
+    // If we're already using fallback, show error
+    if (usingFallback) {
+      setImageError(true);
+      setImageLoaded(false);
+      return;
+    }
+
+    // Switch to fallback
+    console.log(`🔄 Trying fallback for: ${character.name}`);
+    setUsingFallback(true);
+    setImageLoaded(false);
+    setImageError(false);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setImageError(false);
+  };
+
+  // Reset states when character changes
+  React.useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+    setUsingFallback(false);
+  }, [character.id]);
 
   return (
     <div
@@ -31,7 +68,7 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
         </div>
       )}
 
-      {/* Error state */}
+      {/* Error state - only shown if even the fallback fails */}
       {imageError && (
         <div className="absolute inset-0 bg-muted flex items-center justify-center">
           <span className="text-xs text-muted-foreground">?</span>
@@ -40,20 +77,14 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
 
       {/* Actual image */}
       <img
-        src={imagePath}
+        key={`${character.id}-${usingFallback}`} // Force re-render when switching to fallback
+        src={currentImagePath}
         alt={character.name}
         className={`w-full h-full object-cover transition-opacity duration-200 ${
           imageLoaded ? "opacity-100" : "opacity-0"
         }`}
-        onLoad={() => {
-          setImageLoaded(true);
-          setImageError(false);
-        }}
-        onError={() => {
-          console.log(`❌ Failed to load: ${character.name} - ${imagePath}`);
-          setImageError(true);
-          setImageLoaded(false);
-        }}
+        onLoad={handleImageLoad}
+        onError={handleImageError}
       />
     </div>
   );

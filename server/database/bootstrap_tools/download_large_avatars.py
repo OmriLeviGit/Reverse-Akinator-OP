@@ -45,10 +45,6 @@ def get_image_from_wiki(wiki_url):
             if not src:
                 continue
 
-            # Skip "No Picture Available" placeholder images
-            if 'NoPicAvailable' in src:
-                continue
-
             # Check image type based on filename
             src_lower = src.lower()
 
@@ -57,7 +53,7 @@ def get_image_from_wiki(wiki_url):
                 break
             elif 'manga' in src_lower and 'infobox' in src_lower and not manga_img:
                 manga_img = src
-            elif 'infobox' in src_lower and not generic_img:
+            elif ('infobox' in src_lower or 'nopicavailable' in src_lower) and not generic_img:
                 generic_img = src
 
         # Prioritize: Anime > Manga > Generic Infobox
@@ -101,6 +97,25 @@ def download_large_image(image_url, character_id, large_folder):
     }
 
     try:
+        if 'NoPicAvailable' in image_url:
+            placeholder_path = large_folder / "_NoPicAvailable.webp"
+
+            # If placeholder already exists, just return success
+            if placeholder_path.exists():
+                return True
+
+            # Download the placeholder image once
+            print(f"📥 Downloading placeholder image")
+            response = requests.get(image_url, headers=headers, timeout=30)
+            response.raise_for_status()
+
+            img = Image.open(BytesIO(response.content))
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+
+            img.save(placeholder_path, 'WEBP', quality=95, optimize=True)
+            return True
+
         response = requests.get(image_url, headers=headers, timeout=30)
         response.raise_for_status()
 
@@ -196,9 +211,14 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
                         print(f"✗ Still blocked after break: {character_id}")
                         failed_downloads.append((character_id, wiki_url))
                     elif not image_url:
-                        print(f"🚫 No picture available for {character_id}")
-                        skipped_no_pic += 1
+                        print(f"✗ No image found for {character_id}")
+                        failed_downloads.append((character_id, wiki_url))
                     else:
+                        # Check if retry result is NoPicAvailable
+                        if 'NoPicAvailable' in image_url:
+                            print(f"🚫 No picture available for {character_id}")
+                            skipped_no_pic += 1
+
                         if download_large_image(image_url, character_id, large_folder):
                             print(f"✓ Downloaded after retry: {character_id}")
                             successful_downloads += 1
@@ -211,16 +231,24 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
 
             elif not image_url:
                 consecutive_403_errors = 0
-                print(f"🚫 No picture available for {character_id}")
-                skipped_no_pic += 1
+                print(f"✗ No image found for {character_id}")
+                failed_downloads.append((character_id, wiki_url))
             else:
                 consecutive_403_errors = 0
-                if download_large_image(image_url, character_id, large_folder):
-                    print(f"✓ Downloaded: {character_id}")
+
+                # Check if this is a "No Picture Available" image
+                if 'NoPicAvailable' in image_url:
+                    skipped_no_pic += 1
+                    download_large_image(image_url, character_id, large_folder)
+                    print(f"🚫 No picture available for {character_id}")
                     successful_downloads += 1
                 else:
-                    print(f"✗ Failed to download: {character_id}")
-                    failed_downloads.append((character_id, wiki_url))
+                    if download_large_image(image_url, character_id, large_folder):
+                        print(f"✓ Downloaded: {character_id}")
+                        successful_downloads += 1
+                    else:
+                        print(f"✗ Failed to download: {character_id}")
+                        failed_downloads.append((character_id, wiki_url))
 
             # Increment counter for characters that were actually processed (not skipped)
             processed_count += 1
@@ -252,8 +280,7 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
 
 
 if __name__ == "__main__":
-
-    start_letter = 'g'
+    start_letter = None
     if len(sys.argv) > 1:
         start_letter = sys.argv[1]
         print(f"Starting from letter: {start_letter.upper()}")
