@@ -16,7 +16,7 @@ from server.routes.characters import router as characters_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application starting up...")
-    app.state.llm = GeminiLLM('gemini-1.5-flash')  # type: ignore
+    # app.state.llm = GeminiLLM('gemini-1.5-flash')  # type: ignore
     app.state.repository = Repository()  # type: ignore
 
     yield

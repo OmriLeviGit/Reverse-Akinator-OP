@@ -158,4 +158,4 @@ class DatabaseManager:
 
 # Create global instance
 db_manager = DatabaseManager()
-# db_manager.reset_database()
+db_manager.reset_database()

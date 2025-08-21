@@ -88,13 +88,12 @@ const CharacterManagement: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ backgroundColor: "hsl(220 15% 8% / 0.85)" }}>
       {/* Navigation */}
       <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
 
       {/* Main Content */}
       <div className="h-[calc(100vh-theme(spacing.16))] overflow-y-auto">
-        {" "}
         {/* Adjust height to account for navigation */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">

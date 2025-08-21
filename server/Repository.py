@@ -27,7 +27,7 @@ class Repository:
                 query = query.filter(
                     (DBCharacter.difficulty == difficulty_level) |
                     (DBCharacter.difficulty.is_(None)) |
-                    (DBCharacter.difficulty == "")
+                    (DBCharacter.difficulty == "unrated")
                 )
             else:
                 # Only the specified difficulty
