@@ -8,8 +8,7 @@ from server.pydantic_schemas.game_schemas import GameStartRequest
 
 from server.Repository import Repository
 
-
-def start_game(request: GameStartRequest, session_mgr: SessionManager) -> list[Character]:
+def start_game(request: GameStartRequest, session_mgr: SessionManager, repository: Repository) -> list[Character]:
     """Initialize a new game session"""
 
     # Extract request parameters
@@ -18,18 +17,17 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager) -> list[C
         request.filler_percentage, request.include_non_tv_fillers
     )
 
-    r = Repository()
-    arc = r.get_arc_by_name(until_arc)
+    arc = repository.get_arc_by_name(until_arc)
 
     # Get all possible characters based on filters
-    canon_characters = r.get_canon_characters(arc, difficulty_level, include_unrated)
+    canon_characters = repository.get_canon_characters(arc, difficulty_level, include_unrated)
 
     filler_characters = []
     if filler_percentage > 0:
         if include_non_tv_fillers:
-            filler_characters = r.get_non_canon_characters(arc, difficulty_level, include_unrated)
+            filler_characters = repository.get_non_canon_characters(arc, difficulty_level, include_unrated)
         else:
-            filler_characters = r.get_filler_characters(arc, difficulty_level, include_unrated)
+            filler_characters = repository.get_filler_characters(arc, difficulty_level, include_unrated)
 
     # Validate we have characters available
     if not canon_characters and not filler_characters:
@@ -70,7 +68,7 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager) -> list[C
     return character_list
 
 
-def ask_question(question: str, session_mgr: SessionManager) -> str:
+def ask_question(question: str, session_mgr: SessionManager, llm) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
@@ -82,8 +80,8 @@ def ask_question(question: str, session_mgr: SessionManager) -> str:
         # Get current conversation for context
         conversation = session_mgr.get_conversation()
 
-        # Generate response using LLM (currently mocked)
-        response = generate_llm_response(question, conversation)
+        conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation])
+        response = llm.query(conversation_text)
 
         # Add AI response to conversation
         session_mgr.add_conversation_message("assistant", response)
@@ -167,27 +165,3 @@ Remember to follow the game instructions exactly. Wait for the user's first ques
 """
 
     return instructions + character_prompt
-
-
-def generate_llm_response(user_input: str, conversation: list, debug=True) -> str:
-    """Generate LLM response (currently mocked)"""
-
-    # Mock responses for testing
-    if debug:
-        responses = [
-            "Yes, that's correct!",
-            "No, that's not right.",
-            "I can't answer that question.",
-            "That's partially correct.",
-            "Yes, you're on the right track!",
-            "No, try a different approach."
-        ]
-        return random.choice(responses)
-
-    # TODO: Implement actual LLM integration here
-    # conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation])
-    # model = genai.GenerativeModel("gemini-2.0-flash-exp")
-    # response = model.generate_content(conversation_text)
-    # return response.text
-
-    return "I'm not sure how to answer that."

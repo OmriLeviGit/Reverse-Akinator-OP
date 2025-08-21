@@ -158,7 +158,3 @@ class SessionManager:
     def clear_session(self):
         """Clear entire session (logout/reset)"""
         self.request.session.clear()
-
-
-def get_session_manager(request: Request) -> SessionManager:
-    return SessionManager(request)

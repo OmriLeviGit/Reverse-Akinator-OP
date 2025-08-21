@@ -2,7 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from server import game_service
-from server.SessionManager import SessionManager, get_session_manager
+from server.SessionManager import SessionManager
+from server.dependencies import get_session_manager, get_repository, get_llm
 from server.pydantic_schemas.character_schemas import Character
 from server.pydantic_schemas.game_schemas import (
     GameStartResponse, GameStartRequest,
@@ -15,9 +16,10 @@ router = APIRouter(prefix="/api/game", tags=["game"])
 
 
 @router.post("/start", response_model=GameStartResponse)
-def start_game_route(request: GameStartRequest, session_mgr: SessionManager = Depends(get_session_manager)):
+def start_game_route(request: GameStartRequest, session_mgr: SessionManager = Depends(get_session_manager),
+                     repository = Depends(get_repository)):
     try:
-        character_pool = game_service.start_game(request, session_mgr)
+        character_pool = game_service.start_game(request, session_mgr, repository)
 
         return GameStartResponse(
             message="Game started successfully",
@@ -30,12 +32,13 @@ def start_game_route(request: GameStartRequest, session_mgr: SessionManager = De
 
 
 @router.post("/question", response_model=GameQuestionResponse)
-def ask_question_route(request: GameQuestionRequest, session_mgr: SessionManager = Depends(get_session_manager)):
+def ask_question_route(request: GameQuestionRequest, session_mgr: SessionManager = Depends(get_session_manager),
+                       llm = Depends(get_llm)):
     try:
         if not session_mgr.has_active_game():
             raise HTTPException(status_code=400, detail="No active game session")
 
-        answer = game_service.ask_question(request.question, session_mgr)
+        answer = game_service.ask_question(request.question, session_mgr, llm)
 
         return GameQuestionResponse(
             answer=answer,

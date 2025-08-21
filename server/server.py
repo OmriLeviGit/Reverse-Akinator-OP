@@ -1,14 +1,29 @@
+from contextlib import asynccontextmanager
+
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
 from starlette.middleware.sessions import SessionMiddleware
 
+from server.Repository import Repository
+from server.llm.gemini import GeminiLLM
 from server.routes import session
 from server.routes.game import router as game_router
 from server.routes.characters import router as characters_router
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("Application starting up...")
+    app.state.llm = GeminiLLM('gemini-1.5-flash')  # type: ignore
+    app.state.repository = Repository()  # type: ignore
+
+    yield
+
+    print("Application shutting down...")
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
