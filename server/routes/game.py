@@ -57,11 +57,18 @@ def make_guess_route(request: GameGuessRequest, session_mgr: SessionManager = De
 
         result = game_service.make_guess(request.character_name, session_mgr)
 
-        return GameGuessResponse(
-            isCorrect=result["is_correct"],
-            message=result["message"],
-            targetCharacter=result.get("character")
-        )
+        if result["is_correct"]:
+            return GameGuessResponse(
+                isCorrect=True,
+                character=Character(**result["character"]),
+                questionsAsked=result["questions_asked"],
+                guessesMade=result["guesses_made"]
+            )
+        else:
+            return GameGuessResponse(
+                isCorrect=False
+            )
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

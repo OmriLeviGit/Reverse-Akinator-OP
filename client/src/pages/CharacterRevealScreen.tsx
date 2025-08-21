@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,6 +20,7 @@ interface RevealData {
   character: Character;
   questionsAsked: number;
   guessesMade: number;
+  wasCorrectGuess?: boolean;
 }
 
 const CharacterRevealScreen: React.FC = () => {
@@ -34,18 +35,20 @@ const CharacterRevealScreen: React.FC = () => {
 
   // Get data directly from navigation state
   const revealData = location.state as RevealData | null;
-  const { character: originalCharacter, questionsAsked, guessesMade } = revealData;
+
+  // Handle the case where data might be null
+  if (!revealData?.character) {
+    useEffect(() => {
+      navigate("/");
+    }, [navigate]);
+    return null;
+  }
+
+  const { character: originalCharacter, questionsAsked, guessesMade, wasCorrectGuess } = revealData;
 
   // Get live character data with current ignore/rating status
   const liveCharacter = getCharacterById(originalCharacter.id);
   const character = liveCharacter || originalCharacter; // Fallback to original
-
-  // Redirect if no data
-  useEffect(() => {
-    if (!revealData?.character) {
-      navigate("/");
-    }
-  }, [revealData, navigate]);
 
   const handleMaxArcChange = (arcName: string) => {
     updateGlobalArcLimit(arcName);
@@ -87,10 +90,6 @@ const CharacterRevealScreen: React.FC = () => {
     navigate("/");
   };
 
-  if (!revealData?.character) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -100,7 +99,11 @@ const CharacterRevealScreen: React.FC = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-foreground mb-2">Character Reveal</h1>
-          <p className="text-muted-foreground text-lg">Here's the character you were trying to guess</p>
+          <p className="text-muted-foreground text-lg">
+            {wasCorrectGuess
+              ? "Congratulations! You guessed correctly!"
+              : "Here's the character you were trying to guess"}
+          </p>
         </div>
       </div>
 
@@ -138,7 +141,6 @@ const CharacterRevealScreen: React.FC = () => {
                 </div>
 
                 {/* Character Description */}
-
                 <div className="bg-muted/30 rounded-lg p-4 mb-6">
                   <ScrollArea className="h-24">
                     <p className="text-foreground leading-relaxed pr-4">

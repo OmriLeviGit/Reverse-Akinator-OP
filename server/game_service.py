@@ -101,21 +101,25 @@ def make_guess(character_name: str, session_mgr: SessionManager) -> dict:
         target_character = session_mgr.get_target_character()
         is_correct = character_name.lower() == target_character["name"].lower()
 
+        # Get stats before ending game
+        questions_asked = session_mgr.get_questions_asked()
+        guesses_made = session_mgr.get_guess_count() + 1  # +1 for current guess
+
         # Record the guess
         session_mgr.add_guess(character_name, is_correct)
 
         if is_correct:
-            message = f"Congratulations! You guessed correctly - it was {target_character['name']}!"
+            # End game and return full results
+            session_mgr.end_game()
             return {
                 "is_correct": True,
-                "message": message,
-                "character": target_character
+                "character": target_character,
+                "questions_asked": questions_asked,
+                "guesses_made": guesses_made
             }
         else:
-            message = f"Sorry, that's not correct. The character is not {character_name}. Try asking more questions!"
             return {
-                "is_correct": False,
-                "message": message
+                "is_correct": False
             }
 
     except Exception as e:

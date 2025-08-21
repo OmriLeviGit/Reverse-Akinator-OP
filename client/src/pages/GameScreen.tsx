@@ -78,11 +78,6 @@ const GameScreen: React.FC = () => {
     try {
       const answer = await askQuestion(userInput);
       addMessage(answer, false);
-
-      // Check if game ended
-      if (answer.toLowerCase().includes("congratulations") || answer.toLowerCase().includes("character was")) {
-        handleRevealCharacter();
-      }
     } catch (error) {
       console.error("Error processing message:", error);
       addMessage("Sorry, there was an error processing your message. Please try again.", false);
@@ -101,12 +96,21 @@ const GameScreen: React.FC = () => {
       const guessResult = await makeGuess(characterName);
 
       if (guessResult.isCorrect) {
-        addMessage(guessResult.message, false);
-        setTimeout(() => {
-          handleRevealCharacter();
-        }, 2000);
+        // Navigate immediately to reveal - no message, no delay
+        navigate("/reveal", {
+          state: {
+            character: guessResult.character,
+            questionsAsked: guessResult.questionsAsked,
+            guessesMade: guessResult.guessesMade,
+            wasCorrectGuess: true, // Add flag to indicate this was a correct guess
+          },
+        });
       } else {
-        addMessage(guessResult.message, false);
+        // Frontend generates the failure message
+        addMessage(
+          `Sorry, that's not correct. The character is not ${characterName}. Try asking more questions!`,
+          false
+        );
       }
     } catch (error) {
       console.error("Error making guess:", error);
