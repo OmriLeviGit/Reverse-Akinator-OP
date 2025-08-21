@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SortOption } from "../../types/characterManagement";
+import { SortOption } from "../../types/characterFilters";
 
 interface SearchAndSortProps {
   searchTerm: string;

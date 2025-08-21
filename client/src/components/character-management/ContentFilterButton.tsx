@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ContentFilter } from "../../types/characterManagement";
+import { ContentFilter } from "../../types/characterFilters";
 
 interface ContentFilterButtonProps {
   contentFilter: ContentFilter;

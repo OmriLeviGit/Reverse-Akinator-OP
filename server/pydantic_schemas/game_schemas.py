@@ -1,6 +1,5 @@
 # server/pydantic_schemas/game_schemas.py
 from pydantic import BaseModel, Field
-from typing import Optional
 
 from server.pydantic_schemas.character_schemas import Character
 
@@ -49,9 +48,9 @@ class GameGuessRequest(BaseModel):
 
 class GameGuessResponse(BaseModel):
     is_correct: bool = Field(alias="isCorrect")
-    character: Optional[Character] = None
-    questions_asked: Optional[int] = Field(None, alias="questionsAsked")
-    guesses_made: Optional[int] = Field(None, alias="guessesMade")
+    character: Character | None = None
+    questions_asked: int | None = Field(None, alias="questionsAsked")
+    guesses_made: int | None = Field(None, alias="guessesMade")
 
     class Config:
         populate_by_name = True

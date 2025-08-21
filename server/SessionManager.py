@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional, Dict, List
 from fastapi import Request
 
 from server.Repository import Repository
@@ -24,14 +23,13 @@ class SessionManager:
             "last_activity": now
         })
 
-    def get_safe_session_data(self) -> Dict:
+    def get_safe_session_data(self) -> dict:
         """Get all session data EXCEPT secret target_character"""
         session_copy = dict(self.request.session)
 
         # Remove sensitive data from current_game
         if "current_game" in session_copy:
             game_copy = dict(session_copy["current_game"])
-            # Remove the secret target character
             game_copy.pop("target_character", None)
             session_copy["current_game"] = game_copy
 
@@ -47,20 +45,16 @@ class SessionManager:
         self.request.session["global_arc_limit"] = arc
         self.update_last_activity()
 
-    def has_arc_preference(self) -> bool:
-        """Check if user has set a spoiler preference"""
-        return "global_arc_limit" in self.request.session
-
     # ===== GAME STATE MANAGEMENT =====
     def has_active_game(self) -> bool:
         """Check if user has an active game"""
         return "current_game" in self.request.session
 
-    def get_current_game(self) -> Optional[Dict]:
+    def get_current_game(self) -> dict | None:
         """Get current game data (returns None if no active game)"""
         return self.request.session.get("current_game")
 
-    def start_new_game(self, target_character, game_settings: Dict, prompt: str):
+    def start_new_game(self, target_character, game_settings: dict, prompt: str):
         """Start a new game with given character, game settings, and prompt"""
         target_dict = target_character.model_dump()
 
@@ -74,14 +68,14 @@ class SessionManager:
             "questions_asked": 0
         }
 
-    def get_target_character(self) -> Dict:
+    def get_target_character(self) -> dict:
         """Get the target character for current game (server use only!)"""
         current_game = self.get_current_game()
         if not current_game:
             raise ValueError("No active game session")
         return current_game["target_character"]
 
-    def get_game_settings(self) -> Dict:
+    def get_game_settings(self) -> dict:
         """Get the game settings used for current game"""
         current_game = self.get_current_game()
         if not current_game:
@@ -110,7 +104,7 @@ class SessionManager:
         if role == "user":
             self.request.session["current_game"]["questions_asked"] += 1
 
-    def get_conversation(self) -> List[Dict]:
+    def get_conversation(self) -> list[dict]:
         """Get the full conversation history"""
         current_game = self.get_current_game()
         if not current_game:
@@ -128,7 +122,7 @@ class SessionManager:
             "timestamp": datetime.now().isoformat()
         })
 
-    def get_guesses_made(self) -> List[Dict]:
+    def get_guesses_made(self) -> list[dict]:
         """Get all guesses made in current game"""
         current_game = self.get_current_game()
         return current_game["guesses_made"] if current_game else []
@@ -150,10 +144,6 @@ class SessionManager:
     def update_last_activity(self):
         """Update last activity timestamp"""
         self.request.session["last_activity"] = datetime.now().isoformat()
-
-    def get_session_age(self) -> Optional[str]:
-        """Get when session was created"""
-        return self.request.session.get("session_created")
 
     def clear_session(self):
         """Clear entire session (logout/reset)"""

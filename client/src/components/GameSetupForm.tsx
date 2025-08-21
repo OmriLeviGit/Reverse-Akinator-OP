@@ -142,7 +142,6 @@ const GameSetupForm = ({
           </Select>
         </div>
 
-        {/* Rest of the component remains the same */}
         {/* Filler Character Settings */}
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-foreground">Filler Character Probability</h3>

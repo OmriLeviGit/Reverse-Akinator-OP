@@ -4,18 +4,10 @@ export type RatingFilter =
   | "rated-only"
   | "unrated-only"
   | "all"
-  | "very-easy"
+  | "unrated"
+  | "very easy"
   | "easy"
   | "medium"
   | "hard"
-  | "really-hard";
+  | "really hard";
 export type SortOption = "alphabetical-az" | "alphabetical-za" | "difficulty-easy-hard" | "difficulty-hard-easy";
-
-export const ratingLabels = {
-  "": "No Score",
-  "very-easy": "Very Easy",
-  easy: "Easy",
-  medium: "Medium",
-  hard: "Hard",
-  "really-hard": "Really Hard",
-};

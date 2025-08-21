@@ -110,7 +110,7 @@ class Repository:
     def update_character_difficulty(self, character_id: str, difficulty: str) -> Character:
         """
         Update the difficulty rating of a character
-        difficulty can be: "", "very-easy", "easy", "medium", "hard", "really-hard"
+        difficulty can be: "unrated", "very easy", "easy", "medium", "hard", "really hard"
         Now keeping as string (no conversion to None)
         """
         session = self.db_manager.get_session()
@@ -120,6 +120,7 @@ class Repository:
                 raise ValueError(f"Character with id '{character_id}' not found")
 
             character.difficulty = difficulty
+            print(character.difficulty)
             session.commit()
 
             return character.to_pydantic()

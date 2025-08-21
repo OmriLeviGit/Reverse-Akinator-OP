@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { RatingFilter } from "../../types/characterManagement";
+import { RatingFilter } from "../../types/characterFilters";
 
 interface RatingFilterButtonProps {
   ratingFilter: RatingFilter;

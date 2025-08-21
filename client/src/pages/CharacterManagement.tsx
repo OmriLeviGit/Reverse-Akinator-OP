@@ -5,7 +5,7 @@ import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
 import { CharacterFilters } from "../components/character-management/CharacterFilters";
 import { VirtualizedCharacterGrid } from "../components/character-management/VirtualizedCharacterGrid";
-import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterManagement";
+import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterFilters";
 
 const CharacterManagement: React.FC = () => {
   const { characters, isLoading, sessionData, availableArcs, updateGlobalArcLimit, globalArcLimit } = useAppContext();

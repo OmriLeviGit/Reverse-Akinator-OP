@@ -7,7 +7,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../../types/characterManagement";
+import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../../types/characterFilters";
+import { DIFFICULTY_OPTIONS, toTitleCase } from "@/utils/difficulties";
 
 interface CharacterFiltersProps {
   searchTerm: string;
@@ -44,6 +45,18 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
 }) => {
   // Check if non-TV content should be disabled
   const isNonTVContentDisabled = contentFilter === "canon-only";
+  const getRatingFilterDisplay = (filter: RatingFilter): string => {
+    switch (filter) {
+      case "all":
+        return "All Difficulties";
+      case "rated-only":
+        return "All Rated";
+      case "unrated-only":
+        return "Unrated";
+      default:
+        return toTitleCase(filter);
+    }
+  };
 
   return (
     <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border border-border">
@@ -86,7 +99,6 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
           </DropdownMenuTrigger>
 
           <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] bg-popover border-border">
-            {" "}
             <DropdownMenuItem
               onClick={() => onSortOptionChange("alphabetical-az")}
               className="cursor-pointer hover:bg-secondary text-popover-foreground"
@@ -124,14 +136,7 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
               variant="outline"
               className="w-full justify-between bg-input hover:bg-secondary text-foreground hover:text-foreground border-border"
             >
-              {ratingFilter === "all" && "All Difficulties"}
-              {ratingFilter === "rated-only" && "All Rated"}
-              {ratingFilter === "unrated-only" && "Unrated"}
-              {ratingFilter === "very-easy" && "Very Easy"}
-              {ratingFilter === "easy" && "Easy"}
-              {ratingFilter === "medium" && "Medium"}
-              {ratingFilter === "hard" && "Hard"}
-              {ratingFilter === "really-hard" && "Really Hard"}
+              {getRatingFilterDisplay(ratingFilter)}
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -154,36 +159,15 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             >
               Unrated
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onRatingFilterChange("very-easy")}
-              className="cursor-pointer hover:bg-secondary text-popover-foreground"
-            >
-              Very Easy
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onRatingFilterChange("easy")}
-              className="cursor-pointer hover:bg-secondary text-popover-foreground"
-            >
-              Easy
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onRatingFilterChange("medium")}
-              className="cursor-pointer hover:bg-secondary text-popover-foreground"
-            >
-              Medium
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onRatingFilterChange("hard")}
-              className="cursor-pointer hover:bg-secondary text-popover-foreground"
-            >
-              Hard
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onRatingFilterChange("really-hard")}
-              className="cursor-pointer hover:bg-secondary text-popover-foreground"
-            >
-              Really Hard
-            </DropdownMenuItem>
+            {DIFFICULTY_OPTIONS.filter((diff) => diff !== "unrated").map((difficulty) => (
+              <DropdownMenuItem
+                key={difficulty}
+                onClick={() => onRatingFilterChange(difficulty as RatingFilter)}
+                className="cursor-pointer hover:bg-secondary text-popover-foreground"
+              >
+                {toTitleCase(difficulty)}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

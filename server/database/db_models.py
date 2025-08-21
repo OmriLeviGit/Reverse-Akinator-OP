@@ -1,12 +1,22 @@
-from sqlalchemy import Column, String, Integer, Boolean, Text, func, case
+from sqlalchemy import String, Integer, Boolean, Text, Enum, func, case
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
+import enum
 
 from server.pydantic_schemas.character_schemas import Character
 from server.pydantic_schemas.arc_schemas import Arc
 
 Base = declarative_base()
+
+# Define the difficulty enum
+class DifficultyEnum(enum.Enum):
+    UNRATED = "unrated"
+    VERY_EASY = "very easy"
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+    REALLY_HARD = "really hard"
 
 class DBCharacter(Base):
     __tablename__ = 'characters'
@@ -23,7 +33,12 @@ class DBCharacter(Base):
     note: Mapped[str | None] = mapped_column(String(200))
     appears_in: Mapped[str | None] = mapped_column(String(50))
 
-    difficulty: Mapped[str] = mapped_column(String, default="")
+    # Updated difficulty field with enum constraint and proper default
+    difficulty: Mapped[str] = mapped_column(
+        Enum(DifficultyEnum, values_callable=lambda obj: [e.value for e in obj]),
+        default=DifficultyEnum.UNRATED.value,
+        nullable=False
+    )
     is_ignored: Mapped[bool] = mapped_column(Boolean, default=False)
 
     @hybrid_property
@@ -79,8 +94,8 @@ class DBCharacter(Base):
             description=self.description,
             chapter=self.chapter,
             episode=self.effective_episode,  # Changed from get_character_episode() to effective_episode
-            filler_status=self.filler_status,
-            difficulty=self.difficulty or "",
+            fillerStatus=self.filler_status,
+            difficulty=self.difficulty,  # No need for `or ""` since it has a proper default now
             isIgnored=self.is_ignored,
             wikiLink=self.wiki_link
         )
@@ -89,12 +104,13 @@ class DBCharacter(Base):
         """Get the effective episode number - now just delegates to effective_episode property"""
         return self.effective_episode
 
+
 class DBArc(Base):
     __tablename__ = 'arcs'
 
-    name = Column(String(100), primary_key=True)
-    last_chapter = Column(Integer, nullable=True)
-    last_episode = Column(Integer, nullable=True)
+    name: Mapped[str] = mapped_column(String(100), primary_key=True)
+    last_chapter: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_episode: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     def __repr__(self):
         return f"<Arc(name='{self.name}', last_chapter={self.last_chapter}, last_episode={self.last_episode})>"
