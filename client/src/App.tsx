@@ -1,4 +1,3 @@
-// App.tsx
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -15,54 +14,30 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const { imageLoaded, selectedBackground } = useRandomBackground();
+  const backgroundState = useRandomBackground();
 
-  if (!imageLoaded) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#000",
-          color: "white",
-        }}
-      >
-        Loading...
-      </div>
-    );
+  if (backgroundState.isLoading) {
+    return backgroundState.LoadingComponent;
   }
 
   return (
-    <div
-      style={{
-        backgroundImage: `url(${selectedBackground})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        backgroundRepeat: "no-repeat",
-        minHeight: "100vh",
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <GameProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/character-management" element={<CharacterManagement />} />
-                <Route path="/game" element={<GameScreen />} />
-                <Route path="/reveal" element={<CharacterRevealScreen />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <GlobalSpoilerModal />
-              <Toaster position="top-right" />
-            </BrowserRouter>
-          </GameProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <GameProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/character-management" element={<CharacterManagement />} />
+              <Route path="/game" element={<GameScreen />} />
+              <Route path="/reveal" element={<CharacterRevealScreen />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <GlobalSpoilerModal />
+            <Toaster position="top-right" />
+          </BrowserRouter>
+        </GameProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 

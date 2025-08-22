@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { useGameMessages } from "../hooks/useGameMessages";
 import { useGameSession } from "../hooks/useGameSession";
 import { useAppContext } from "../contexts/AppContext";
@@ -33,7 +33,6 @@ const GameScreen: React.FC = () => {
   const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
   const [characterSearchTerm, setCharacterSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  // const [isLoadingImages, setIsLoadingImages] = useState(true);
 
   const gameCharacters = currentGameSession.characterPool;
 
@@ -96,17 +95,15 @@ const GameScreen: React.FC = () => {
       const guessResult = await makeGuess(characterName);
 
       if (guessResult.isCorrect) {
-        // Navigate immediately to reveal - no message, no delay
         navigate("/reveal", {
           state: {
             character: guessResult.character,
             questionsAsked: guessResult.questionsAsked,
             guessesMade: guessResult.guessesMade,
-            wasCorrectGuess: true, // Add flag to indicate this was a correct guess
+            wasCorrectGuess: true,
           },
         });
       } else {
-        // Frontend generates the failure message
         addMessage(
           `Sorry, that's not correct. The character is not ${characterName}. Try asking more questions!`,
           false
@@ -139,19 +136,7 @@ const GameScreen: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "hsl(220 15% 8% / 0.85)" }}>
-      {/* Navigation */}
-      <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
-
-      {/* Game Header */}
-      <div className="container mx-auto px-6 py-4 max-w-7xl">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Character Guessing Game</h1>
-          </div>
-        </div>
-      </div>
-
+    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
       {/* Main Game Layout */}
       <div className="container mx-auto px-6 pb-8 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
@@ -252,7 +237,7 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

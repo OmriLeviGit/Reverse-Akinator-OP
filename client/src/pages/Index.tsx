@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import GameSetupForm from "../components/GameSetupForm";
 import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
@@ -142,10 +142,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "hsl(220 15% 8% / 0.85)" }}>
-      {/* Navigation */}
-      <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
-
+    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
       {/* Title Section */}
       <div className="container mx-auto px-6 py-8">
         <div className="text-center">
@@ -177,7 +174,7 @@ const Index = () => {
           />
         </div>
       </main>
-    </div>
+    </Layout>
   );
 };
 

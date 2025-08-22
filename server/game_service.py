@@ -9,6 +9,7 @@ from server.pydantic_schemas.game_schemas import GameStartRequest
 from server.Repository import Repository
 
 # TODO make sure server brings several difficulties
+# TODO spoiler modal should load with a delay
 
 def start_game(request: GameStartRequest, session_mgr: SessionManager, repository: Repository) -> list[Character]:
     """Initialize a new game session"""

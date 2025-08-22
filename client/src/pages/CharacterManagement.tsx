@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { useAppContext } from "../contexts/AppContext";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
@@ -88,20 +88,14 @@ const CharacterManagement: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "hsl(220 15% 8% / 0.85)" }}>
-      {/* Navigation */}
-      <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs} />
-
+    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
       {/* Main Content */}
       <div className="h-[calc(100vh-theme(spacing.16))] overflow-y-auto">
-        {/* Adjust height to account for navigation */}
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-6">
               {/* Filter Panel */}
               <aside className="lg:sticky lg:top-8 lg:h-fit">
-                {" "}
-                {/* Reduced top spacing since no header */}
                 <CharacterFilters
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
@@ -133,7 +127,7 @@ const CharacterManagement: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
