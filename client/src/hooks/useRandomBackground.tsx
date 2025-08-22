@@ -11,7 +11,7 @@ const backgroundConfigs = [
   { image: "/img/background/robin.jpg" },
   { image: "/img/background/franky.jpg" },
   { image: "/img/background/brook.jpg" },
-  { image: "/img/background/jinbe.jpg" },
+  { image: "/img/background/jinbe.jpg" }, // missing
 ];
 
 export const useRandomBackground = () => {
