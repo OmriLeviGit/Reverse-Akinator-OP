@@ -50,8 +50,11 @@ const GameSetupForm = ({
   // Filter arcs based on globalArcLimit (spoiler protection)
   const getFilteredArcs = () => {
     if (globalArcLimit === "All") {
-      // Return all arcs in reverse order (newest first)
-      return [...availableArcs].reverse();
+      // When global limit is "All", user can choose any arc OR "All"
+      return [
+        { name: "All", chapter: 0, episode: 0 }, // Add synthetic "All" option
+        ...[...availableArcs].reverse(),
+      ];
     }
 
     // Find the index of globalArcLimit arc in the original array
@@ -128,7 +131,9 @@ const GameSetupForm = ({
               {filteredArcs.map((arc, index) => (
                 <SelectItem key={index} value={arc.name} className="text-popover-foreground hover:bg-secondary">
                   <div className="grid grid-cols-[440px_70px_60px] w-full font-mono text-sm">
-                    <span className="text-left truncate text-foreground">{arc.name}</span>
+                    <span className="text-left truncate text-foreground">
+                      {arc.name === "All" ? "All Arcs" : arc.name} {/* Display "All Arcs" but value is still "All" */}
+                    </span>
                     <span className="text-left text-muted-foreground text-xs">
                       {arc.episode > 0 ? `Ep.${arc.episode}` : ""}
                     </span>

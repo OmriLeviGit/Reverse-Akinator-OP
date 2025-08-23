@@ -30,13 +30,21 @@ const GlobalSpoilerModal = () => {
     localStorage.setItem("hasVisitedBefore", "true");
   };
 
+  const handleClose = () => {
+    updateGlobalArcLimit(selectedGlobalArcName);
+    setShowSpoilerModal(false);
+    localStorage.setItem("hasVisitedBefore", "true");
+  };
+
   return (
-    <Dialog open={showSpoilerModal} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-md bg-card border-border">
+    <Dialog open={showSpoilerModal} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md bg-card border-border [&>button]:hidden">
         <DialogHeader className="text-center space-y-4">
           <DialogTitle className="text-2xl font-bold text-foreground">Spoiler Protection Setup</DialogTitle>
           <DialogDescription className="text-muted-foreground text-base leading-relaxed">
-            What's the latest story arc you've seen or read? This will attempt to prevent spoilers from later content.
+            What's the latest story arc you've seen or read?
+            <br />
+            This will attempt to prevent spoilers from later content.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 pt-4">
