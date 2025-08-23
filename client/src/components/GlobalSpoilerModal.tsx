@@ -6,17 +6,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAppContext } from "../contexts/AppContext";
 
 const GlobalSpoilerModal = () => {
-  const { availableArcs, updateGlobalArcLimit } = useAppContext();
+  const { availableArcs, updateGlobalArcLimit, isLoading, sessionData } = useAppContext();
   const [showSpoilerModal, setShowSpoilerModal] = useState<boolean>(false);
   const [selectedGlobalArcName, setSelectedGlobalArcName] = useState<string>("All");
 
-  // Check if modal should show on any page load
+  const isAppReady = !isLoading && sessionData && availableArcs.length > 0;
+
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisitedBefore");
-    if (!hasVisited) {
-      setShowSpoilerModal(true);
+
+    if (!hasVisited && isAppReady) {
+      const timer = setTimeout(() => {
+        setShowSpoilerModal(true);
+      }, 1000);
+
+      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isAppReady]);
 
   const handleContinue = () => {
     updateGlobalArcLimit(selectedGlobalArcName);
@@ -41,11 +47,9 @@ const GlobalSpoilerModal = () => {
                 <SelectValue placeholder="Select an arc" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-60">
-                {/* "All Arcs" option first */}
                 <SelectItem value="All" className="text-popover-foreground hover:bg-secondary">
                   All Arcs
                 </SelectItem>
-                {/* Then available arcs in reverse order (latest first) */}
                 {[...availableArcs].reverse().map((arc) => (
                   <SelectItem key={arc.name} value={arc.name} className="text-popover-foreground hover:bg-secondary">
                     {arc.name}
