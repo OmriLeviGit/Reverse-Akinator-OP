@@ -50,11 +50,7 @@ const GameSetupForm = ({
   // Filter arcs based on globalArcLimit (spoiler protection)
   const getFilteredArcs = () => {
     if (globalArcLimit === "All") {
-      // When global limit is "All", user can choose any arc OR "All"
-      return [
-        { name: "All", chapter: 0, episode: 0 }, // Add synthetic "All" option
-        ...[...availableArcs].reverse(),
-      ];
+      return [{ name: "All", chapter: 0, episode: 0 }, ...[...availableArcs].reverse()];
     }
 
     // Find the index of globalArcLimit arc in the original array
