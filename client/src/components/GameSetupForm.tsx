@@ -92,13 +92,9 @@ const GameSetupForm = ({
             ].map((level) => (
               <Button
                 key={level.id}
-                variant={selectedDifficulty === level.id ? "default" : "outline"}
+                variant={selectedDifficulty === level.id ? "default" : "secondary"}
                 onClick={() => onDifficultyChange(level.id as "easy" | "medium" | "hard")}
-                className={`h-16 font-medium transition-all flex flex-col justify-center items-center py-2 ${
-                  selectedDifficulty === level.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary hover:bg-secondary-hover text-secondary-foreground hover:text-secondary-foreground-hover border-border"
-                }`}
+                className="h-16 font-medium transition-all flex flex-col justify-center items-center py-2"
               >
                 <span className="capitalize font-semibold leading-none">{level.label}</span>
                 <span className="text-xs opacity-75 leading-none -mt-0.5">{level.description}</span>
@@ -124,7 +120,7 @@ const GameSetupForm = ({
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-foreground">Character Arc Limit</h3>
           <Select value={selectedArc || ""} onValueChange={onArcChange}>
-            <SelectTrigger className="bg-input hover:bg-input border-border text-foreground">
+            <SelectTrigger className="bg-input hover:bg-input hover:brightness-125 border-border text-foreground">
               <SelectValue placeholder="Select an arc" />
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
@@ -188,15 +184,13 @@ const GameSetupForm = ({
         </div>
 
         {/* Start Button */}
-        <div className="pt-6">
-          <Button
-            onClick={handleStartGame}
-            disabled={isStartingGame || isLoading || !charactersLoaded}
-            className="w-full h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 disabled:opacity-50"
-          >
-            {isStartingGame ? "Starting Game..." : "Start Game"}
-          </Button>
-        </div>
+        <Button
+          onClick={handleStartGame}
+          disabled={isStartingGame || isLoading || !charactersLoaded}
+          className="w-full h-14 text-lg font-semibold transition-all duration-300 disabled:opacity-50"
+        >
+          {isStartingGame ? "Starting Game..." : "Start Game"}
+        </Button>
 
         {/* Character loading status */}
         {!charactersLoaded && (

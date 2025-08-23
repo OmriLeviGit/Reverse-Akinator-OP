@@ -137,11 +137,19 @@ const GameScreen: React.FC = () => {
 
   return (
     <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+      <div className="container mx-auto px-6 py-4 max-w-7xl">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Character Guessing Game</h1>
+            {/* <p className="text-muted-foreground">Ask questions to guess the mystery character</p> */}
+          </div>
+        </div>
+      </div>
       {/* Main Game Layout */}
       <div className="container mx-auto px-6 pb-8 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
           {/* Chat Area */}
-          <div className="flex flex-col h-[calc(100vh-16rem)]">
+          <div className="flex flex-col h-[calc(100vh-16rem)] max-h-[700px] min-h-[400px]">
             <Card className="flex-1 flex flex-col border-border/40 shadow-sm">
               {/* Messages Area */}
               <ScrollArea className="flex-1 p-4">
@@ -196,7 +204,7 @@ const GameScreen: React.FC = () => {
           </div>
 
           {/* Character List Sidebar */}
-          <div className="h-[calc(100vh-16rem)]">
+          <div className="h-[calc(100vh-16rem)] max-h-[700px] min-h-[400px]">
             <Card className="h-full flex flex-col border-border/40 shadow-sm">
               <CharacterList
                 characters={filteredCharacters}

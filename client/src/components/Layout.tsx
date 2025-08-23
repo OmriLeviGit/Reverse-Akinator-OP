@@ -17,7 +17,7 @@ const Layout = ({ children, globalArcLimit, onMaxArcChange, availableArcs }: Lay
         <Navigation globalArcLimit={globalArcLimit} onMaxArcChange={onMaxArcChange} availableArcs={availableArcs} />
       </div>
 
-      <div style={{ backgroundColor: "hsl(220 15% 8% / 0.90)" }}>
+      <div className="bg-background/90">
         <div className="flex-1">{children}</div>
       </div>
     </div>

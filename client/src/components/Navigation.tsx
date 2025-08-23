@@ -31,24 +31,24 @@ const Navigation = ({ globalArcLimit, onMaxArcChange, availableArcs }: Navigatio
           <div className="flex items-center space-x-8">
             <Link to="/">
               <Button
-                variant="ghost"
-                className={`${
+                variant="nav"
+                className={
                   location.pathname === "/"
-                    ? "text-foreground hover:text-primary hover:bg-secondary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
+                    ? "text-foreground hover:brightness-110 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-['']"
+                    : "text-muted-foreground hover:text-foreground"
+                }
               >
                 Home
               </Button>
             </Link>
             <Link to="/character-management">
               <Button
-                variant="ghost"
-                className={`${
+                variant="nav"
+                className={
                   location.pathname === "/character-management"
-                    ? "text-foreground hover:text-primary hover:bg-secondary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
+                    ? "text-foreground hover:brightness-110 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-['']"
+                    : "text-muted-foreground hover:text-foreground"
+                }
               >
                 Character Management
               </Button>
@@ -58,14 +58,9 @@ const Navigation = ({ globalArcLimit, onMaxArcChange, availableArcs }: Navigatio
           {/* Right side spoiler protection */}
           <div className="flex items-center">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="bg-secondary hover:bg-secondary-hover text-secondary-foreground hover:text-secondary-foreground-hover border border-border transition-all duration-200"
-                >
-                  Max Arc Seen: {getDisplayText(globalArcLimit)}
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
+              <DropdownMenuTrigger className="bg-input hover:bg-input hover:brightness-125 border-border text-foreground px-4 py-2 rounded-md flex items-center justify-between w-auto text-sm font-medium h-10">
+                Max Arc Seen: {getDisplayText(globalArcLimit)}
+                <ChevronDown className="ml-4 h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-popover border-border max-h-60 overflow-y-auto">
                 {/* "All Arcs" option first */}
