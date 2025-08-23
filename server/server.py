@@ -45,7 +45,8 @@ app.include_router(characters_router)
 
 # Serve static files from the built frontend
 if os.path.exists("client/dist"):
-    app.mount("/assets", StaticFiles(directory="client/dist/assets"), name="assets")
+    app.mount("/assets", StaticFiles(directory="client/dist/assets"), name="assets")  # JS/CSS
+    app.mount("/img", StaticFiles(directory="client/dist/img"), name="images")        # Your images
 
 
 # Serve index.html for root
