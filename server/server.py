@@ -16,7 +16,7 @@ from server.routes.characters import router as characters_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application starting up...")
-    # app.state.llm = GeminiLLM('gemini-1.5-flash')  # type: ignore
+    app.state.llm = GeminiLLM('gemini-1.5-flash')  # type: ignore
     app.state.repository = Repository()  # type: ignore
 
     yield
@@ -55,4 +55,4 @@ def catch_all_delete(path: str):
     raise HTTPException(status_code=404, detail=f"DELETE endpoint /{path} not found")
 
 if __name__ == '__main__':
-    uvicorn.run("server.server:app", host="0.0.0.0", port=3001, reload=True)
+    uvicorn.run("server.server:app", host="0.0.0.0", port=3000, reload=True)
