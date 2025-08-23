@@ -33,5 +33,5 @@ ENV PYTHONPATH=/app
 # Expose port 3000
 EXPOSE 3000
 
-# Run the server
-CMD ["python", "server/server.py"]
+# Run the server from the root directory (changed this line)
+CMD ["python", "-m", "server.server"]
