@@ -27,10 +27,9 @@
     /* Muted Elements */
     --muted: 220 15% 15%;
     --muted-foreground: 220 10% 60%;
-    /* Accent (Gaming Orange) */
-    --accent: 25 95% 55%;
-    --accent-foreground: 220 15% 8%;
-    --accent-hover: 25 95% 60%;
+    /* Accent */
+    --accent: 220 15% 25%;
+    --accent-foreground: 210 20% 85%;
     /* Destructive */
     --destructive: 0 75% 60%;
     --destructive-foreground: 210 30% 94%;

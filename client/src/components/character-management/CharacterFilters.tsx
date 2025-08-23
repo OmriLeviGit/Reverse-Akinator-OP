@@ -41,7 +41,7 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
 
   return (
     <div className="bg-card backdrop-blur-lg rounded-2xl p-6 border border-border">
-      <h2 className="text-xl font-semibold text-foreground mb-6">Filters</h2>
+      <h2 className="text-xl font-semibold text-foreground">Filters</h2>
 
       {/* Results Info */}
       <div className="mb-6">
@@ -106,8 +106,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onIgnoreFilterChange("all")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               ignoreFilter === "all"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground hover:brightness-110"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             All
@@ -116,8 +116,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onIgnoreFilterChange("not-ignored-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               ignoreFilter === "not-ignored-only"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground hover:brightness-110"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Not Ignored
@@ -126,8 +126,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onIgnoreFilterChange("ignored-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               ignoreFilter === "ignored-only"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground hover:brightness-110"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Ignored
@@ -143,8 +143,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onContentFilterChange("all")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               contentFilter === "all"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground hover:brightness-110"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             All
@@ -153,8 +153,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onContentFilterChange("canon-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               contentFilter === "canon-only"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground hover:brightness-110"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Canon
@@ -163,8 +163,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             onClick={() => onContentFilterChange("fillers-only")}
             className={`px-2 py-1.5 rounded-md text-sm font-medium transition-all ${
               contentFilter === "fillers-only"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                ? "bg-primary text-primary-foreground hover:brightness-110"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Fillers
