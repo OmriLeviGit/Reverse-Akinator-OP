@@ -1,3 +1,5 @@
+from sqlalchemy import or_
+
 from server.database.database import DatabaseManager
 from server.database.db_models import DBCharacter, DBArc
 from server.pydantic_schemas.character_schemas import Character
@@ -8,7 +10,7 @@ class Repository:
     def __init__(self):
         self.db_manager = DatabaseManager()
 
-    def _build_base_query(self, session, arc: Arc | None = None, difficulty_level: str | None = None,
+    def _build_base_query(self, session, arc: Arc | None = None, difficulty_range: list[str] | None = None,
                           include_unrated: bool = False, include_ignored: bool = True):
         """
         Build base query with common filters applied at database level
@@ -20,18 +22,19 @@ class Repository:
         if not include_ignored:  # Only filter if explicitly set to False
             query = query.filter(DBCharacter.is_ignored == False)
 
-        # Filter by difficulty - None means show all difficulties
-        if difficulty_level is not None:
+        # Filter by difficulty range - None means show all difficulties
+        if difficulty_range is not None:
+            difficulty_conditions = [DBCharacter.difficulty.in_(difficulty_range)]
+
             if include_unrated:
-                # Include both the specified difficulty AND unrated (empty/null) characters
-                query = query.filter(
-                    (DBCharacter.difficulty == difficulty_level) |
-                    (DBCharacter.difficulty.is_(None)) |
-                    (DBCharacter.difficulty == "unrated")
-                )
-            else:
-                # Only the specified difficulty
-                query = query.filter(DBCharacter.difficulty == difficulty_level)
+                # Also include unrated (empty/null) characters
+                difficulty_conditions.extend([
+                    DBCharacter.difficulty.is_(None),
+                    DBCharacter.difficulty == "unrated"
+                ])
+
+            # Combine all difficulty conditions with OR
+            query = query.filter(or_(*difficulty_conditions))
 
         # Arc filtering - None means show all characters regardless of arc
         if arc is not None and arc.name != "All":
@@ -73,17 +76,82 @@ class Repository:
         finally:
             self.db_manager.close_session(session)
 
-    def get_character_by_id(self, character_id: str) -> Character:
+    def get_canon_characters(self, arc: Arc, difficulty_range: list[str], include_unrated: bool,
+                             include_ignored: bool = False) -> list[Character]:
         """
-        Returns a single character with full details
+        Get canon characters filtered by arc and difficulty using database-level filtering
         """
         session = self.db_manager.get_session()
         try:
-            character = session.query(DBCharacter).filter(DBCharacter.id == character_id).first()
-            if not character:
-                raise ValueError(f"Character with id '{character_id}' not found")
+            query = self._build_base_query(session, arc, difficulty_range, include_unrated=include_unrated,
+                                           include_ignored=include_ignored)
+            query = query.filter(DBCharacter.filler_status.ilike("canon"))
 
-            return character.to_pydantic()
+            characters = query.all()
+            return [char.to_pydantic() for char in characters]
+
+        finally:
+            self.db_manager.close_session(session)
+
+    def get_filler_characters(self, arc: Arc, difficulty_range: list[str], include_unrated: bool,
+                              include_ignored: bool = False) -> list[Character]:
+        """
+        Get filler characters filtered by arc and difficulty using database-level filtering
+        """
+        session = self.db_manager.get_session()
+        try:
+            query = self._build_base_query(session, arc, difficulty_range, include_unrated=include_unrated,
+                                           include_ignored=include_ignored)
+            query = query.filter(DBCharacter.filler_status.ilike("filler"))
+
+            characters = query.all()
+            return [char.to_pydantic() for char in characters]
+
+        finally:
+            self.db_manager.close_session(session)
+
+    def get_non_canon_characters(self, arc: Arc, difficulty_range: list[str], include_unrated: bool,
+                                 include_ignored: bool = False) -> list[Character]:
+        """
+        Get non-canon characters (everything except canon) filtered by arc and difficulty
+        """
+        session = self.db_manager.get_session()
+        try:
+            query = self._build_base_query(session, arc, difficulty_range, include_unrated=include_unrated,
+                                           include_ignored=include_ignored)
+            query = query.filter(~DBCharacter.filler_status.ilike("canon"))
+
+            characters = query.all()
+            return [char.to_pydantic() for char in characters]
+
+        finally:
+            self.db_manager.close_session(session)
+
+    def get_arc_by_name(self, arc_name: str) -> Arc:
+        """Return the Arc object, not just the name"""
+        session = self.db_manager.get_session()
+
+        try:
+            if arc_name == "All":
+                db_arc = DBArc(name="All")
+            else:
+                db_arc = session.query(DBArc).filter(DBArc.name == arc_name).first()
+
+            return db_arc.to_pydantic()
+
+        finally:
+            self.db_manager.close_session(session)
+
+    def get_arcs_before(self, arc: Arc) -> list[Arc]:
+        session = self.db_manager.get_session()
+        try:
+            if arc.name == "All":
+                arc_list = session.query(DBArc).all()
+            else:
+                # Use arc.chapter instead of arc.last_chapter since it's now a Pydantic model
+                arc_list = session.query(DBArc).filter(DBArc.last_chapter <= arc.chapter).all()
+
+            return [db_arc.to_pydantic() for db_arc in arc_list]
 
         finally:
             self.db_manager.close_session(session)
@@ -124,82 +192,6 @@ class Repository:
             session.commit()
 
             return character.to_pydantic()
-
-        finally:
-            self.db_manager.close_session(session)
-
-
-    def get_canon_characters(self, arc: Arc, difficulty_level: str,  include_unrated: bool, include_ignored: bool = False) -> list[Character]:
-        """
-        Get canon characters filtered by arc and difficulty using database-level filtering
-        """
-        session = self.db_manager.get_session()
-        try:
-            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated, include_ignored=include_ignored)
-            query = query.filter(DBCharacter.filler_status.ilike("canon"))
-
-            characters = query.all()
-            return [char.to_pydantic() for char in characters]
-
-        finally:
-            self.db_manager.close_session(session)
-
-
-    def get_filler_characters(self, arc: Arc, difficulty_level: str,  include_unrated: bool, include_ignored: bool = False) -> list[Character]:
-        """
-        Get filler characters filtered by arc and difficulty using database-level filtering
-        """
-        session = self.db_manager.get_session()
-        try:
-            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated, include_ignored=include_ignored)
-            query = query.filter(DBCharacter.filler_status.ilike("filler"))
-
-            characters = query.all()
-            return [char.to_pydantic() for char in characters]
-
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_non_canon_characters(self, arc: Arc, difficulty_level: str,  include_unrated: bool, include_ignored: bool = False) -> list[Character]:
-        """
-        Get non-canon characters (everything except canon) filtered by arc and difficulty
-        """
-        session = self.db_manager.get_session()
-        try:
-            query = self._build_base_query(session, arc, difficulty_level, include_unrated=include_unrated, include_ignored=include_ignored)
-            query = query.filter(~DBCharacter.filler_status.ilike("canon"))
-
-            characters = query.all()
-            return [char.to_pydantic() for char in characters]
-
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_arc_by_name(self, arc_name: str) -> Arc:
-        """Return the Arc object, not just the name"""
-        session = self.db_manager.get_session()
-
-        try:
-            if arc_name == "All":
-                db_arc = DBArc(name="All")
-            else:
-                db_arc = session.query(DBArc).filter(DBArc.name == arc_name).first()
-
-            return db_arc.to_pydantic()
-
-        finally:
-            self.db_manager.close_session(session)
-
-    def get_arcs_before(self, arc: Arc) -> list[Arc]:
-        session = self.db_manager.get_session()
-        try:
-            if arc.name == "All":
-                arc_list = session.query(DBArc).all()
-            else:
-                # Use arc.chapter instead of arc.last_chapter since it's now a Pydantic model
-                arc_list = session.query(DBArc).filter(DBArc.last_chapter <= arc.chapter).all()
-
-            return [db_arc.to_pydantic() for db_arc in arc_list]
 
         finally:
             self.db_manager.close_session(session)

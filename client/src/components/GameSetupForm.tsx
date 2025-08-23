@@ -83,7 +83,7 @@ const GameSetupForm = ({
           <h3 className="text-xl font-semibold text-foreground">Character Difficulty</h3>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { id: "easy", label: "Easy", description: "Characters rated 1-2" },
+              { id: "easy", label: "Easy", description: "Characters rated 1-3" },
               { id: "medium", label: "Medium", description: "Characters rated 2-4" },
               { id: "hard", label: "Hard", description: "Characters rated 3-5" },
             ].map((level) => (

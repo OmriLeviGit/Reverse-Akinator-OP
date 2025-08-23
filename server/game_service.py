@@ -8,7 +8,31 @@ from server.pydantic_schemas.game_schemas import GameStartRequest
 
 from server.Repository import Repository
 
-# TODO make sure server brings several difficulties
+def get_difficulty_range(difficulty_level: str) -> list[str]:
+    """Map user-friendly difficulty to database difficulty ranges"""
+    difficulty_mapping = {
+        "easy": ["very easy", "easy", "medium"],
+        "medium": ["easy", "medium", "hard"],
+        "hard": ["medium", "hard", "really hard"]
+    }
+
+    if difficulty_level not in difficulty_mapping:
+        raise ValueError(f"Invalid difficulty level: {difficulty_level}")
+
+    return difficulty_mapping[difficulty_level]
+
+def get_difficulty_range(difficulty_level: str) -> list[str]:
+    """Map user-friendly difficulty to database difficulty ranges"""
+    difficulty_mapping = {
+        "easy": ["very easy", "easy", "medium"],
+        "medium": ["easy", "medium", "hard"],
+        "hard": ["medium", "hard", "really hard"]
+    }
+
+    if difficulty_level not in difficulty_mapping:
+        raise ValueError(f"Invalid difficulty level: {difficulty_level}")
+
+    return difficulty_mapping[difficulty_level]
 
 def start_game(request: GameStartRequest, session_mgr: SessionManager, repository: Repository) -> list[Character]:
     """Initialize a new game session"""
@@ -20,16 +44,17 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, repositor
     )
 
     arc = repository.get_arc_by_name(until_arc)
+    difficulty_range = get_difficulty_range(difficulty_level)
 
-    # Get all possible characters based on filters
-    canon_characters = repository.get_canon_characters(arc, difficulty_level, include_unrated)
+    # Get all possible characters based on filters - USE difficulty_range here
+    canon_characters = repository.get_canon_characters(arc, difficulty_range, include_unrated)
 
     filler_characters = []
     if filler_percentage > 0:
         if include_non_tv_fillers:
-            filler_characters = repository.get_non_canon_characters(arc, difficulty_level, include_unrated)
+            filler_characters = repository.get_non_canon_characters(arc, difficulty_range, include_unrated)
         else:
-            filler_characters = repository.get_filler_characters(arc, difficulty_level, include_unrated)
+            filler_characters = repository.get_filler_characters(arc, difficulty_range, include_unrated)
 
     # Validate we have characters available
     if not canon_characters and not filler_characters:
@@ -55,12 +80,12 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, repositor
     all_characters = canon_characters + filler_characters
     character_list = sorted(all_characters, key=lambda char: char.name)
 
-    # Create game settings
+    # Create game settings - keep difficulty_level for tracking purposes
     game_settings = {
         "arc_selection": until_arc,
         "filler_percentage": filler_percentage,
         "include_non_tv_fillers": include_non_tv_fillers,
-        "difficulty_level": difficulty_level,
+        "difficulty_level": difficulty_level,  # Keep the original user choice for tracking
         "include_unrated": include_unrated,
     }
 
