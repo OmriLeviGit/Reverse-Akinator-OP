@@ -25,6 +25,7 @@ class GameStartResponse(BaseModel):
 
 
 class GameQuestionRequest(BaseModel):
+    game_id: str = Field(alias="gameId")
     question: str
 
     class Config:
@@ -40,6 +41,7 @@ class GameQuestionResponse(BaseModel):
 
 
 class GameGuessRequest(BaseModel):
+    game_id: str = Field(alias="gameId")
     character_name: str = Field(alias="characterName")
 
     class Config:
@@ -56,10 +58,31 @@ class GameGuessResponse(BaseModel):
         populate_by_name = True
 
 
+class GameRevealRequest(BaseModel):
+    game_id: str = Field(alias="gameId")
+
+    class Config:
+        populate_by_name = True
+
+
 class GameRevealResponse(BaseModel):
     character: Character
     questions_asked: int = Field(alias="questionsAsked")
     guesses_made: int = Field(alias="guessesMade")
+
+    class Config:
+        populate_by_name = True
+
+
+class GameStatusRequest(BaseModel):
+    game_id: str = Field(alias="gameId")
+
+    class Config:
+        populate_by_name = True
+
+
+class GameStatusResponse(BaseModel):
+    is_valid_game: bool = Field(alias="isValidGame")
 
     class Config:
         populate_by_name = True

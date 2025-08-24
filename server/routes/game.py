@@ -9,7 +9,8 @@ from server.pydantic_schemas.game_schemas import (
     GameStartResponse, GameStartRequest,
     GameQuestionResponse, GameQuestionRequest,
     GameGuessResponse, GameGuessRequest,
-    GameRevealResponse
+    GameRevealResponse, GameRevealRequest,
+    GameStatusResponse, GameStatusRequest
 )
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -31,12 +32,21 @@ def start_game_route(request: GameStartRequest, session_mgr: SessionManager = De
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.post("/status", response_model=GameStatusResponse)
+def check_game_status(request: GameStatusRequest, session_mgr: SessionManager = Depends(get_session_manager)):
+    """Check if the provided game ID is valid and active"""
+    a = GameStatusResponse(
+        isValidGame=session_mgr.is_valid_game_session(request.game_id)
+    )
+    return a
+
+
 @router.post("/question", response_model=GameQuestionResponse)
 def ask_question_route(request: GameQuestionRequest, session_mgr: SessionManager = Depends(get_session_manager),
                        llm = Depends(get_llm)):
     try:
-        if not session_mgr.has_active_game():
-            raise HTTPException(status_code=400, detail="No active game session")
+        if not session_mgr.is_valid_game_session(request.game_id):
+            raise HTTPException(status_code=400, detail="Invalid or expired game session")
 
         answer = game_service.ask_question(request.question, session_mgr, llm)
 
@@ -52,8 +62,8 @@ def ask_question_route(request: GameQuestionRequest, session_mgr: SessionManager
 @router.post("/guess", response_model=GameGuessResponse)
 def make_guess_route(request: GameGuessRequest, session_mgr: SessionManager = Depends(get_session_manager)):
     try:
-        if not session_mgr.has_active_game():
-            raise HTTPException(status_code=400, detail="No active game session")
+        if not session_mgr.is_valid_game_session(request.game_id):
+            raise HTTPException(status_code=400, detail="Invalid or expired game session")
 
         result = game_service.make_guess(request.character_name, session_mgr)
 
@@ -74,10 +84,10 @@ def make_guess_route(request: GameGuessRequest, session_mgr: SessionManager = De
 
 
 @router.post("/reveal", response_model=GameRevealResponse)
-def reveal_character_route(session_mgr: SessionManager = Depends(get_session_manager)):
+def reveal_character_route(request: GameRevealRequest, session_mgr: SessionManager = Depends(get_session_manager)):
     try:
-        if not session_mgr.has_active_game():
-            raise HTTPException(status_code=400, detail="No active game session")
+        if not session_mgr.is_valid_game_session(request.game_id):
+            raise HTTPException(status_code=400, detail="Invalid or expired game session")
 
         character_data = session_mgr.get_target_character()
         questions_asked = session_mgr.get_questions_asked()

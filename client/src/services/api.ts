@@ -47,19 +47,20 @@ export const gameApi = {
     console.log("🎮 Game start response:", response.data);
     return response.data;
   },
-
-  askQuestion: async (question: string) => {
-    const response = await api.post("/game/question", { question });
+  checkGameStatus: async (gameId: string) => {
+    const response = await api.post("/game/status", { gameId });
     return response.data;
   },
-
-  makeGuess: async (characterName: string) => {
-    const response = await api.post("/game/guess", { characterName });
+  askQuestion: async (gameId: string, question: string) => {
+    const response = await api.post("/game/question", { gameId, question });
     return response.data;
   },
-
-  revealCharacter: async () => {
-    const response = await api.post("/game/reveal");
+  makeGuess: async (gameId: string, characterName: string) => {
+    const response = await api.post("/game/guess", { gameId, characterName });
+    return response.data;
+  },
+  revealCharacter: async (gameId: string) => {
+    const response = await api.post("/game/reveal", { gameId });
     return response.data;
   },
 };

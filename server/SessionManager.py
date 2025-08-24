@@ -50,6 +50,14 @@ class SessionManager:
         """Check if user has an active game"""
         return "current_game" in self.request.session
 
+    def is_valid_game_session(self, game_id: str) -> bool:
+        """Check if the provided game_id matches the current active game"""
+        if not self.has_active_game():
+            return False
+
+        current_game = self.request.session["current_game"]
+        return current_game.get("game_id") == game_id
+
     def get_current_game(self) -> dict | None:
         """Get current game data (returns None if no active game)"""
         return self.request.session.get("current_game")

@@ -29,7 +29,6 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
   const currentImagePath = usingFallback ? fallbackImagePath : characterImagePath;
 
   const handleImageError = () => {
-    console.log(`❌ Failed to load: ${character.name} - ${currentImagePath}`);
 
     // If we're already using fallback, show error
     if (usingFallback) {
@@ -39,7 +38,6 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
     }
 
     // Switch to fallback
-    console.log(`🔄 Trying fallback for: ${character.name}`);
     setUsingFallback(true);
     setImageLoaded(false);
     setImageError(false);

@@ -21,12 +21,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CharacterList } from "../components/game/CharacterList";
 import { ArrowUp } from "lucide-react";
+import { toast } from "sonner";
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
-  const { currentGameSession, askQuestion, makeGuess, revealCharacter } = useGameSession();
+  const { currentGameSession, askQuestion, makeGuess, revealCharacter, validateGameSession } = useGameSession();
   const { messages, addMessage, messagesEndRef } = useGameMessages(currentGameSession?.gameId);
+
   const [inputMessage, setInputMessage] = useState("");
   const [isProcessingChat, setIsProcessingChat] = useState(false);
   const [isProcessingGuess, setIsProcessingGuess] = useState(false);
@@ -34,10 +36,12 @@ const GameScreen: React.FC = () => {
   const [characterSearchTerm, setCharacterSearchTerm] = useState("");
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
+  const [isValidatingSession, setIsValidatingSession] = useState(true);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const gameCharacters = currentGameSession.characterPool;
+  // Use optional chaining to handle when currentGameSession might be null
+  const gameCharacters = currentGameSession?.characterPool || [];
 
   // Use the character search hook with game characters
   const filteredCharacters = useCharacterSearch({
@@ -62,6 +66,47 @@ const GameScreen: React.FC = () => {
     }
   };
 
+  const handleMaxArcChange = (arcName: string) => {
+    setGlobalArcLimit(arcName);
+    localStorage.setItem("globalArcLimit", arcName);
+    updateGlobalArcLimit(arcName);
+  };
+
+  // Validate game session on component mount
+  useEffect(() => {
+    console.log("in use effect", isInitialLoad);
+    const checkGameSession = async () => {
+      setIsValidatingSession(true);
+      console.log("game session: ", currentGameSession);
+
+      if (!currentGameSession?.gameId) {
+        navigate("/");
+        return;
+      }
+
+      try {
+        const isValid = await validateGameSession();
+        if (!isValid) {
+          toast.error("Game session expired. Please start a new game.");
+          navigate("/");
+          return;
+        }
+      } catch (error) {
+        console.error("Error validating game session:", error);
+        toast.error("Unable to verify game session. Please start a new game.");
+        navigate("/");
+        return;
+      } finally {
+        setIsValidatingSession(false);
+        setIsInitialLoad(false);
+      }
+    };
+
+    if (isInitialLoad) {
+      checkGameSession();
+    }
+  }, [isInitialLoad, currentGameSession?.gameId, validateGameSession, navigate]);
+
   // Initialize globalArcLimit from sessionData
   useEffect(() => {
     console.log("session", sessionData);
@@ -84,19 +129,18 @@ const GameScreen: React.FC = () => {
     }
   }, [isProcessingChat, pendingGuess]);
 
-  // Redirect to home if no active game session
-  useEffect(() => {
-    if (isInitialLoad) {
-      setIsInitialLoad(false);
-      return;
-    }
+  // Don't render until validation is complete
+  if (isValidatingSession || isInitialLoad) {
+    return (
+      <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+        <div className="container mx-auto px-6 py-4 max-w-7xl flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
+    );
+  }
 
-    if (!currentGameSession?.isActive) {
-      navigate("/");
-    }
-  }, [currentGameSession, navigate, isInitialLoad]);
-
-  // Don't render anything if no game session
+  // Don't render if no game session after validation
   if (!currentGameSession?.isActive) {
     return null;
   }
@@ -200,12 +244,6 @@ const GameScreen: React.FC = () => {
     } catch (error) {
       console.error("❌ Failed to reveal character:", error);
     }
-  };
-
-  const handleMaxArcChange = (arcName: string) => {
-    setGlobalArcLimit(arcName);
-    localStorage.setItem("globalArcLimit", arcName);
-    updateGlobalArcLimit(arcName);
   };
 
   return (
