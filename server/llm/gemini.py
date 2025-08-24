@@ -1,6 +1,4 @@
-import os
 import google.generativeai as genai
-from dotenv import load_dotenv, find_dotenv
 from .llm_interface import LLMInterface
 
 
@@ -8,28 +6,20 @@ class GeminiLLM(LLMInterface):
     """Gemini LLM implementation."""
 
     def __init__(self, model_name: str = 'gemini-1.5-flash'):
-        load_dotenv(find_dotenv())
-        api_key = os.getenv('GEMINI_API_KEY')
+        super().__init__()  # This now handles environment loading
 
-        if not api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
-
+        api_key = self._get_required_env_var('GEMINI_API_KEY')
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
 
-    def query(self, prompt: str) -> str:
-        """Query the Gemini API."""
+    def query(self, prompt: str, user_identifier: str = None, max_requests: int = 10, window_seconds: int = 60) -> str:
+        """Query the Gemini API with rate limiting."""
+
+        if user_identifier and self._is_rate_limited(user_identifier, max_requests, window_seconds):
+            raise RuntimeError("Rate limit exceeded. Please wait before making another request.")
+
         try:
             response = self.model.generate_content(prompt)
             return response.candidates[0].content.parts[0].text
         except Exception as e:
             raise RuntimeError(f"Error querying Gemini: {e}")
-
-    def is_available(self) -> bool:
-        """Check if Gemini API is available."""
-        try:
-            # Simple test query
-            self.model.generate_content("Hello")
-            return True
-        except:
-            return False

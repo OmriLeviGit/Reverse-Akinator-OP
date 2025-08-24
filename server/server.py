@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 import os
 
 import uvicorn
+from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
@@ -14,7 +15,6 @@ from server.llm.gemini import GeminiLLM
 from server.routes import session
 from server.routes.game import router as game_router
 from server.routes.characters import router as characters_router
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

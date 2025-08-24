@@ -21,19 +21,6 @@ def get_difficulty_range(difficulty_level: str) -> list[str]:
 
     return difficulty_mapping[difficulty_level]
 
-def get_difficulty_range(difficulty_level: str) -> list[str]:
-    """Map user-friendly difficulty to database difficulty ranges"""
-    difficulty_mapping = {
-        "easy": ["very easy", "easy", "medium"],
-        "medium": ["easy", "medium", "hard"],
-        "hard": ["medium", "hard", "really hard"]
-    }
-
-    if difficulty_level not in difficulty_mapping:
-        raise ValueError(f"Invalid difficulty level: {difficulty_level}")
-
-    return difficulty_mapping[difficulty_level]
-
 def start_game(request: GameStartRequest, session_mgr: SessionManager, repository: Repository) -> list[Character]:
     """Initialize a new game session"""
 
