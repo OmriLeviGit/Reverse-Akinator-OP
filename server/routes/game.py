@@ -1,4 +1,6 @@
 # server/routes/game.py
+from time import sleep
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from server import game_service

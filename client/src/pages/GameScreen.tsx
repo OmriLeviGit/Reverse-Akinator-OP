@@ -58,11 +58,12 @@ const GameScreen: React.FC = () => {
     }
   };
 
-  // Helper to ensure response waits 500ms from user message
+  // Helper to ensure response waits from user message
   const waitForMinimumDelay = async (userMessageTime: number) => {
     const elapsed = Date.now() - userMessageTime;
-    if (elapsed < 500) {
-      await new Promise((resolve) => setTimeout(resolve, 500 - elapsed));
+    const duration = 1000;
+    if (elapsed < duration) {
+      await new Promise((resolve) => setTimeout(resolve, duration - elapsed));
     }
   };
 
@@ -278,19 +279,19 @@ const GameScreen: React.FC = () => {
                   {(isProcessingChat || isProcessingGuess) && (
                     <div className="flex justify-start">
                       <div className="bg-muted text-muted-foreground rounded-lg px-3 sm:px-4 py-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-muted-foreground"></div>
-                          <span className="text-sm">Thinking...</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {pendingGuess && (
-                    <div className="flex justify-start">
-                      <div className="bg-yellow-100 text-yellow-800 rounded-lg px-3 sm:px-4 py-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="animate-pulse rounded-full h-2 w-2 bg-yellow-600"></div>
-                          <span className="text-sm">Guess pending...</span>
+                        <div className="flex items-center justify-center space-x-1">
+                          <div
+                            className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"
+                            style={{ animationDelay: "0s", animationDuration: "1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"
+                            style={{ animationDelay: "0.2s", animationDuration: "1s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"
+                            style={{ animationDelay: "0.4s", animationDuration: "1s" }}
+                          ></div>
                         </div>
                       </div>
                     </div>
