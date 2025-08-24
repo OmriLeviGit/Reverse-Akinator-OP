@@ -1,5 +1,7 @@
 import random
 
+from pyasn1_modules.rfc4357 import cryptographic_Gost_Useful_Definitions
+
 from server.SessionManager import SessionManager
 from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
@@ -61,23 +63,31 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, repositor
     else:
         raise ValueError("No valid characters available for selection")
 
+    # # Override character
+    # for c in canon_characters:
+    #     name = "cavendish"
+    #     if name.lower() in c.name.lower():
+    #         chosen_character = c
+    #         break
+
     print(f"Chosen character: {chosen_character.name}")
 
     # Combine and sort all possible characters
     all_characters = canon_characters + filler_characters
     character_list = sorted(all_characters, key=lambda char: char.name)
 
-    # Create game settings - keep difficulty_level for tracking purposes
     game_settings = {
         "arc_selection": until_arc,
         "filler_percentage": filler_percentage,
         "include_non_tv_fillers": include_non_tv_fillers,
-        "difficulty_level": difficulty_level,  # Keep the original user choice for tracking
+        "difficulty_level": difficulty_level,
         "include_unrated": include_unrated,
     }
 
     prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
     session_mgr.start_new_game(chosen_character, game_settings, prompt)
+
+    print(f"Game ID: {session_mgr.get_game_id()}")
 
     return character_list
 

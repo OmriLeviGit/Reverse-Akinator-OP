@@ -19,7 +19,6 @@ router = APIRouter(prefix="/api/game", tags=["game"])
 def start_game_route(request: GameStartRequest, session_mgr: SessionManager = Depends(get_session_manager),
                      repository = Depends(get_repository)):
     try:
-        print(request)
         character_pool = game_service.start_game(request, session_mgr, repository)
 
         return GameStartResponse(

@@ -18,7 +18,6 @@ export const useCharacters = () => {
 
   useEffect(() => {
     if (isLoadingCharacters) {
-      console.log("🔄 Loading characters in background...");
     } else if (allCharacters.length > 0) {
       console.log(
         `✅ Characters loaded: ${allCharacters.length} characters available (up to arc: ${

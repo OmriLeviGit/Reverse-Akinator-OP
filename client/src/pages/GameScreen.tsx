@@ -20,13 +20,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CharacterList } from "../components/game/CharacterList";
+import { ArrowUp } from "lucide-react";
 
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
   const { currentGameSession, askQuestion, makeGuess, revealCharacter } = useGameSession();
-  const { messages, addMessage, messagesEndRef } = useGameMessages();
-
+  const { messages, addMessage, messagesEndRef } = useGameMessages(currentGameSession?.gameId);
   const [inputMessage, setInputMessage] = useState("");
   const [isProcessingChat, setIsProcessingChat] = useState(false);
   const [isProcessingGuess, setIsProcessingGuess] = useState(false);
@@ -64,6 +64,7 @@ const GameScreen: React.FC = () => {
 
   // Initialize globalArcLimit from sessionData
   useEffect(() => {
+    console.log("session", sessionData);
     if (sessionData?.globalArcLimit) {
       setGlobalArcLimit(sessionData.globalArcLimit);
     }
@@ -262,7 +263,7 @@ const GameScreen: React.FC = () => {
 
               {/* Input Area - Fixed at bottom */}
               <div className="p-3 sm:p-4 border-t border-border/40 flex-shrink-0">
-                <div className="flex space-x-2 items-end">
+                <div className="flex space-x-2 items-center">
                   <Textarea
                     ref={textareaRef}
                     value={inputMessage}
@@ -285,9 +286,9 @@ const GameScreen: React.FC = () => {
                     onClick={handleSendMessage}
                     disabled={isProcessingChat || !inputMessage.trim()}
                     size="sm"
-                    className="px-3 sm:px-4"
+                    className="w-[35px] h-[35px] p-0 flex items-center justify-center"
                   >
-                    Send
+                    <ArrowUp className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
