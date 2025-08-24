@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 
 export interface Message {
   id: string;
@@ -11,22 +10,23 @@ export interface Message {
 export const useGameMessages = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      text: 'Welcome to the One Piece Character Guessing Game! I\'m thinking of a character. Try to guess who it is!',
+      id: "1",
+      text: "Welcome to the One Piece Character Guessing Game! I'm thinking of a character. Try to guess who it is!",
       isUser: false,
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToTop = () => {
+  const scrollToBottom = () => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
 
   useEffect(() => {
-    scrollToTop();
+    scrollToBottom();
   }, [messages]);
 
   const addMessage = (text: string, isUser: boolean) => {
@@ -34,14 +34,14 @@ export const useGameMessages = () => {
       id: Date.now().toString(),
       text,
       isUser,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    setMessages(prev => [newMessage, ...prev]);
+    setMessages((prev) => [...prev, newMessage]); // Add to end instead of beginning
   };
 
   return {
     messages,
     addMessage,
-    messagesEndRef
+    messagesEndRef,
   };
 };

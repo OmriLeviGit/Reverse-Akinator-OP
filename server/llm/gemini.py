@@ -1,3 +1,5 @@
+from time import sleep
+
 import google.generativeai as genai
 from .llm_interface import LLMInterface
 

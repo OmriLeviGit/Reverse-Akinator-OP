@@ -10,7 +10,6 @@ interface CharacterListProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   onCharacterSelect: (characterName: string) => void;
-  disabled?: boolean;
 }
 
 export const CharacterList: React.FC<CharacterListProps> = ({
@@ -19,7 +18,6 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   searchTerm,
   onSearchChange,
   onCharacterSelect,
-  disabled = false,
 }) => {
   return (
     <>
@@ -31,10 +29,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           className="text-sm"
-          disabled={disabled}
         />
       </div>
-
       {/* Scrollable Character List */}
       <ScrollArea className="flex-1 px-4">
         <div className="py-4 space-y-2">
@@ -45,12 +41,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
             </div>
           ) : characters.length > 0 ? (
             characters.map((character, index) => (
-              <CharacterListItem
-                key={character.id || index}
-                character={character}
-                onSelect={onCharacterSelect}
-                disabled={disabled}
-              />
+              <CharacterListItem key={character.id || index} character={character} onSelect={onCharacterSelect} />
             ))
           ) : (
             <p className="text-xs text-muted-foreground text-center py-8">No characters found</p>
