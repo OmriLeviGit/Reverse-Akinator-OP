@@ -1,14 +1,14 @@
+# server/game_service.py - Updated to use GameManager
 import random
-
-from pyasn1_modules.rfc4357 import cryptographic_Gost_Useful_Definitions
+from datetime import datetime
 
 from server.SessionManager import SessionManager
+from server.GameManager import GameManager
 from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
-
 from server.pydantic_schemas.game_schemas import GameStartRequest
-
 from server.Repository import Repository
+
 
 def get_difficulty_range(difficulty_level: str) -> list[str]:
     """Map user-friendly difficulty to database difficulty ranges"""
@@ -23,7 +23,9 @@ def get_difficulty_range(difficulty_level: str) -> list[str]:
 
     return difficulty_mapping[difficulty_level]
 
-def start_game(request: GameStartRequest, session_mgr: SessionManager, repository: Repository) -> list[Character]:
+
+def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager, repository: Repository) -> \
+list[Character]:
     """Initialize a new game session"""
 
     # Extract request parameters
@@ -35,7 +37,7 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, repositor
     arc = repository.get_arc_by_name(until_arc)
     difficulty_range = get_difficulty_range(difficulty_level)
 
-    # Get all possible characters based on filters - USE difficulty_range here
+    # Get all possible characters based on filters
     canon_characters = repository.get_canon_characters(arc, difficulty_range, include_unrated)
 
     filler_characters = []
@@ -63,13 +65,6 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, repositor
     else:
         raise ValueError("No valid characters available for selection")
 
-    # # Override character
-    # for c in canon_characters:
-    #     name = "cavendish"
-    #     if name.lower() in c.name.lower():
-    #         chosen_character = c
-    #         break
-
     print(f"Chosen character: {chosen_character.name}")
 
     # Combine and sort all possible characters
@@ -84,31 +79,43 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, repositor
         "include_unrated": include_unrated,
     }
 
+    # Create game ID and prompt
+    game_id = f"game_{datetime.now().timestamp()}"
     prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
-    session_mgr.start_new_game(chosen_character, game_settings, prompt)
 
-    print(f"Game ID: {session_mgr.get_game_id()}")
+    # Store sensitive data in Redis via GameManager
+    game_mgr.create_game(game_id, chosen_character.model_dump(), prompt)
+
+    # Store non-sensitive metadata in session
+    session_mgr.start_new_game_session(game_id, game_settings)
+
+    print(f"Game ID: {game_id}")
 
     return character_list
 
 
-def ask_question(question: str, session_mgr: SessionManager, llm) -> str:
+def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
             raise ValueError("No active game session")
 
-        # Add user question to conversation
-        session_mgr.add_conversation_message("user", question)
+        game_id = session_mgr.get_game_id()
 
-        # Get current conversation for context
-        conversation = session_mgr.get_conversation()
+        # Add user question to conversation in Redis
+        game_mgr.add_conversation_message(game_id, "user", question)
+
+        # Get current conversation for context from Redis
+        conversation = game_mgr.get_conversation(game_id)
 
         conversation_text = "\n".join([f"{msg['role']}: {msg['content']}" for msg in conversation])
         response = llm.query(conversation_text)
 
-        # Add AI response to conversation
-        session_mgr.add_conversation_message("assistant", response)
+        # Add AI response to conversation in Redis
+        game_mgr.add_conversation_message(game_id, "assistant", response)
+
+        # Update question counter in session
+        session_mgr.increment_questions_asked()
 
         return response
 
@@ -116,25 +123,33 @@ def ask_question(question: str, session_mgr: SessionManager, llm) -> str:
         raise ValueError(f"Error processing question: {str(e)}")
 
 
-def make_guess(character_name: str, session_mgr: SessionManager) -> dict:
+def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameManager) -> dict:
     """Process a character guess"""
     try:
         if not session_mgr.has_active_game():
             raise ValueError("No active game session")
 
-        target_character = session_mgr.get_target_character()
+        game_id = session_mgr.get_game_id()
+
+        # Get target character from Redis
+        target_character = game_mgr.get_target_character(game_id)
         is_correct = character_name.lower() == target_character["name"].lower()
 
-        # Get stats before ending game
+        # Get stats from session before updating
         questions_asked = session_mgr.get_questions_asked()
         guesses_made = session_mgr.get_guess_count() + 1  # +1 for current guess
 
-        # Record the guess
-        session_mgr.add_guess(character_name, is_correct)
+        # Record the guess in Redis
+        game_mgr.add_guess(game_id, character_name, is_correct)
+
+        # Update guess counter in session
+        session_mgr.increment_guesses_made()
 
         if is_correct:
-            # End game and return full results
+            # Clean up - delete from both Redis and session
+            game_mgr.delete_game(game_id)
             session_mgr.end_game()
+
             return {
                 "is_correct": True,
                 "character": target_character,

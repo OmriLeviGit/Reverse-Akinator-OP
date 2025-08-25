@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 import os
 
+import redis
 import uvicorn
 from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
@@ -16,15 +17,35 @@ from server.routes import session
 from server.routes.game import router as game_router
 from server.routes.characters import router as characters_router
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application starting up...")
-    app.state.llm = GeminiLLM('gemini-1.5-flash')  # type: ignore
-    app.state.repository = Repository()  # type: ignore
+    app.state.llm = GeminiLLM('gemini-1.5-flash')
+    app.state.repository = Repository()
+
+    # Use environment variables for Redis connection
+    redis_host = os.getenv('REDIS_HOST', 'localhost')
+    redis_port = int(os.getenv('REDIS_PORT', 6379))
+
+    app.state.redis_client = redis.Redis(
+        host=redis_host,
+        port=redis_port,
+        db=0,
+        decode_responses=True
+    )
+
+    try:
+        app.state.redis_client.ping()
+        print(f"Connected to Redis at {redis_host}:{redis_port}")
+    except redis.ConnectionError:
+        print("WARNING: Could not connect to Redis. Game functionality will not work.")
 
     yield
 
     print("Application shutting down...")
+    if hasattr(app.state, 'redis_client'):
+        app.state.redis_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
