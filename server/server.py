@@ -1,9 +1,9 @@
+import secrets
 from contextlib import asynccontextmanager
 import os
 
 import redis
 import uvicorn
-from dotenv import load_dotenv, find_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import HTTPException
@@ -57,7 +57,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(SessionMiddleware, secret_key="key")
+app.add_middleware(SessionMiddleware, secret_key=secrets.token_urlsafe(32))
 
 # Include API routes
 app.include_router(session.router)

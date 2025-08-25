@@ -23,8 +23,13 @@ class SessionManager:
         })
 
     def get_safe_session_data(self) -> dict:
-        """Get all session data - now truly safe since no sensitive data stored"""
-        return dict(self.request.session)
+        """Get all session data - only truly safe data for frontend"""
+        session_copy = dict(self.request.session)
+
+        # Remove game data - frontend doesn't need this from session endpoint
+        session_copy.pop("current_game", None)
+
+        return session_copy
 
     # ===== GLOBAL SPOILER SETTINGS =====
     def get_global_arc_limit(self) -> Arc:
@@ -39,14 +44,25 @@ class SessionManager:
     # ===== SIMPLE GAME STATE MANAGEMENT =====
     def has_active_game(self) -> bool:
         """Check if user has an active game"""
-        return "current_game" in self.request.session
+        has_game = "current_game" in self.request.session
+        print(f"🔍 has_active_game check:")
+        print(f"   Session keys: {list(self.request.session.keys())}")
+        print(f"   Has current_game: {has_game}")
+        if has_game:
+            current_game = self.request.session["current_game"]
+            print(f"   Current game data: {current_game}")
+        return has_game
 
     def is_valid_game_session(self, game_id: str) -> bool:
         """Check if the provided game_id matches the current active game"""
         if not self.has_active_game():
+            print(f"❌ No active game for validation")
             return False
         current_game = self.request.session["current_game"]
-        return current_game.get("game_id") == game_id
+        is_valid = current_game.get("game_id") == game_id
+        print(
+            f"🎮 Game validation: session_game_id={current_game.get('game_id')}, requested_game_id={game_id}, valid={is_valid}")
+        return is_valid
 
     def get_current_game_metadata(self) -> dict | None:
         """Get current game metadata (non-sensitive data only)"""

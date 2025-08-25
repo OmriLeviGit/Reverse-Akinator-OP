@@ -26,7 +26,14 @@ import { toast } from "sonner";
 const GameScreen: React.FC = () => {
   const navigate = useNavigate();
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
-  const { currentGameSession, askQuestion, makeGuess, revealCharacter, validateGameSession } = useGameSession();
+  const {
+    currentGameSession,
+    askQuestion,
+    makeGuess,
+    revealCharacter,
+    validateSessionOnPageLoad,
+    isValidatingSession,
+  } = useGameSession();
   const { messages, addMessage, messagesEndRef } = useGameMessages(currentGameSession?.gameId);
 
   const [inputMessage, setInputMessage] = useState("");
@@ -34,9 +41,8 @@ const GameScreen: React.FC = () => {
   const [isProcessingGuess, setIsProcessingGuess] = useState(false);
   const [globalArcLimit, setGlobalArcLimit] = useState<string>("All");
   const [characterSearchTerm, setCharacterSearchTerm] = useState("");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
-  const [isValidatingSession, setIsValidatingSession] = useState(true);
+  const [hasValidated, setHasValidated] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -73,44 +79,31 @@ const GameScreen: React.FC = () => {
     updateGlobalArcLimit(arcName);
   };
 
-  // Validate game session on component mount
+  // VALIDATION - Only runs ONCE on initial mount
   useEffect(() => {
-    console.log("in use effect", isInitialLoad);
-    const checkGameSession = async () => {
-      setIsValidatingSession(true);
-      console.log("game session: ", currentGameSession);
+    const validate = async () => {
+      if (hasValidated) return;
 
-      if (!currentGameSession?.gameId) {
-        navigate("/");
-        return;
+      const isValid = await validateSessionOnPageLoad();
+      if (isValid) {
+        setHasValidated(true);
       }
-
-      try {
-        const isValid = await validateGameSession();
-        if (!isValid) {
-          toast.error("Game session expired. Please start a new game.");
-          navigate("/");
-          return;
-        }
-      } catch (error) {
-        console.error("Error validating game session:", error);
-        toast.error("Unable to verify game session. Please start a new game.");
-        navigate("/");
-        return;
-      } finally {
-        setIsValidatingSession(false);
-        setIsInitialLoad(false);
-      }
+      // If invalid, validateSessionOnPageLoad already handled navigation/toast
     };
 
-    if (isInitialLoad) {
-      checkGameSession();
+    validate();
+  }, []); // Empty dependency array
+
+  // Separate effect to handle when currentGameSession changes (like when it becomes null)
+  useEffect(() => {
+    if (!currentGameSession?.gameId && !isValidatingSession) {
+      toast.error("No active game session. Please start a new game.");
+      navigate("/");
     }
-  }, [isInitialLoad, currentGameSession?.gameId, validateGameSession, navigate]);
+  }, [currentGameSession?.gameId, isValidatingSession, navigate]);
 
   // Initialize globalArcLimit from sessionData
   useEffect(() => {
-    console.log("session", sessionData);
     if (sessionData?.globalArcLimit) {
       setGlobalArcLimit(sessionData.globalArcLimit);
     }
@@ -124,18 +117,18 @@ const GameScreen: React.FC = () => {
   // Handle pending guess after chat processing completes
   useEffect(() => {
     if (!isProcessingChat && pendingGuess) {
-      // Now process the pending guess
       handleGuessExecution(pendingGuess);
       setPendingGuess(null);
     }
   }, [isProcessingChat, pendingGuess]);
 
-  // Don't render until validation is complete
-  if (isValidatingSession || isInitialLoad) {
+  // Show loading while validating
+  if (isValidatingSession) {
     return (
       <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
         <div className="container mx-auto px-6 py-4 max-w-7xl flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2">Validating game session...</span>
         </div>
       </Layout>
     );
@@ -155,14 +148,19 @@ const GameScreen: React.FC = () => {
     const cleanedMessage = inputMessage.replace(/\n\s*\n+/g, "\n").trim();
 
     addMessage(cleanedMessage, true);
-    const userMessageTime = Date.now(); // Track when user sent message
+    const userMessageTime = Date.now();
     const userInput = cleanedMessage;
     setInputMessage("");
 
     try {
       const answer = await askQuestion(userInput);
 
-      // Wait at least 500ms from when user sent the message
+      // If askQuestion returned empty string, it means session was invalid and handled
+      if (answer === "") {
+        return;
+      }
+
+      // Wait at least 1000ms from when user sent the message
       await waitForMinimumDelay(userMessageTime);
       addMessage(answer, false);
 
@@ -173,7 +171,7 @@ const GameScreen: React.FC = () => {
     } catch (error) {
       console.error("Error processing message:", error);
 
-      // Wait at least 500ms from when user sent the message
+      // Wait at least 1000ms from when user sent the message
       await waitForMinimumDelay(userMessageTime);
       addMessage("Sorry, there was an error processing your message. Please try again.", false);
 
@@ -189,10 +187,19 @@ const GameScreen: React.FC = () => {
   const handleGuessExecution = async (characterName: string) => {
     setIsProcessingGuess(true);
     addMessage(`I guess it's ${characterName}!`, true);
-    const userGuessTime = Date.now(); // Track when user made guess
+    const userGuessTime = Date.now();
 
     try {
       const guessResult = await makeGuess(characterName);
+
+      // If makeGuess returned { isCorrect: false } with no other data,
+      // it might mean session was invalid and handled
+      if (!guessResult || (guessResult.isCorrect === false && !guessResult.character)) {
+        // Check if this was due to session invalidation
+        if (!currentGameSession?.gameId) {
+          return; // Session was cleared, component will unmount/redirect
+        }
+      }
 
       if (guessResult.isCorrect) {
         navigate("/reveal", {
@@ -204,7 +211,7 @@ const GameScreen: React.FC = () => {
           },
         });
       } else {
-        // Wait at least 500ms from when user made the guess
+        // Wait at least 1000ms from when user made the guess
         await waitForMinimumDelay(userGuessTime);
         addMessage(
           `Sorry, that's not correct. The character is not ${characterName}. Try asking more questions!`,
@@ -214,7 +221,7 @@ const GameScreen: React.FC = () => {
     } catch (error) {
       console.error("Error making guess:", error);
 
-      // Wait at least 500ms from when user made the guess
+      // Wait at least 1000ms from when user made the guess
       await waitForMinimumDelay(userGuessTime);
       addMessage("Sorry, there was an error processing your guess. Please try again.", false);
     } finally {
@@ -223,21 +230,25 @@ const GameScreen: React.FC = () => {
   };
 
   const handleCharacterSelect = async (characterName: string) => {
-    if (isProcessingGuess) return; // Prevent multiple guesses
+    if (isProcessingGuess) return;
 
     if (isProcessingChat) {
-      // If chat is processing, queue the guess
       setPendingGuess(characterName);
       return;
     }
 
-    // If no chat processing, execute immediately
     handleGuessExecution(characterName);
   };
 
   const handleRevealCharacter = async () => {
     try {
       const result = await revealCharacter();
+
+      // If revealCharacter returned null, session was invalid and handled
+      if (!result) {
+        return;
+      }
+
       console.log("✅ Character revealed:", result);
       navigate("/reveal", {
         state: result,

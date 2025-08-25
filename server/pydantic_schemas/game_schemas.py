@@ -73,13 +73,11 @@ class GameRevealResponse(BaseModel):
     class Config:
         populate_by_name = True
 
-
 class GameStatusRequest(BaseModel):
     game_id: str = Field(alias="gameId")
 
     class Config:
         populate_by_name = True
-
 
 class GameStatusResponse(BaseModel):
     is_valid_game: bool = Field(alias="isValidGame")

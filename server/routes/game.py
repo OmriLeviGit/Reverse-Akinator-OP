@@ -10,8 +10,7 @@ from server.pydantic_schemas.game_schemas import (
     GameStartResponse, GameStartRequest,
     GameQuestionResponse, GameQuestionRequest,
     GameGuessResponse, GameGuessRequest,
-    GameRevealResponse, GameRevealRequest,
-    GameStatusResponse, GameStatusRequest
+    GameRevealResponse, GameRevealRequest, GameStatusResponse, GameStatusRequest,
 )
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -19,14 +18,31 @@ router = APIRouter(prefix="/api/game", tags=["game"])
 
 def validate_game_session(session_mgr: SessionManager, game_mgr: GameManager, game_id: str):
     """Helper function to validate game session across both managers"""
-    if not session_mgr.has_active_game():
+    print(f"\n🔍 === VALIDATING GAME SESSION ===")
+    print(f"Requested game_id: {game_id}")
+
+    has_active = session_mgr.has_active_game()
+    print(f"Step 1 - Has active game: {has_active}")
+
+    if not has_active:
+        print("❌ SHOULD FAIL HERE - No active game session")
         raise HTTPException(status_code=400, detail="No active game session")
 
-    if not session_mgr.is_valid_game_session(game_id):
+    is_valid_session = session_mgr.is_valid_game_session(game_id)
+    print(f"Step 2 - Valid game session: {is_valid_session}")
+
+    if not is_valid_session:
+        print("❌ SHOULD FAIL HERE - Game ID mismatch with session")
         raise HTTPException(status_code=400, detail="Game ID mismatch with session")
 
-    if not game_mgr.game_exists(game_id):
+    game_exists = game_mgr.game_exists(game_id)
+    print(f"Step 3 - Game exists in Redis: {game_exists}")
+
+    if not game_exists:
+        print("❌ SHOULD FAIL HERE - Game data not found")
         raise HTTPException(status_code=400, detail="Game data not found")
+
+    print("✅ All validations passed")
 
 
 @router.post("/start", response_model=GameStartResponse)
@@ -46,18 +62,18 @@ def start_game_route(request: GameStartRequest,
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
-@router.post("/status", response_model=GameStatusResponse)
-def check_game_status(request: GameStatusRequest,
-                      session_mgr: SessionManager = Depends(get_session_manager),
-                      game_mgr: GameManager = Depends(get_game_manager)):
-    """Check if the provided game ID is valid and active"""
-    is_valid = (session_mgr.has_active_game() and
-                session_mgr.is_valid_game_session(request.game_id) and
-                game_mgr.game_exists(request.game_id))
-
-    return GameStatusResponse(isValidGame=is_valid)
-
+@router.post("/validate", response_model=GameStatusResponse)
+def validate_game_session_route(request: GameStatusRequest,
+                                session_mgr: SessionManager = Depends(get_session_manager),
+                                game_mgr: GameManager = Depends(get_game_manager)):
+    """Validate if game session is still active across both session and Redis"""
+    try:
+        # Use our existing validation helper
+        validate_game_session(session_mgr, game_mgr, request.game_id)
+        return GameStatusResponse(isValidGame=True)
+    except HTTPException:
+        # If validation fails, return false instead of raising exception
+        return GameStatusResponse(isValidGame=False)
 
 @router.post("/question", response_model=GameQuestionResponse)
 def ask_question_route(request: GameQuestionRequest,

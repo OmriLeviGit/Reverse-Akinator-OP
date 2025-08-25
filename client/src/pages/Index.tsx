@@ -47,15 +47,13 @@ const Index = () => {
     const currentPreferredArc = preferences.preferredArc || globalArcLimit;
     const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit);
 
-    console.log("🔍 Arc spoiler check:", {
-      currentPreferredArc,
-      globalArcLimit,
-      safeArc,
-    });
-
     // Only update if the safe arc is different from current preference
     if (safeArc !== preferences.preferredArc) {
-      console.log("📝 Updating preferredArc due to spoiler protection:", safeArc);
+      console.log("🔍 Arc spoiler check:", {
+        currentPreferredArc,
+        globalArcLimit,
+        safeArc,
+      });
       updatePreferences({ preferredArc: safeArc });
     }
   }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences]);
