@@ -73,7 +73,6 @@ export const useGameSession = () => {
       return gameSession;
     } catch (error) {
       console.error("Failed to start game:", error);
-      toast.error("Failed to start game. Please try again.");
       throw error;
     }
   };
@@ -103,7 +102,6 @@ export const useGameSession = () => {
         }
       }
 
-      toast.error("Failed to ask question. Please try again.");
       throw error;
     }
   };
@@ -133,7 +131,6 @@ export const useGameSession = () => {
         }
       }
 
-      toast.error("Failed to make guess. Please try again.");
       throw error;
     }
   };
@@ -164,7 +161,6 @@ export const useGameSession = () => {
         }
       }
 
-      toast.error("Failed to reveal character. Please try again.");
       throw error;
     }
   };
