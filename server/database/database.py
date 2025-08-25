@@ -10,7 +10,7 @@ import sys
 
 from server.database.db_models import DBCharacter, DBArc, Base
 
-BASE_DIR = Path(__file__).parent  # Use pathlib.Path
+BASE_DIR = Path(__file__).parent
 sys.path.append(str(BASE_DIR.parent))
 
 
@@ -28,7 +28,7 @@ class DatabaseManager:
             return
 
         # Database configuration
-        self.database_url = f"sqlite:///{os.path.join(BASE_DIR, 'app.db')}"
+        self.database_url = f"sqlite:///{os.path.join(BASE_DIR, 'data', 'app.db')}"
 
         # Create engine and session factory
         self.engine = create_engine(self.database_url)
