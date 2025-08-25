@@ -1,9 +1,10 @@
-# server/SessionManager.py - Updated version
+# server/SessionManager.py
 from datetime import datetime
 from fastapi import Request
 
 from server.Repository import Repository
 from server.pydantic_schemas.arc_schemas import Arc
+
 
 class SessionManager:
     def __init__(self, request: Request):
@@ -23,11 +24,8 @@ class SessionManager:
         })
 
     def get_safe_session_data(self) -> dict:
-        """Get all session data - only truly safe data for frontend"""
+        """Get all session data - only user preferences and session metadata"""
         session_copy = dict(self.request.session)
-
-        # Remove game data - frontend doesn't need this from session endpoint
-        session_copy.pop("current_game", None)
 
         return session_copy
 
@@ -41,80 +39,30 @@ class SessionManager:
         self.request.session["global_arc_limit"] = arc
         self.update_last_activity()
 
-    # ===== SIMPLE GAME STATE MANAGEMENT =====
+    # ===== SIMPLE GAME STATE TRACKING =====
     def has_active_game(self) -> bool:
         """Check if user has an active game"""
-        has_game = "current_game" in self.request.session
-        print(f"🔍 has_active_game check:")
-        print(f"   Session keys: {list(self.request.session.keys())}")
-        print(f"   Has current_game: {has_game}")
-        if has_game:
-            current_game = self.request.session["current_game"]
-            print(f"   Current game data: {current_game}")
-        return has_game
+        return "current_game_id" in self.request.session
+
+    def set_current_game_id(self, game_id: str):
+        """Set the current game ID for this session"""
+        self.request.session["current_game_id"] = game_id
+        self.update_last_activity()
+
+    def get_current_game_id(self) -> str | None:
+        """Get the current game ID"""
+        return self.request.session.get("current_game_id")
+
+    def clear_current_game(self):
+        """Clear the current game ID"""
+        self.request.session.pop("current_game_id", None)
 
     def is_valid_game_session(self, game_id: str) -> bool:
         """Check if the provided game_id matches the current active game"""
         if not self.has_active_game():
-            print(f"❌ No active game for validation")
             return False
-        current_game = self.request.session["current_game"]
-        is_valid = current_game.get("game_id") == game_id
-        print(
-            f"🎮 Game validation: session_game_id={current_game.get('game_id')}, requested_game_id={game_id}, valid={is_valid}")
-        return is_valid
-
-    def get_current_game_metadata(self) -> dict | None:
-        """Get current game metadata (non-sensitive data only)"""
-        return self.request.session.get("current_game")
-
-    def start_new_game_session(self, game_id: str, game_settings: dict):
-        """Store only non-sensitive game metadata in session"""
-        self.request.session["current_game"] = {
-            "game_id": game_id,
-            "game_settings": game_settings,
-            "game_started_at": datetime.now().isoformat(),
-            "questions_asked": 0,
-            "guesses_count": 0
-        }
-
-    def get_game_id(self) -> str:
-        """Get the current game ID"""
-        current_game = self.get_current_game_metadata()
-        if not current_game:
-            raise ValueError("No active game session")
-        return current_game["game_id"]
-
-    def get_game_settings(self) -> dict:
-        """Get the game settings used for current game"""
-        current_game = self.get_current_game_metadata()
-        if not current_game:
-            raise ValueError("No active game session")
-        return current_game["game_settings"]
-
-    def increment_questions_asked(self):
-        """Increment question counter in session"""
-        if self.has_active_game():
-            self.request.session["current_game"]["questions_asked"] += 1
-
-    def increment_guesses_made(self):
-        """Increment guess counter in session"""
-        if self.has_active_game():
-            self.request.session["current_game"]["guesses_count"] += 1
-
-    def get_questions_asked(self) -> int:
-        """Get number of questions asked from session"""
-        current_game = self.get_current_game_metadata()
-        return current_game["questions_asked"] if current_game else 0
-
-    def get_guess_count(self) -> int:
-        """Get number of guesses made from session"""
-        current_game = self.get_current_game_metadata()
-        return current_game["guesses_count"] if current_game else 0
-
-    def end_game(self):
-        """End current game and clear game metadata from session"""
-        self.request.session.pop("current_game", None)
+        current_game_id = self.get_current_game_id()
+        return current_game_id == game_id
 
     # ===== SESSION METADATA =====
     def update_last_activity(self):

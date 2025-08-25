@@ -1,2 +1,1 @@
-- make messages managed by the server - check what happens if server closes, if the same game session is available and ocmpared to local storage or the chat is stale
 - remove message counting - swap with fun fact

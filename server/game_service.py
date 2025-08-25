@@ -1,9 +1,10 @@
-# server/game_service.py - Updated to use GameManager
+# server/game_service.py - Pass Character objects directly
 import random
 from datetime import datetime
 
 from server.SessionManager import SessionManager
 from server.GameManager import GameManager
+from server.llm.llm_interface import LLMInterface
 from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
 from server.pydantic_schemas.game_schemas import GameStartRequest
@@ -83,26 +84,25 @@ list[Character]:
     game_id = f"game_{datetime.now().timestamp()}"
     prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
 
-    # Store sensitive data in Redis via GameManager
-    game_mgr.create_game(game_id, chosen_character.model_dump(), prompt)
+    # Pass Character object directly - GameManager will handle serialization
+    game_mgr.create_game(game_id, chosen_character, prompt, game_settings)
 
-    # Store non-sensitive metadata in session
-    session_mgr.start_new_game_session(game_id, game_settings)
+    # Store ONLY the game ID in session
+    session_mgr.set_current_game_id(game_id)
 
     print(f"Game ID: {game_id}")
-
     return character_list
 
 
-def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm) -> str:
+def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm: LLMInterface) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
             raise ValueError("No active game session")
 
-        game_id = session_mgr.get_game_id()
+        game_id = session_mgr.get_current_game_id()
 
-        # Add user question to conversation in Redis
+        # GameManager handles everything
         game_mgr.add_conversation_message(game_id, "user", question)
 
         # Get current conversation for context from Redis
@@ -113,9 +113,6 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
 
         # Add AI response to conversation in Redis
         game_mgr.add_conversation_message(game_id, "assistant", response)
-
-        # Update question counter in session
-        session_mgr.increment_questions_asked()
 
         return response
 
@@ -129,30 +126,27 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
         if not session_mgr.has_active_game():
             raise ValueError("No active game session")
 
-        game_id = session_mgr.get_game_id()
+        game_id = session_mgr.get_current_game_id()
 
-        # Get target character from Redis
+        # Get target character as Character object
         target_character = game_mgr.get_target_character(game_id)
-        is_correct = character_name.lower() == target_character["name"].lower()
+        is_correct = character_name.lower() == target_character.name.lower()
 
-        # Get stats from session before updating
-        questions_asked = session_mgr.get_questions_asked()
-        guesses_made = session_mgr.get_guess_count() + 1  # +1 for current guess
+        # Get stats from GameManager BEFORE adding the current guess
+        questions_asked = game_mgr.get_questions_asked(game_id)
+        guesses_made = game_mgr.get_guess_count(game_id) + 1  # +1 for current guess
 
-        # Record the guess in Redis
+        # GameManager handles guess recording and counter increment
         game_mgr.add_guess(game_id, character_name, is_correct)
 
-        # Update guess counter in session
-        session_mgr.increment_guesses_made()
-
         if is_correct:
-            # Clean up - delete from both Redis and session
+            # Clean up
             game_mgr.delete_game(game_id)
-            session_mgr.end_game()
+            session_mgr.clear_current_game()
 
             return {
                 "is_correct": True,
-                "character": target_character,
+                "character": target_character,  # Return Character object directly
                 "questions_asked": questions_asked,
                 "guesses_made": guesses_made
             }
@@ -204,7 +198,7 @@ RULES:
 
 </character_profile>
 
-Remember to follow the game instructions exactly. Wait for the user's first question before responding.
+Remember to follow the game instructions exactly. Wait for the user's first question before responses.
 """
 
     return instructions + character_prompt
