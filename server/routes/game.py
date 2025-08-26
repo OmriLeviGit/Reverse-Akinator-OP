@@ -1,11 +1,15 @@
 # server/routes/game.py
 from fastapi import APIRouter, Depends, HTTPException
 
-from server import game_service
-from server.SessionManager import SessionManager
-from server.GameManager import GameManager
-from server.dependencies import get_session_manager, get_repository, get_llm, get_game_manager
-from server.pydantic_schemas.game_schemas import (
+from server.services import game_service
+from server.services.arc_service import ArcService
+from server.services.character_service import CharacterService
+from server.services.session_manager import SessionManager
+from server.services.game_manager import GameManager
+from server.services.llm_service import LLMService
+from server.dependencies import get_session_manager, get_character_service, get_llm_service, get_game_manager, \
+    get_arc_service
+from server.schemas.game_schemas import (
     GameStartResponse, GameStartRequest,
     GameQuestionResponse, GameQuestionRequest,
     GameGuessResponse, GameGuessRequest,
@@ -14,7 +18,6 @@ from server.pydantic_schemas.game_schemas import (
 )
 
 router = APIRouter(prefix="/api/game", tags=["game"])
-
 
 def validate_game_session(session_mgr: SessionManager, game_mgr: GameManager, game_id: str):
     """Helper function to validate game session across both managers"""
@@ -27,14 +30,14 @@ def validate_game_session(session_mgr: SessionManager, game_mgr: GameManager, ga
     if not game_mgr.game_exists(game_id):
         raise HTTPException(status_code=400, detail="Game data not found")
 
-
 @router.post("/start", response_model=GameStartResponse)
 def start_game_route(request: GameStartRequest,
                      session_mgr: SessionManager = Depends(get_session_manager),
                      game_mgr: GameManager = Depends(get_game_manager),
-                     repository=Depends(get_repository)):
+                     character_service: CharacterService = Depends(get_character_service),
+                     arc_service: ArcService = Depends(get_arc_service)):
     try:
-        character_pool = game_service.start_game(request, session_mgr, game_mgr, repository)
+        character_pool = game_service.start_game(request, session_mgr, game_mgr, character_service, arc_service)
 
         return GameStartResponse(
             message="Game started successfully",
@@ -44,7 +47,6 @@ def start_game_route(request: GameStartRequest,
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @router.post("/validate", response_model=GameStatusResponse)
 def validate_game_session_route(request: GameStatusRequest,
@@ -57,16 +59,15 @@ def validate_game_session_route(request: GameStatusRequest,
     except HTTPException:
         return GameStatusResponse(isValidGame=False)
 
-
 @router.post("/question", response_model=GameQuestionResponse)
 def ask_question_route(request: GameQuestionRequest,
                        session_mgr: SessionManager = Depends(get_session_manager),
                        game_mgr: GameManager = Depends(get_game_manager),
-                       llm=Depends(get_llm)):
+                       llm_service: LLMService = Depends(get_llm_service)):  # Fixed this line
     try:
         validate_game_session(session_mgr, game_mgr, request.game_id)
 
-        answer = game_service.ask_question(request.question, session_mgr, game_mgr, llm)
+        answer = game_service.ask_question(request.question, session_mgr, game_mgr, llm_service)
 
         return GameQuestionResponse(
             answer=answer,
@@ -76,8 +77,6 @@ def ask_question_route(request: GameQuestionRequest,
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-
-# server/routes/game.py
 @router.post("/guess", response_model=GameGuessResponse)
 def make_guess_route(request: GameGuessRequest,
                      session_mgr: SessionManager = Depends(get_session_manager),
@@ -101,7 +100,6 @@ def make_guess_route(request: GameGuessRequest,
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @router.post("/reveal", response_model=GameRevealResponse)
 def reveal_character_route(request: GameRevealRequest,

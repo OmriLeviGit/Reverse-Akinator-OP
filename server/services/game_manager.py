@@ -1,15 +1,16 @@
-# server/GameManager.py
+# server/game_manager.py
 import json
-import redis
 from datetime import datetime
 
-from server.pydantic_schemas.character_schemas import Character
+from server.config import GAME_TTL
+from server.config.redis import get_redis
+from server.schemas.character_schemas import Character
 
 
 class GameManager:
-    def __init__(self, redis_client: redis.Redis):
-        self.redis = redis_client
-        self.game_ttl = 3600  # 1 hour TTL for games
+    def __init__(self):
+        self.redis = get_redis()
+        self.game_ttl = GAME_TTL
 
     def create_game(self, game_id: str, target_character: Character, prompt: str,
 game_settings: dict) -> None:

@@ -1,7 +1,7 @@
-# server/pydantic_schemas/game_schemas.py
+# server/schemas/game_schemas.py
 from pydantic import BaseModel, Field
 
-from server.pydantic_schemas.character_schemas import Character
+from server.schemas.character_schemas import Character
 
 
 class GameStartRequest(BaseModel):

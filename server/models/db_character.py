@@ -1,13 +1,11 @@
 from sqlalchemy import String, Integer, Boolean, Text, Enum, func, case
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.ext.hybrid import hybrid_property
 import enum
 
-from server.pydantic_schemas.character_schemas import Character
-from server.pydantic_schemas.arc_schemas import Arc
+from server.models.base import Base
+from server.schemas.character_schemas import Character
 
-Base = declarative_base()
 
 # Define the difficulty enum
 class DifficultyEnum(enum.Enum):
@@ -29,6 +27,7 @@ class DBCharacter(Base):
     episode: Mapped[int | None] = mapped_column(Integer)
     number: Mapped[int | None] = mapped_column(Integer)
     description: Mapped[str | None] = mapped_column(Text)
+    fun_fact: Mapped[str | None] = mapped_column(Text)
     year: Mapped[int] = mapped_column(Integer)
     note: Mapped[str | None] = mapped_column(String(200))
     appears_in: Mapped[str | None] = mapped_column(String(50))
@@ -103,54 +102,3 @@ class DBCharacter(Base):
     def get_character_episode(self) -> int | None:
         """Get the effective episode number - now just delegates to effective_episode property"""
         return self.effective_episode
-
-
-class DBArc(Base):
-    __tablename__ = 'arcs'
-
-    name: Mapped[str] = mapped_column(String(100), primary_key=True)
-    last_chapter: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    last_episode: Mapped[int | None] = mapped_column(Integer, nullable=True)
-
-    def __repr__(self):
-        return f"<Arc(name='{self.name}', last_chapter={self.last_chapter}, last_episode={self.last_episode})>"
-
-    def to_dict(self):
-        return {
-            'name': self.name,
-            'last_chapter': self.last_chapter,
-            'last_episode': self.last_episode
-        }
-
-    def to_pydantic(self) -> Arc:
-        """Convert SQLAlchemy model to Pydantic model"""
-        return Arc(
-            name=self.name,
-            chapter=self.last_chapter,
-            episode=self.last_episode
-        )
-
-    @staticmethod
-    def get_earlier_arc(arc1: 'DBArc', arc2: 'DBArc') -> 'DBArc':
-        """
-        Compare two arcs and return the earlier one
-        """
-        # If either arc is "All", return the other one
-        if arc1.name == "All":
-            return arc2
-        elif arc2.name == "All":
-            return arc1
-
-        # If arc1 has no chapter, return arc2
-        if arc1.last_chapter is None:
-            return arc2
-
-        # If arc2 has no chapter, return arc1
-        if arc2.last_chapter is None:
-            return arc1
-
-        # Compare chapters and return the earlier one
-        if arc1.last_chapter < arc2.last_chapter:
-            return arc1
-
-        return arc2

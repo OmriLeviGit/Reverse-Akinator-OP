@@ -190,11 +190,8 @@ def handle_duplicate_ids(df):
     return df
 
 
-def scrape_character_data(output_file=None):
+def scrape_character_data(output_file=Path(__file__).parent.parent / "character_data.csv"):
     """Fetch and save character database from One Piece wikia"""
-    if output_file is None:
-        output_file = Path(__file__).parent.parent / "character_data.csv"
-
     try:
         url1 = "https://onepiece.fandom.com/wiki/List_of_Canon_Characters"
         url2 = "https://onepiece.fandom.com/wiki/List_of_Non-Canon_Characters"

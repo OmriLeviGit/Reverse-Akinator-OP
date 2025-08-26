@@ -16,12 +16,19 @@ from io import BytesIO
 def get_image_from_wiki(wiki_url):
     """Extract full-resolution image URL from One Piece wiki page"""
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Cache-Control': 'max-age=0',
+        'DNT': '1',
+    'Referer': 'https://onepiece.fandom.com/',
     }
 
     try:
@@ -137,12 +144,9 @@ def download_large_image(image_url, character_id, large_folder):
         return False
 
 
-def download_character_avatars(skip_existing=True, start_from_letter=None):
-    csv_file = Path(__file__).parent.parent / "character_data.csv"
-    large_folder = Path(__file__).parent.parent / "img" / "lg_avatars"
-
+def download_character_avatars(csv_char_path, output_path, skip_existing=True, start_from_letter=None):
     # Create output folder
-    os.makedirs(large_folder, exist_ok=True)
+    os.makedirs(output_path, exist_ok=True)
 
     skipped_count = 0
     successful_downloads = 0
@@ -152,7 +156,7 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
     skipped_letters = 0
     skipped_no_pic = 0  # Track characters with no picture available
 
-    with open(csv_file, 'r', encoding='utf-8') as file:
+    with open(csv_char_path, 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
 
         processed_count = 0
@@ -173,7 +177,7 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
                     continue
 
             if skip_existing:
-                large_path = large_folder / f"{character_id}.webp"
+                large_path = output_path / f"{character_id}.webp"
                 if large_path.exists():
                     skipped_count += 1
                     continue
@@ -219,7 +223,7 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
                             print(f"🚫 No picture available for {character_id}")
                             skipped_no_pic += 1
 
-                        if download_large_image(image_url, character_id, large_folder):
+                        if download_large_image(image_url, character_id, output_path):
                             print(f"✓ Downloaded after retry: {character_id}")
                             successful_downloads += 1
                         else:
@@ -239,11 +243,11 @@ def download_character_avatars(skip_existing=True, start_from_letter=None):
                 # Check if this is a "No Picture Available" image
                 if 'NoPicAvailable' in image_url:
                     skipped_no_pic += 1
-                    download_large_image(image_url, character_id, large_folder)
+                    download_large_image(image_url, character_id, output_path)
                     print(f"🚫 No picture available for {character_id}")
                     successful_downloads += 1
                 else:
-                    if download_large_image(image_url, character_id, large_folder):
+                    if download_large_image(image_url, character_id, output_path):
                         print(f"✓ Downloaded: {character_id}")
                         successful_downloads += 1
                     else:
@@ -285,4 +289,7 @@ if __name__ == "__main__":
         start_letter = sys.argv[1]
         print(f"Starting from letter: {start_letter.upper()}")
 
-    download_character_avatars(skip_existing=True, start_from_letter=start_letter)
+    csv_char_path = Path(__file__).parent.parent / "static_data" / "character_data.csv"
+    output_path = Path(__file__).parent.parent / "static_data" / "img" / "lg_avatars"
+
+    download_character_avatars(csv_char_path, output_path, skip_existing=True, start_from_letter=start_letter)

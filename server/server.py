@@ -1,8 +1,7 @@
+# server/server.py
+import os
 import secrets
 from contextlib import asynccontextmanager
-import os
-
-import redis
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,8 +10,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from server.Repository import Repository
-from server.LLMService import LLMService
+from server.config.redis import get_redis
+from server.services.character_service import CharacterService
+from server.services.llm_service import LLMService
 from server.routes import session
 from server.routes.game import router as game_router
 from server.routes.characters import router as characters_router
@@ -21,28 +21,23 @@ from server.routes.characters import router as characters_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application starting up...")
+
+    # Initialize LLM service
     service = LLMService()
     service.set_model('gemini', model='gemini-1.5-flash')
-
     app.state.llm = service
-    app.state.repository = Repository()
 
-    # Use environment variables for Redis connection
-    redis_host = os.getenv('REDIS_HOST', 'localhost')
-    redis_port = int(os.getenv('REDIS_PORT', 6379))
+    # Initialize repository
+    app.state.repository = CharacterService()
 
-    app.state.redis_client = redis.Redis(
-        host=redis_host,
-        port=redis_port,
-        db=0,
-        decode_responses=True
-    )
-
+    # Use Redis from config
     try:
+        app.state.redis_client = get_redis()
         app.state.redis_client.ping()
-        print(f"Connected to Redis at {redis_host}:{redis_port}")
-    except redis.ConnectionError:
-        print("WARNING: Could not connect to Redis. Game functionality will not work.")
+        print("Connected to Redis successfully")
+    except Exception as e:
+        print(f"WARNING: Could not connect to Redis: {e}")
+        print("Game functionality will not work.")
 
     yield
 
@@ -69,11 +64,10 @@ app.include_router(characters_router)
 
 # Serve static files from the built frontend
 if os.path.exists("client/dist"):
-    app.mount("/assets", StaticFiles(directory="client/dist/assets"), name="assets")  # JS/CSS
-    app.mount("/img", StaticFiles(directory="client/dist/img"), name="images")        # Your images
+    app.mount("/assets", StaticFiles(directory="client/dist/assets"), name="assets")
+    app.mount("/img", StaticFiles(directory="client/dist/img"), name="images")
 
 
-# Serve index.html for root
 @app.get("/")
 def serve_frontend():
     if os.path.exists("client/dist/index.html"):
@@ -81,14 +75,11 @@ def serve_frontend():
     raise HTTPException(status_code=404, detail="Frontend not found")
 
 
-# Handle SPA routing and API 404s
 @app.get("/{path:path}")
 def serve_spa_or_404(path: str):
-    # If it's an API route, return 404
     if path.startswith("api/") or path in ["docs", "openapi.json", "redoc"]:
         raise HTTPException(status_code=404, detail=f"GET endpoint /{path} not found")
 
-    # For frontend routes, serve index.html (SPA routing)
     if os.path.exists("client/dist/index.html"):
         return FileResponse("client/dist/index.html")
 

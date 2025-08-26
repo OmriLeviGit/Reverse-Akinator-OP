@@ -2,12 +2,13 @@
 import random
 from datetime import datetime
 
-from server.SessionManager import SessionManager
-from server.GameManager import GameManager
-from server.pydantic_schemas.arc_schemas import Arc
-from server.pydantic_schemas.character_schemas import Character
-from server.pydantic_schemas.game_schemas import GameStartRequest
-from server.Repository import Repository
+from server.services.arc_service import ArcService
+from server.services.session_manager import SessionManager
+from server.services.game_manager import GameManager
+from server.schemas.arc_schemas import Arc
+from server.schemas.character_schemas import Character
+from server.schemas.game_schemas import GameStartRequest
+from server.services.character_service import CharacterService
 
 
 def get_difficulty_range(difficulty_level: str) -> list[str]:
@@ -24,7 +25,7 @@ def get_difficulty_range(difficulty_level: str) -> list[str]:
     return difficulty_mapping[difficulty_level]
 
 
-def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager, repository: Repository) -> \
+def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager, character_service: CharacterService, arc_service: ArcService) -> \
 list[Character]:
     """Initialize a new game session"""
 
@@ -34,18 +35,18 @@ list[Character]:
         request.filler_percentage, request.include_non_tv_fillers
     )
 
-    arc = repository.get_arc_by_name(until_arc)
+    arc = arc_service.get_arc_by_name(until_arc)
     difficulty_range = get_difficulty_range(difficulty_level)
 
     # Get all possible characters based on filters
-    canon_characters = repository.get_canon_characters(arc, difficulty_range, include_unrated)
+    canon_characters = character_service.get_canon_characters(arc, difficulty_range, include_unrated)
 
     filler_characters = []
     if filler_percentage > 0:
         if include_non_tv_fillers:
-            filler_characters = repository.get_non_canon_characters(arc, difficulty_range, include_unrated)
+            filler_characters = character_service.get_non_canon_characters(arc, difficulty_range, include_unrated)
         else:
-            filler_characters = repository.get_filler_characters(arc, difficulty_range, include_unrated)
+            filler_characters = character_service.get_filler_characters(arc, difficulty_range, include_unrated)
 
     # Validate we have characters available
     if not canon_characters and not filler_characters:

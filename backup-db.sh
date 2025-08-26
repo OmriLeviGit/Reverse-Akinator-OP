@@ -7,27 +7,27 @@ echo "$(date): Starting database backup..."
 cd /app
 
 # Copy current database from persistent storage to git-tracked location
-cp /app/server/database/data/app.db /app/server/database/app.db
+cp /app/server/data/app.db /app/server/database/static_data/app.db
 
 # Check if .git exists in persistent storage
-if [ ! -d "/app/server/database/data/.git" ]; then
+if [ ! -d "/app/server/data/.git" ]; then
     echo "$(date): Setting up git repository (first time only)..."
 
     # Clone to persistent storage
-    git clone https://${GITHUB_TOKEN}@github.com/OmriLeviGit/OP_guessing_game.git /app/server/database/data/repo
+    git clone https://${GITHUB_TOKEN}@github.com/OmriLeviGit/OP_guessing_game.git /app/server/data/repo
 
     # Move .git to persistent location
-    mv /app/server/database/data/repo/.git /app/server/database/data/.git
+    mv /app/server/data/repo/.git /app/server/data/.git
 
     # Clean up
-    rm -rf /app/server/database/data/repo
+    rm -rf /app/server/data/repo
 
     echo "$(date): Git repository setup complete"
 fi
 
 # Create symlink to .git in persistent storage (in case it doesn't exist)
 if [ ! -L "/app/.git" ]; then
-    ln -sf /app/server/database/data/.git /app/.git
+    ln -sf /app/server/data/.git /app/.git
 fi
 
 # Configure git
@@ -35,7 +35,7 @@ git config --global user.email "backup-bot@automated.backup"
 git config --global user.name "Database Backup Bot"
 
 # Add and commit changes
-git add server/database/app.db
+git add server/database/static_data/app.db
 
 # Check if there are actually changes to commit
 if git diff --staged --quiet; then

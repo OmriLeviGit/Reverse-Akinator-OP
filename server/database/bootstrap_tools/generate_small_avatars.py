@@ -43,11 +43,8 @@ def create_small_avatar(character_id, large_folder, small_folder, small_size=128
         return False
 
 
-def create_all_small_avatars(small_size=128, skip_existing=True):
+def create_all_small_avatars(large_folder, small_folder, small_size=128, skip_existing=True):
     """Create all small avatars from existing large ones"""
-    large_folder = Path(__file__).parent.parent / "img" / "lg_avatars"
-    small_folder = Path(__file__).parent.parent / "img" / "sm_avatars"
-
     # Create output folder if it doesn't exist
     os.makedirs(small_folder, exist_ok=True)
 
@@ -87,4 +84,6 @@ def create_all_small_avatars(small_size=128, skip_existing=True):
 
 
 if __name__ == "__main__":
-    create_all_small_avatars(small_size=128, skip_existing=True)
+    large_folder = Path(__file__).parent.parent / "img" / "lg_avatars"
+    small_folder = Path(__file__).parent.parent / "img" / "sm_avatars"
+    create_all_small_avatars(large_folder, small_folder, small_size=128, skip_existing=True)

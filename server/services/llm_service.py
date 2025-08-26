@@ -4,23 +4,11 @@ from langchain_core.language_models import BaseLanguageModel
 import time
 import os
 from collections import defaultdict, deque
-from dotenv import load_dotenv
 
 class LLMService:
     def __init__(self):
-        self._load_env_file()
         self._requests = defaultdict(deque)
         self._current_model = None
-
-    def _load_env_file(self):
-        """Load environment variables from .env file relative to the concrete implementation."""
-        concrete_class_file = self.__class__.__module__.replace('.', os.sep) + '.py'
-        script_dir = os.path.dirname(os.path.abspath(concrete_class_file))
-        env_path = os.path.join(script_dir, '.env')
-
-        result = load_dotenv(env_path)
-        if not result:
-            print(f"Warning: Could not load .env from {env_path}")
 
     def set_model(self, provider: str, **kwargs) -> BaseLanguageModel:
         """Set the current model. LangChain handles the interface consistency."""

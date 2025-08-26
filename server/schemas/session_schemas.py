@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from server.pydantic_schemas.arc_schemas import Arc
+from server.schemas.arc_schemas import Arc
 
 
 class UpdateArcLimitRequest(BaseModel):

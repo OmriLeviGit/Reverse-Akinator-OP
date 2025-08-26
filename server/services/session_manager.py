@@ -1,9 +1,10 @@
-# server/SessionManager.py
+# server/session_manager.py
 from datetime import datetime
 from fastapi import Request
 
-from server.Repository import Repository
-from server.pydantic_schemas.arc_schemas import Arc
+from server.services.arc_service import ArcService
+from server.services.character_service import CharacterService
+from server.schemas.arc_schemas import Arc
 
 
 class SessionManager:
@@ -32,7 +33,7 @@ class SessionManager:
     # ===== GLOBAL SPOILER SETTINGS =====
     def get_global_arc_limit(self) -> Arc:
         """Get user's global spoiler arc limit"""
-        return Repository().get_arc_by_name(self.request.session.get("global_arc_limit", "All"))
+        return ArcService().get_arc_by_name(self.request.session.get("global_arc_limit", "All"))
 
     def set_global_arc_limit(self, arc: str):
         """Set user's global spoiler arc limit"""
