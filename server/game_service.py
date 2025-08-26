@@ -4,7 +4,6 @@ from datetime import datetime
 
 from server.SessionManager import SessionManager
 from server.GameManager import GameManager
-from server.llm.llm_interface import LLMInterface
 from server.pydantic_schemas.arc_schemas import Arc
 from server.pydantic_schemas.character_schemas import Character
 from server.pydantic_schemas.game_schemas import GameStartRequest
@@ -94,7 +93,7 @@ list[Character]:
     return character_list
 
 
-def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm: LLMInterface) -> str:
+def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
@@ -140,13 +139,12 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
         game_mgr.add_guess(game_id, character_name, is_correct)
 
         if is_correct:
-            # Clean up
             game_mgr.delete_game(game_id)
             session_mgr.clear_current_game()
 
             return {
                 "is_correct": True,
-                "character": target_character,  # Return Character object directly
+                "character": target_character,
                 "questions_asked": questions_asked,
                 "guesses_made": guesses_made
             }

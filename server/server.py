@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 
 from server.Repository import Repository
-from server.llm.gemini import GeminiLLM
+from server.LLMService import LLMService
 from server.routes import session
 from server.routes.game import router as game_router
 from server.routes.characters import router as characters_router
@@ -21,7 +21,10 @@ from server.routes.characters import router as characters_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Application starting up...")
-    app.state.llm = GeminiLLM('gemini-1.5-flash')
+    service = LLMService()
+    service.set_model('gemini', model='gemini-1.5-flash')
+
+    app.state.llm = service
     app.state.repository = Repository()
 
     # Use environment variables for Redis connection
