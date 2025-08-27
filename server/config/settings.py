@@ -25,6 +25,7 @@ SMALL_AVATARS_DIR = STATIC_DATA_DIR / "img" / "sm_avatars"
 
 # Data files
 CHARACTER_CSV_PATH = STATIC_DATA_DIR / "character_data.csv"
+DISCOVERY_PATH = STATIC_DATA_DIR / "discovery_results.txt"
 ARCS_JSON_PATH = STATIC_DATA_DIR / "arcs.json"
 GAME_PROMPT_PATH = STATIC_DATA_DIR / "game_prompt.txt"
 

@@ -9,6 +9,6 @@ __all__ = [
     # "get_vector_client", "get_embedding_model", "initialize_collection",
     "get_redis",
     "DATA_DIR", "DATABASE_PATH", "VECTOR_DB_PATH", "STATIC_DATA_DIR",
-    "CHARACTER_CSV_PATH", "ARCS_JSON_PATH", "LARGE_AVATARS_DIR", "SMALL_AVATARS_DIR",
+    "CHARACTER_CSV_PATH", "DISCOVERY_PATH", "ARCS_JSON_PATH", "LARGE_AVATARS_DIR", "SMALL_AVATARS_DIR",
     "EMBEDDING_MODEL", "CHUNK_SIZE", "COLLECTION_NAME", "GAME_TTL"
 ]
