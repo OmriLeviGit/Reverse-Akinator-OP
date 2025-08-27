@@ -1,6 +1,7 @@
 import os
-from pathlib import Path
 from PIL import Image
+
+from server.config import LARGE_AVATARS_DIR, SMALL_AVATARS_DIR
 
 
 def crop_top_square(img):
@@ -84,6 +85,6 @@ def create_all_small_avatars(large_folder, small_folder, small_size=128, skip_ex
 
 
 if __name__ == "__main__":
-    large_folder = Path(__file__).parent.parent / "img" / "lg_avatars"
-    small_folder = Path(__file__).parent.parent / "img" / "sm_avatars"
+    large_folder = LARGE_AVATARS_DIR
+    small_folder = SMALL_AVATARS_DIR
     create_all_small_avatars(large_folder, small_folder, small_size=128, skip_existing=True)

@@ -2,11 +2,14 @@ import os
 import re
 import unicodedata
 from io import StringIO
-from pathlib import Path
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import urllib.parse
+
+from server.config.settings import (
+    CHARACTER_CSV_PATH,
+)
 
 
 def sanitize_filename(filename):
@@ -23,15 +26,8 @@ def sanitize_filename(filename):
 
     # Handle filesystem problematic characters
     replacements = {
-        '/': '_',
-        '\\': '_',
-        ':': '_',
-        '*': '_',
-        '?': '_',
-        '"': '_',
-        '<': '_',
-        '>': '_',
-        '|': '_',
+        '/': '_', '\\': '_', ':': '_', '*': '_', '?': '_',
+        '"': '_', '<': '_', '>': '_', '|': '_',
     }
 
     for old, new in replacements.items():
@@ -40,57 +36,137 @@ def sanitize_filename(filename):
     return filename
 
 
-def scrape_table_from_wikia(url, table_child):
-    """Scrape a specific table from a Wikia page using CSS selector"""
+def find_character_table(soup):
+    """Find the main character table based on content, not structure"""
+
+    # Strategy 1: Look for tables with character-related headers
+    character_headers = ['name', 'character', 'debut', 'episode', 'chapter']
+
+    tables = soup.find_all('table')
+    for table in tables:
+        # Check if table has character-related headers
+        headers = table.find_all(['th', 'td'])
+        header_texts = [h.get_text().lower().strip() for h in headers[:10]]  # Check first 10 cells
+
+        if any(header in ' '.join(header_texts) for header in character_headers):
+            # Additional validation: table should have multiple rows
+            rows = table.find_all('tr')
+            if len(rows) >= 5:  # At least header + 4 character rows
+                return table
+
+    # Strategy 2: Look for tables with wikia/fandom classes (but don't rely on structure)
+    fandom_tables = soup.find_all('table', class_=['fandom-table', 'wikitable', 'sortable'])
+    if fandom_tables:
+        # Return the largest table (likely the main character list)
+        return max(fandom_tables, key=lambda t: len(t.find_all('tr')))
+
+    # Strategy 3: Fallback to largest table
+    if tables:
+        return max(tables, key=lambda t: len(t.find_all('tr')))
+
+    return None
+
+
+def find_name_column_index(table):
+    """Find which column contains character names based on content"""
+    rows = table.find_all('tr')
+    if not rows:
+        return None
+
+    # Check header row first
+    header_row = rows[0]
+    header_cells = header_row.find_all(['th', 'td'])
+
+    for i, cell in enumerate(header_cells):
+        cell_text = cell.get_text().lower().strip()
+        if 'name' in cell_text or 'character' in cell_text:
+            return i
+
+    # If no clear header, analyze content of first few data rows
+    for row in rows[1:4]:  # Check first 3 data rows
+        cells = row.find_all(['td', 'th'])
+        for i, cell in enumerate(cells):
+            # Look for cells with wiki links (likely character names)
+            if cell.find('a') and '/wiki/' in str(cell):
+                # Additional check: text should look like a name (not just numbers or dates)
+                text = cell.get_text().strip()
+                if text and not text.isdigit() and not re.match(r'^\d+\.\d+$', text):
+                    return i
+
+    # Default to second column (index 1) as fallback
+    return 1
+
+
+def extract_character_links_and_data(table):
+    """Extract character data and wiki links from table"""
+    if not table:
+        return [], None
+
+    name_col_index = find_name_column_index(table)
+    if name_col_index is None:
+        print("Could not determine name column")
+        return [], None
+
+    rows = table.find_all('tr')
+    links_data = []
+
+    for row in rows:
+        cells = row.find_all(['td', 'th'])
+
+        if len(cells) > name_col_index:
+            name_cell = cells[name_col_index]
+            link_element = name_cell.find('a')
+
+            if link_element and link_element.get('href'):
+                href = link_element.get('href')
+                if href.startswith('/'):
+                    full_url = 'https://onepiece.fandom.com' + href
+                else:
+                    full_url = href
+                links_data.append(full_url)
+            else:
+                links_data.append(None)
+        else:
+            links_data.append(None)
+
+    return links_data, name_col_index
+
+
+def scrape_table_from_wikia(url):
+    """Scrape character table from a Wikia page using content-based detection"""
     try:
         response = requests.get(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        # Changed: Get tables by index instead of nth-child
-        tables = soup.find_all('table', class_='fandom-table')
+        # Find the main character table
+        table = find_character_table(soup)
+        if not table:
+            raise ValueError("No character table found on the page")
 
-        if len(tables) < table_child:
-            raise ValueError(f"Only {len(tables)} fandom-table(s) found, but requested table {table_child}")
+        # Extract links and determine structure
+        links_data, name_col_index = extract_character_links_and_data(table)
 
-        table = tables[table_child - 1]  # Convert to 0-based index
-
-        # Extract links from Name column (second column, index 1)
-        links_data = []
-        rows = table.find_all('tr')
-
-        for row in rows:
-            cells = row.find_all(['td', 'th'])
-            try:
-                name_cell = cells[1]  # Second column
-                link_element = name_cell.find('a')
-                if link_element and link_element.get('href'):
-                    href = link_element.get('href')
-                    if href.startswith('/'):
-                        full_url = 'https://onepiece.fandom.com' + href
-                    else:
-                        full_url = href
-                    links_data.append(full_url)
-                else:
-                    links_data.append(None)
-            except IndexError:
-                links_data.append(None)
-
-        # Convert table to DataFrame
+        # Convert table to DataFrame using pandas
         df = pd.read_html(StringIO(str(table)))[0]
 
         # Add Wiki column with extracted links
         if not df.empty and links_data:
-            # Skip header row if needed
+            # Align links with DataFrame rows
             if len(links_data) > len(df):
-                links_data = links_data[1:]
+                # Remove extra links (likely from header row)
+                links_data = links_data[-len(df):]
+            elif len(links_data) < len(df):
+                # Pad with None values if needed
+                links_data.extend([None] * (len(df) - len(links_data)))
 
             df['Wiki'] = links_data[:len(df)]
 
+        print(f"Found table with {len(df)} rows and name column at index {name_col_index}")
         return df
 
     except requests.RequestException as e:
-        print(f"Error fetching database from {url}: {e}")
+        print(f"Error fetching data from {url}: {e}")
         return pd.DataFrame()
     except Exception as e:
         print(f"Error parsing table from {url}: {e}")
@@ -102,7 +178,9 @@ def clean_dataframe(df):
     if df.empty:
         return df
 
-    cols_to_drop = [col for col in df.columns if col.lower().startswith('unnamed') or col.lower() in ['v e']]
+    cols_to_drop = [col for col in df.columns
+                    if str(col).lower().startswith('unnamed') or
+                    str(col).lower() in ['v e', 'v', 'e']]
 
     if cols_to_drop:
         df = df.drop(columns=cols_to_drop)
@@ -190,30 +268,22 @@ def handle_duplicate_ids(df):
     return df
 
 
-def scrape_character_data(output_file=Path(__file__).parent.parent / "character_data.csv"):
+def scrape_character_data(output_file=CHARACTER_CSV_PATH):
     """Fetch and save character database from One Piece wikia"""
     try:
         url1 = "https://onepiece.fandom.com/wiki/List_of_Canon_Characters"
         url2 = "https://onepiece.fandom.com/wiki/List_of_Non-Canon_Characters"
-        table_child1 = 1
-        table_child2 = 1
 
-        df1 = scrape_table_from_wikia(url1, table_child1)
+        df1 = scrape_table_from_wikia(url1)
         df1 = clean_dataframe(df1)
 
         if not df1.empty:
             df1.insert(1, 'Type', 'Canon')
-            # Clean character names
-            if 'Name' in df1.columns:
-                df1['Name'] = df1['Name']
 
-        df2 = scrape_table_from_wikia(url2, table_child2)
+        df2 = scrape_table_from_wikia(url2)
         df2 = clean_dataframe(df2)
 
-        if not df2.empty and 'Name' in df2.columns:
-            df2['Name'] = df2['Name']
-
-        # Updated desired order with ID as first column
+        # Rest of the function remains the same...
         desired_order = ['ID', 'Name', 'Type', 'Wiki', 'Chapter', 'Episode', 'Number', 'Year', 'Appears in', 'Note']
 
         all_columns_set = set()
@@ -224,16 +294,14 @@ def scrape_character_data(output_file=Path(__file__).parent.parent / "character_
 
         final_columns = []
         for col in desired_order:
-            if col in all_columns_set or col == 'ID':  # Always include ID column
+            if col in all_columns_set or col == 'ID':
                 final_columns.append(col)
 
         cleaned_dfs = []
         for df in [df1, df2]:
             if not df.empty:
-                # Extract original ID from Wiki URLs (unsanitized)
                 if 'Wiki' in df.columns:
                     df['Wiki_ID'] = df['Wiki'].apply(extract_id_from_wiki_url)
-                    # Create sanitized ID for filenames
                     df['ID'] = df['Wiki_ID'].apply(sanitize_filename)
                 else:
                     df['Wiki_ID'] = pd.NA
@@ -250,18 +318,14 @@ def scrape_character_data(output_file=Path(__file__).parent.parent / "character_
 
         if cleaned_dfs:
             combined_df = pd.concat(cleaned_dfs, ignore_index=True)
-
-            # Handle duplicate IDs before final processing
             combined_df = handle_duplicate_ids(combined_df)
 
-            # Remove the temporary Wiki_ID column if it exists
             if 'Wiki_ID' in combined_df.columns:
                 combined_df = combined_df.drop('Wiki_ID', axis=1)
 
             combined_df = combined_df.drop_duplicates()
             combined_df = combined_df.sort_values('Name', na_position='last').reset_index(drop=True)
 
-            # Ensure output directory exists
             os.makedirs(output_file.parent, exist_ok=True)
             combined_df.to_csv(output_file, index=False)
 

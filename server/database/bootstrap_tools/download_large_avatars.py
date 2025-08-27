@@ -5,12 +5,13 @@ import sys
 import requests
 import re
 import os
-from pathlib import Path
 from bs4 import BeautifulSoup
 from PIL import Image
 import time
 from urllib.parse import urljoin
 from io import BytesIO
+
+from server.config import CHARACTER_CSV_PATH, LARGE_AVATARS_DIR
 
 
 def get_image_from_wiki(wiki_url):
@@ -283,13 +284,14 @@ def download_character_avatars(csv_char_path, output_path, skip_existing=True, s
             print(f"{char_id}: {wiki_url}")
 
 
+
 if __name__ == "__main__":
     start_letter = None
     if len(sys.argv) > 1:
         start_letter = sys.argv[1]
         print(f"Starting from letter: {start_letter.upper()}")
 
-    csv_char_path = Path(__file__).parent.parent / "static_data" / "character_data.csv"
-    output_path = Path(__file__).parent.parent / "static_data" / "img" / "lg_avatars"
+    csv_char_path = CHARACTER_CSV_PATH
+    output_path = LARGE_AVATARS_DIR
 
     download_character_avatars(csv_char_path, output_path, skip_existing=True, start_from_letter=start_letter)
