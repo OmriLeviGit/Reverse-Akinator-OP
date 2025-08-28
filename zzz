@@ -2,6 +2,6 @@
 add game settings to schemas
 
 
-1. fetch data
-2. extract relevant info
-3.
+restore redis
+clean data
+organize settings

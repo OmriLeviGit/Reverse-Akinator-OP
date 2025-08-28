@@ -145,8 +145,7 @@ def download_large_image(image_url, character_id, large_folder):
         return False
 
 
-def download_character_avatars(csv_char_path, output_path, skip_existing=True, start_from_letter=None):
-    # Create output folder
+def download_character_avatars(csv_char_path=CHARACTER_CSV_PATH, output_path=LARGE_AVATARS_DIR, skip_existing=True, start_from_letter=None):
     os.makedirs(output_path, exist_ok=True)
 
     skipped_count = 0
@@ -291,7 +290,4 @@ if __name__ == "__main__":
         start_letter = sys.argv[1]
         print(f"Starting from letter: {start_letter.upper()}")
 
-    csv_char_path = CHARACTER_CSV_PATH
-    output_path = LARGE_AVATARS_DIR
-
-    download_character_avatars(csv_char_path, output_path, skip_existing=True, start_from_letter=start_letter)
+    download_character_avatars(skip_existing=True, start_from_letter=start_letter)

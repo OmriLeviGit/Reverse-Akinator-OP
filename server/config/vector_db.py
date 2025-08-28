@@ -1,7 +1,12 @@
 # server/config/vector_db.py
 import chromadb
 from sentence_transformers import SentenceTransformer
-from .settings import VECTOR_DB_PATH, EMBEDDING_MODEL, COLLECTION_NAME, COLLECTION_METADATA, CHUNK_SIZE
+import csv
+import sys
+
+from server.config import VECTOR_DB_PATH, EMBEDDING_MODEL, COLLECTION_NAME, COLLECTION_METADATA, CHARACTER_CSV_PATH, \
+    CHUNK_SIZE
+from server.database.bootstrap_tools.character_scraping import scrape_character
 
 # ChromaDB configuration
 CHROMA_SETTINGS = chromadb.config.Settings(
@@ -43,17 +48,52 @@ def initialize_collection():
     return client, collection, get_embedding_model()
 
 
-def add_character_to_db(collection, model, name, structured_data, narrative_text):
-    """Add a character with chunking - handles both string and list of narratives"""
+def load_characters_from_csv(csv_path=CHARACTER_CSV_PATH):
+    """Load character data from CSV file"""
+    characters = []
 
-    # Handle multiple narratives
-    if isinstance(narrative_text, list):
-        all_chunks = []
-        for narrative in narrative_text:
-            chunks = _chunk_text(narrative)  # Helper function
-            all_chunks.extend(chunks)
-    else:
-        all_chunks = _chunk_text(narrative_text)
+    try:
+        with open(csv_path, 'r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                wiki_url = row.get('Wiki')
+                character_id = row.get('ID')
+
+                if wiki_url and character_id and isinstance(wiki_url, str) and wiki_url.strip():
+                    characters.append({
+                        'id': character_id,
+                        'url': wiki_url.strip()
+                    })
+
+    except FileNotFoundError:
+        print(f"Error: Could not find CSV file at {csv_path}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error reading CSV file: {e}")
+        sys.exit(1)
+
+    return characters
+
+
+def add_character_to_db(collection, model, character_id, structured_data, narrative_sections):
+    """Add a character with chunking - handles narrative sections dict"""
+
+    # Convert narrative sections to list of paragraphs for chunking
+    all_narratives = []
+    for section_name, paragraphs in narrative_sections.items():
+        for paragraph in paragraphs:
+            all_narratives.append(f"[{section_name}] {paragraph}")
+
+    # Handle case where no narratives found
+    if not all_narratives:
+        print(f"No narrative content found for {character_id}")
+        return
+
+    # Chunk all narratives
+    all_chunks = []
+    for narrative in all_narratives:
+        chunks = _chunk_text(narrative)
+        all_chunks.extend(chunks)
 
     # Add each chunk to database
     for i, chunk in enumerate(all_chunks):
@@ -62,15 +102,67 @@ def add_character_to_db(collection, model, name, structured_data, narrative_text
             embeddings=embedding.tolist(),
             documents=[chunk],
             metadatas=[{
-                'character_name': name,
+                'character_id': character_id,
                 'chunk_id': i,
                 'total_chunks': len(all_chunks),
                 **structured_data
             }],
-            ids=[f"{name.replace(' ', '_')}_chunk_{i}"]
+            ids=[f"{character_id}_chunk_{i}"]
         )
 
-    print(f"Added {name} with {len(all_chunks)} chunks")
+    print(f"Added {character_id} with {len(all_chunks)} chunks and {len(structured_data)} structured data entries")
+
+
+def initialize_database_with_all_characters():
+    """Initialize the database by scraping and adding all characters from the CSV file"""
+    print("Initializing database with all characters...")
+
+    # Initialize database
+    client, collection, model = initialize_collection()
+
+    # Load all characters from CSV
+    characters = load_characters_from_csv()
+
+    if not characters:
+        print("No characters found in CSV file")
+        return
+
+    print(f"Found {len(characters)} characters to process")
+
+    # Process each character
+    successful = 0
+    failed = 0
+
+    for i, char_info in enumerate(characters, 1):
+        character_id = char_info['id']
+        wiki_url = char_info['url']
+
+        print(f"Processing {i}/{len(characters)}: {character_id}")
+
+        try:
+            # Scrape character data
+            structured_data, narrative_sections = scrape_character(wiki_url)
+
+            # Add to database
+            add_character_to_db(collection, model, character_id, structured_data, narrative_sections)
+
+            successful += 1
+
+        except Exception as e:
+            print(f"ERROR processing {character_id}: {e}")
+            failed += 1
+            continue
+
+    # Summary
+    print(f"\n{'=' * 60}")
+    print("DATABASE INITIALIZATION COMPLETE")
+    print(f"{'=' * 60}")
+    print(f"Successfully processed: {successful}")
+    print(f"Failed: {failed}")
+    print(f"Total characters: {len(characters)}")
+    print(f"{'=' * 60}")
+
+    return client, collection, model
 
 
 def _chunk_text(text):
@@ -94,3 +186,7 @@ def _chunk_text(text):
         chunks.append(current_chunk.strip())
 
     return chunks
+
+
+if __name__ == "__main__":
+    initialize_database_with_all_characters()

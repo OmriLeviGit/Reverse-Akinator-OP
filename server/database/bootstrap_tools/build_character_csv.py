@@ -326,6 +326,12 @@ def scrape_character_data(output_file=CHARACTER_CSV_PATH):
             combined_df = combined_df.drop_duplicates()
             combined_df = combined_df.sort_values('Name', na_position='last').reset_index(drop=True)
 
+            if 'Wiki' in combined_df.columns:
+                before_count = len(combined_df)
+                combined_df = combined_df[~combined_df['Wiki'].str.contains('#', na=False)]
+                dropped_count = before_count - len(combined_df)
+                print(f"- Rows dropped due to '#' in Wiki: {dropped_count}")
+
             os.makedirs(output_file.parent, exist_ok=True)
             combined_df.to_csv(output_file, index=False)
 
