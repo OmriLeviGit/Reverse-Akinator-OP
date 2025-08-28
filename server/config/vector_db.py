@@ -6,7 +6,6 @@ import sys
 
 from server.config import VECTOR_DB_PATH, EMBEDDING_MODEL, COLLECTION_NAME, COLLECTION_METADATA, CHARACTER_CSV_PATH, \
     CHUNK_SIZE
-from server.database.bootstrap_tools.character_scraping import scrape_character
 
 # ChromaDB configuration
 CHROMA_SETTINGS = chromadb.config.Settings(
@@ -113,56 +112,6 @@ def add_character_to_db(collection, model, character_id, structured_data, narrat
     print(f"Added {character_id} with {len(all_chunks)} chunks and {len(structured_data)} structured data entries")
 
 
-def initialize_database_with_all_characters():
-    """Initialize the database by scraping and adding all characters from the CSV file"""
-    print("Initializing database with all characters...")
-
-    # Initialize database
-    client, collection, model = initialize_collection()
-
-    # Load all characters from CSV
-    characters = load_characters_from_csv()
-
-    if not characters:
-        print("No characters found in CSV file")
-        return
-
-    print(f"Found {len(characters)} characters to process")
-
-    # Process each character
-    successful = 0
-    failed = 0
-
-    for i, char_info in enumerate(characters, 1):
-        character_id = char_info['id']
-        wiki_url = char_info['url']
-
-        print(f"Processing {i}/{len(characters)}: {character_id}")
-
-        try:
-            # Scrape character data
-            structured_data, narrative_sections = scrape_character(wiki_url)
-
-            # Add to database
-            add_character_to_db(collection, model, character_id, structured_data, narrative_sections)
-
-            successful += 1
-
-        except Exception as e:
-            print(f"ERROR processing {character_id}: {e}")
-            failed += 1
-            continue
-
-    # Summary
-    print(f"\n{'=' * 60}")
-    print("DATABASE INITIALIZATION COMPLETE")
-    print(f"{'=' * 60}")
-    print(f"Successfully processed: {successful}")
-    print(f"Failed: {failed}")
-    print(f"Total characters: {len(characters)}")
-    print(f"{'=' * 60}")
-
-    return client, collection, model
 
 
 def _chunk_text(text):
@@ -189,4 +138,6 @@ def _chunk_text(text):
 
 
 if __name__ == "__main__":
-    initialize_database_with_all_characters()
+    print("This module provides vector database utilities.")
+    print("To initialize the database with all characters, run:")
+    print("python -m server.database.bootstrap_tools.vector_database_builder")
