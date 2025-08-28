@@ -1,7 +1,4 @@
 - remove message counting - swap with fun fact
 add game settings to schemas
 
-
-restore redis
-clean data
 organize settings

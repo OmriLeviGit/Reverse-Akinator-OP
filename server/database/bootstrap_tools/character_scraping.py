@@ -3,37 +3,106 @@ from bs4 import BeautifulSoup
 import re
 from collections import defaultdict
 import time
+import sys
+from pathlib import Path
+
+# Add the server directory to the Python path so we can import settings
+sys.path.append(str(Path(__file__).parent.parent.parent))
+from server.config.settings import WHITELISTED_SECTIONS, WHITELISTED_STATISTICS
 
 # Configuration
 DELAY_BETWEEN_REQUESTS = 1
 
-# WHITELISTS - Only scrape these sections and statistics
-WHITELISTED_SECTIONS = [
-    'Appearance',
-    'Personality',
-    'History',
-    'Abilities and Powers',
-    'Relationships',
-    'Gallery',
-    'Trivia'
-]
+def clean_narrative_text(text):
+    """Clean narrative text by removing wiki reference tags and other unwanted elements"""
+    if not text:
+        return text
+    
+    # Remove [number] reference tags
+    text = re.sub(r'\[\d+\]', '', text)
+    
+    # Remove empty brackets
+    text = re.sub(r'\[\s*\]', '', text)
+    
+    # Remove citation needed tags
+    text = re.sub(r'\[citation needed\]', '', text)
+    
+    # Remove other common wiki tags
+    text = re.sub(r'\[edit\]', '', text)
+    
+    # Remove zero-width spaces and other invisible Unicode characters
+    text = re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', text)
+    
+    # Clean up extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    return text
 
-WHITELISTED_STATISTICS = [
-    'Age',
-    'Birthday',
-    'Height',
-    'Bounty',
-    'Devil Fruit',
-    'Haki',
-    'Epithet',
-    'Affiliation',
-    'Occupation',
-    'Origin',
-    'Dream',
-    'Japanese Name',
-    'English Name'
-    'Status'
-]
+def clean_bounty_value(bounty_str):
+    """Extract and separate bounty values from concatenated string"""
+    if not bounty_str:
+        return {}
+    
+    # Extract all bounty amounts (numbers followed by zeros or with commas)
+    bounty_pattern = r'(\d{1,3}(?:,\d{3})*(?:,\d{3})*)'
+    matches = re.findall(bounty_pattern, bounty_str)
+    
+    if not matches:
+        return {'current_bounty': bounty_str}
+    
+    # Convert to integers for proper sorting
+    bounties = []
+    for match in matches:
+        try:
+            bounty_int = int(match.replace(',', ''))
+            bounties.append(bounty_int)
+        except ValueError:
+            continue
+    
+    if not bounties:
+        return {'current_bounty': bounty_str}
+    
+    # Sort bounties in descending order (highest first)
+    bounties.sort(reverse=True)
+    
+    # Format bounties back to string format
+    formatted_bounties = [f"{bounty:,}" for bounty in bounties]
+    
+    return {
+        'current_bounty': formatted_bounties[0] if formatted_bounties else bounty_str,
+        'previous_bounties': formatted_bounties[1:] if len(formatted_bounties) > 1 else []
+    }
+
+def clean_structured_data(structured_data):
+    """Clean and organize structured data"""
+    if not structured_data:
+        return {}
+    
+    cleaned_data = {}
+    
+    for field, value in structured_data.items():
+        if not value:
+            continue
+            
+        # Clean the field name
+        clean_field = field.strip()
+        
+        # Clean the value
+        clean_value = value.strip()
+        
+        # Remove wiki markup from values
+        clean_value = re.sub(r'\[\d+\]', '', clean_value)
+        clean_value = re.sub(r'\[.*?\]', '', clean_value)
+        clean_value = re.sub(r'\s+', ' ', clean_value).strip()
+        
+        # Special handling for bounties
+        if clean_field.lower() == 'bounty':
+            bounty_data = clean_bounty_value(clean_value)
+            cleaned_data.update(bounty_data)
+        else:
+            cleaned_data[clean_field] = clean_value
+    
+    return cleaned_data
 
 
 def get_character_subpages(main_page_url):
@@ -116,7 +185,9 @@ def extract_paragraphs_from_page(url, section_override=None):
                         elif current_element.name == 'p':
                             text = current_element.get_text().strip()
                             if text:
-                                paragraphs.append(text)
+                                cleaned_text = clean_narrative_text(text)
+                                if cleaned_text:
+                                    paragraphs.append(cleaned_text)
                         current_element = current_element.find_next_sibling()
 
                     if paragraphs:
@@ -141,7 +212,9 @@ def extract_paragraphs_from_page(url, section_override=None):
                     elif current_element.name == 'p':
                         text = current_element.get_text().strip()
                         if text:
-                            paragraphs.append(text)
+                            cleaned_text = clean_narrative_text(text)
+                            if cleaned_text:
+                                paragraphs.append(cleaned_text)
                     current_element = current_element.find_next_sibling()
 
                 if paragraphs:
@@ -222,12 +295,17 @@ def scrape_character(wiki_url):
 
     narrative_sections = defaultdict(list)
 
-    structured_data = extract_structured_data(wiki_url)
+    # Extract and clean structured data
+    raw_structured_data = extract_structured_data(wiki_url)
+    structured_data = clean_structured_data(raw_structured_data)
+    
+    # Extract narrative sections from main page
     main_page_sections = extract_paragraphs_from_page(wiki_url)
 
     for section_name, paragraphs in main_page_sections.items():
         narrative_sections[section_name].extend(paragraphs)
 
+    # Extract narrative sections from subpages
     subpages = get_character_subpages(wiki_url)
 
     for subpage_url in subpages:
@@ -251,7 +329,7 @@ def example_usage():
     """Example of how to use the scraper"""
 
     # Scrape a single character
-    wiki_url = "https://onepiece.fandom.com/wiki/150"
+    wiki_url = "https://onepiece.fandom.com/wiki/Monkey_D._Luffy"
     structured_data, narrative_sections = scrape_character(wiki_url)
 
     print(f"Structured data fields: {len(structured_data)}")

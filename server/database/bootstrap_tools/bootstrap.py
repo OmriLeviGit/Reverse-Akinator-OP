@@ -2,12 +2,10 @@
 import sys
 from pathlib import Path
 
+# Add server directory to path
+sys.path.append(str(Path(__file__).parent.parent.parent))
+
 from server.database.bootstrap_tools.section_and_table_discovery import discover_sections
-
-# Add project root to path for imports
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
 from server.database.bootstrap_tools.generate_small_avatars import create_all_small_avatars
 from server.database.bootstrap_tools.download_large_avatars import download_character_avatars
 from server.database.bootstrap_tools.build_character_csv import scrape_character_data

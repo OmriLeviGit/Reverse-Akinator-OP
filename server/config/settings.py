@@ -48,6 +48,34 @@ GAME_TTL = 3600  # 1 hour TTL for games
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
+# Character scraping settings
+WHITELISTED_SECTIONS = [
+    'Appearance',
+    'Personality',
+    'History',
+    'Abilities and Powers',
+    'Relationships',
+    'Gallery',
+    'Trivia'
+]
+
+WHITELISTED_STATISTICS = [
+    'Age',
+    'Birthday',
+    'Height',
+    'Bounty',
+    'Devil Fruit',
+    'Haki',
+    'Epithet',
+    'Affiliation',
+    'Occupation',
+    'Origin',
+    'Dream',
+    'Japanese Name',
+    'English Name',
+    'Status'
+]
+
 # Ensure data directories exist
 DATA_DIR.mkdir(exist_ok=True)
 LARGE_AVATARS_DIR.mkdir(parents=True, exist_ok=True)

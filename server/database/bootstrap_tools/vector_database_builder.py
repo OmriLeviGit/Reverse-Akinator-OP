@@ -2,8 +2,8 @@
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+# Add server directory to path
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from server.config.vector_db import initialize_collection, add_character_to_db
 
