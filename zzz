@@ -1,7 +1,9 @@
-- remove message counting - swap with fun fact
-add game settings to schemas
----
-attempt to get the main arc of a character, not just mentioned, for the spoiler mechansim
+attempt to get the main arc of a character, not just mentioned, for the spoiler mechanism
 advance search, be able to search by arc or crew name
 look at obsidian list
 remove all characters with a certain section (geography, Inhabitants)
+
+to actually do:
+- make sure everything works with the ai
+- swap message counting with fun fact
+- fill up description and fun fact

@@ -5,8 +5,7 @@ from datetime import datetime
 from langchain.memory import ConversationBufferMemory
 from langchain.memory.chat_message_histories import RedisChatMessageHistory
 
-from server.config import GAME_TTL, REDIS_URL
-from server.config.redis import get_redis
+from server.config import GAME_TTL, REDIS_URL, get_redis
 from server.schemas.character_schemas import Character
 
 

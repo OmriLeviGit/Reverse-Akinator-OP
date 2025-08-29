@@ -18,3 +18,4 @@ chromadb~=1.0.20
 pandas~=2.3.2
 lxml~=6.0.1
 sentence-transformers~=5.1.0
+langchain_community~=0.3.29

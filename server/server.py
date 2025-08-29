@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from server.config.redis import get_redis
+from server.config import get_redis
 from server.services.character_service import CharacterService
 from server.services.llm_service import LLMService
 from server.routes import session

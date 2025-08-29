@@ -167,7 +167,7 @@ def is_statistic_whitelisted(field_name, section_name):
 
 
 def extract_paragraphs_from_page(url, section_override=None):
-    """Extract paragraphs from a page using H2-to-H2 method"""
+    """Extract paragraphs from a page using H2-to-H2 method, including pre-H2 content"""
     try:
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -178,55 +178,55 @@ def extract_paragraphs_from_page(url, section_override=None):
         soup = BeautifulSoup(response.content, 'html.parser')
         sections_data = defaultdict(list)
 
+        def extract_paragraphs_after_element(start_element):
+            """Helper function to extract paragraphs after a given element until next H2"""
+            paragraphs = []
+            current_element = start_element.find_next_sibling()
+
+            while current_element:
+                if current_element.name == 'h2':
+                    break
+                elif current_element.name == 'p':
+                    text = current_element.get_text().strip()
+                    if text:
+                        cleaned_text = clean_narrative_text(text)
+                        if cleaned_text:
+                            paragraphs.append(cleaned_text)
+                current_element = current_element.find_next_sibling()
+
+            return paragraphs
+
+        # Extract intro paragraphs (after infoboxes, before first H2)
+        intro_paragraphs = []
+        infobox_containers = soup.find_all('div', style=re.compile(r'float\s*:\s*right', re.I))
+
+        if infobox_containers:
+            last_infobox = infobox_containers[-1]
+            intro_paragraphs = extract_paragraphs_after_element(last_infobox)
+
         if section_override:
-            # For subpages: collect paragraphs from ALL H2 sections under the subpage name
+            # For subpages: add intro first, then H2 content to same section
             if is_section_whitelisted(section_override):
-                h2_tags = soup.find_all('h2')
+                if intro_paragraphs:
+                    sections_data[section_override].extend(intro_paragraphs)
 
-                for h2 in h2_tags:
-                    paragraphs = []
-                    current_element = h2.find_next_sibling()
-
-                    while current_element:
-                        if current_element.name == 'h2':
-                            break
-                        elif current_element.name == 'p':
-                            text = current_element.get_text().strip()
-                            if text:
-                                cleaned_text = clean_narrative_text(text)
-                                if cleaned_text:
-                                    paragraphs.append(cleaned_text)
-                        current_element = current_element.find_next_sibling()
-
-                    if paragraphs:
-                        sections_data[section_override].extend(paragraphs)
+                # Add paragraphs from all H2 sections
+                for h2 in soup.find_all('h2'):
+                    h2_paragraphs = extract_paragraphs_after_element(h2)
+                    if h2_paragraphs:
+                        sections_data[section_override].extend(h2_paragraphs)
         else:
-            # For main pages: organize by H2 headers, filter by whitelist
-            h2_tags = soup.find_all('h2')
+            # For main pages: intro as separate section, then whitelisted H2 sections
+            if intro_paragraphs:
+                sections_data['introduction'].extend(intro_paragraphs)
 
-            for h2 in h2_tags:
+            for h2 in soup.find_all('h2'):
                 h2_text = h2.get_text().replace('[edit]', '').strip().replace("[]", "").lower()
 
-
-                if not is_section_whitelisted(h2_text):
-                    continue
-
-                paragraphs = []
-                current_element = h2.find_next_sibling()
-
-                while current_element:
-                    if current_element.name == 'h2':
-                        break
-                    elif current_element.name == 'p':
-                        text = current_element.get_text().strip()
-                        if text:
-                            cleaned_text = clean_narrative_text(text)
-                            if cleaned_text:
-                                paragraphs.append(cleaned_text)
-                    current_element = current_element.find_next_sibling()
-
-                if paragraphs:
-                    sections_data[h2_text].extend(paragraphs)
+                if is_section_whitelisted(h2_text):
+                    h2_paragraphs = extract_paragraphs_after_element(h2)
+                    if h2_paragraphs:
+                        sections_data[h2_text].extend(h2_paragraphs)
 
         return dict(sections_data)
 
@@ -262,7 +262,7 @@ def extract_structured_data(url):
                     section_context = re.sub(r'\[.*?]', '', section_context).strip().lower()
                 else:
                     section_context = "unknown"
-                
+
                 data_items = section.find_all('div', class_='pi-item')
 
                 for item in data_items:
@@ -290,7 +290,7 @@ def extract_structured_data(url):
                                     final_field_name = field_name
                                 else:
                                     final_field_name = f"{section_context} - {field_name}"
-                                
+
                                 structured_data[final_field_name] = field_value
 
         return structured_data
