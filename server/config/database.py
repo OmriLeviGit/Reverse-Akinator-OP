@@ -2,10 +2,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import contextmanager
-from .settings import DATABASE_PATH, DEBUG
-
-# Database configuration
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+from .settings import DATABASE_URL, DEBUG
 
 # Create engine
 engine = create_engine(

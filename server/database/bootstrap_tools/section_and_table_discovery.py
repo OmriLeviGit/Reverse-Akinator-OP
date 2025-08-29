@@ -9,7 +9,7 @@ import re
 from server.config import CHARACTER_CSV_PATH, DISCOVERY_PATH
 
 # Configuration
-DELAY_BETWEEN_REQUESTS = 1
+DELAY_BETWEEN_REQUESTS = 0.5
 MAX_CHARACTERS = None
 
 
@@ -72,6 +72,7 @@ def get_all_character_subpages(main_page_url):
                     page_url = f"https://onepiece.fandom.com/wiki/{page_title.replace(' ', '_')}"
                     subpages.append(page_url)
 
+
             if 'continue' in data:
                 continue_token = data['continue']['apcontinue']
                 print(f"  Found {len(pages)} subpages, continuing...")
@@ -96,7 +97,10 @@ def extract_h2_headers(url):
         sections = []
 
         for h2 in h2_tags:
-            h2_text = h2.get_text().strip().replace('[]', '')
+            h2_text = h2.get_text().strip().replace('[]', '').replace('[edit]', '').lower()
+            # Remove zero-width characters and other HTML artifacts
+            h2_text = re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', h2_text)
+            h2_text = re.sub(r'\[.*?\]', '', h2_text).strip()
             current_element = h2.find_next_sibling()
 
             while current_element:
@@ -140,16 +144,16 @@ def extract_statistics_entries(url):
                 section_header = section.find('h2', class_='pi-header')
                 if section_header:
                     section_name = section_header.get_text(strip=True)
-                    section_name = re.sub(r'\[.*?]', '', section_name).strip()
+                    section_name = re.sub(r'\[.*?]', '', section_name).strip().lower()
                 else:
-                    section_name = "Unknown"
+                    section_name = "unknown"
 
                 label_elements = section.find_all('h3', class_='pi-data-label')
 
                 for label in label_elements:
                     field_text = label.get_text(strip=True)
                     field_text = re.sub(r'\[.*?]', '', field_text)
-                    field_text = field_text.strip()
+                    field_text = field_text.strip().lower()
 
                     if field_text.endswith(':'):
                         field_text = field_text[:-1].strip()
@@ -174,7 +178,10 @@ def extract_statistics_entries(url):
 
 def extract_subpage_name(subpage_url):
     """Extract the subpage name from URL for use as section name"""
-    subpage_name = subpage_url.split('/')[-1].replace('_', ' ')
+    subpage_name = subpage_url.split('/')[-1].replace('_', ' ').strip().lower()
+    # Remove zero-width characters and other HTML artifacts
+    subpage_name = re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', subpage_name)
+    subpage_name = re.sub(r'\[.*?\]', '', subpage_name).strip()
     return subpage_name
 
 
@@ -281,21 +288,32 @@ def discover_sections(character_csv_path=CHARACTER_CSV_PATH):
             f.write("-" * 30 + "\n")
             for section, count in all_sections.most_common():
                 percentage = (count / processed_count) * 100
-                f.write(f"{count:4d} ({percentage:5.1f}%) - {section}\n")
+                clean_section = re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', section)
+                f.write(f"{count:4d} ({percentage:5.1f}%) - {clean_section}\n")
 
         if all_statistics:
             f.write("\nSTATISTICS ENTRIES BY FREQUENCY:\n")
             f.write("-" * 30 + "\n")
             for stat, count in all_statistics.most_common():
                 percentage = (count / processed_count) * 100
-                f.write(f"{count:4d} ({percentage:5.1f}%) - {stat}\n")
+                clean_stat = re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', str(stat))
+                f.write(f"{count:4d} ({percentage:5.1f}%) - {clean_stat}\n")
 
         if character_section_map:
             f.write("\nCHARACTER SECTIONS (H2 + Subpage Names):\n")
             f.write("-" * 40 + "\n")
             for character_id, sections in character_section_map.items():
-                sections_list = ', '.join(sections)
+                clean_sections = [re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', section) for section in sections]
+                sections_list = ', '.join(clean_sections)
                 f.write(f"{character_id}: {sections_list}\n")
+
+        if character_statistics_map:
+            f.write("\nCHARACTER STATISTICS:\n")
+            f.write("-" * 40 + "\n")
+            for character_id, statistics in character_statistics_map.items():
+                clean_stats = [re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', str(stat)) for stat in statistics]
+                stats_list = ', '.join(clean_stats)
+                f.write(f"{character_id}: {stats_list}\n")
 
     print(f"\nResults also saved to: {output_file}")
 

@@ -85,7 +85,7 @@ def clean_structured_data(structured_data):
             continue
             
         # Clean the field name
-        clean_field = field.strip()
+        clean_field = field.strip().lower()
         
         # Clean the value
         clean_value = value.strip()
@@ -153,9 +153,10 @@ def is_section_whitelisted(section_name):
     return any(section_name.lower() == whitelisted.lower() for whitelisted in WHITELISTED_SECTIONS)
 
 
-def is_statistic_whitelisted(field_name):
-    """Check if a statistic field is in the whitelist (case-insensitive)"""
-    return any(field_name.lower() == whitelisted.lower() for whitelisted in WHITELISTED_STATISTICS)
+def is_statistic_whitelisted(field_name, section_name):
+    """Check if a statistic field from a specific section is in the whitelist"""
+    field_tuple = (field_name.lower(), section_name.lower())
+    return any(field_tuple == (whitelisted[0].lower(), whitelisted[1].lower()) for whitelisted in WHITELISTED_STATISTICS)
 
 
 def extract_paragraphs_from_page(url, section_override=None):
@@ -197,7 +198,7 @@ def extract_paragraphs_from_page(url, section_override=None):
             h2_tags = soup.find_all('h2')
 
             for h2 in h2_tags:
-                h2_text = h2.get_text().replace('[edit]', '').strip().replace("[]", "")
+                h2_text = h2.get_text().replace('[edit]', '').strip().replace("[]", "").lower()
 
 
                 if not is_section_whitelisted(h2_text):
@@ -247,6 +248,14 @@ def extract_structured_data(url):
             sections = container.find_all('section', class_='pi-item')
 
             for section in sections:
+                # Get section header for context
+                section_header = section.find('h2', class_='pi-header')
+                if section_header:
+                    section_context = section_header.get_text(strip=True)
+                    section_context = re.sub(r'\[.*?]', '', section_context).strip().lower()
+                else:
+                    section_context = "unknown"
+                
                 data_items = section.find_all('div', class_='pi-item')
 
                 for item in data_items:
@@ -254,12 +263,12 @@ def extract_structured_data(url):
                     if label_element:
                         field_name = label_element.get_text(strip=True)
                         field_name = re.sub(r'\[.*?]', '', field_name)
-                        field_name = field_name.strip()
+                        field_name = field_name.strip().lower()
 
                         if field_name.endswith(':'):
                             field_name = field_name[:-1].strip()
 
-                        if not is_statistic_whitelisted(field_name):
+                        if not is_statistic_whitelisted(field_name, section_context):
                             continue
 
                         value_element = item.find('div', class_='pi-data-value')
@@ -269,7 +278,13 @@ def extract_structured_data(url):
                             field_value = field_value.strip()
 
                             if field_name and field_value:
-                                structured_data[field_name] = field_value
+                                # Format field name based on section
+                                if section_context == "statistics":
+                                    final_field_name = field_name
+                                else:
+                                    final_field_name = f"{section_context} - {field_name}"
+                                
+                                structured_data[final_field_name] = field_value
 
         return structured_data
 
@@ -279,7 +294,7 @@ def extract_structured_data(url):
 
 def extract_subpage_name(subpage_url):
     """Extract clean subpage name from URL"""
-    return subpage_url.split('/')[-1].replace('_', ' ')
+    return subpage_url.split('/')[-1].replace('_', ' ').strip().lower()
 
 
 def scrape_character(wiki_url):
