@@ -8,7 +8,15 @@ from .settings import DATABASE_URL, DEBUG
 engine = create_engine(
     DATABASE_URL,
     echo=DEBUG,  # Log SQL queries in debug mode
-    connect_args={"check_same_thread": False}  # For SQLite
+    connect_args={
+        "check_same_thread": False,  # For SQLite
+        "pragma_statements": [
+            "PRAGMA journal_mode=WAL",
+            "PRAGMA synchronous=NORMAL",
+            "PRAGMA cache_size=1000",
+            "PRAGMA temp_store=memory"
+        ]
+    }
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from server.config.settings import WHITELISTED_SECTIONS, WHITELISTED_STATISTICS
 
 # Configuration
-DELAY_BETWEEN_REQUESTS = 1
+DELAY_BETWEEN_REQUESTS = 0.1
 
 def clean_narrative_text(text):
     """Clean narrative text by removing wiki reference tags and other unwanted elements"""
@@ -98,7 +98,14 @@ def clean_structured_data(structured_data):
         # Special handling for bounties
         if clean_field.lower() == 'bounty':
             bounty_data = clean_bounty_value(clean_value)
-            cleaned_data.update(bounty_data)
+            # Only add bounty fields if they have meaningful values
+            for bounty_field, bounty_value in bounty_data.items():
+                if bounty_value and bounty_value != [] and bounty_value != '':
+                    # Convert list to string for ChromaDB compatibility
+                    if isinstance(bounty_value, list) and bounty_value:
+                        cleaned_data[bounty_field] = ', '.join(map(str, bounty_value))
+                    elif not isinstance(bounty_value, list):
+                        cleaned_data[bounty_field] = bounty_value
         else:
             cleaned_data[clean_field] = clean_value
     

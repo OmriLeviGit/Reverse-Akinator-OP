@@ -1,8 +1,13 @@
 # server/config/vector_db.py
+from pathlib import Path
+
 import chromadb
 from sentence_transformers import SentenceTransformer
 import csv
 import sys
+import json
+
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from server.config import VECTOR_DB_PATH, EMBEDDING_MODEL, COLLECTION_NAME, COLLECTION_METADATA, CHARACTER_CSV_PATH, \
     CHUNK_SIZE
@@ -104,7 +109,7 @@ def add_character_to_db(collection, model, character_id, structured_data, narrat
                 'character_id': character_id,
                 'chunk_id': i,
                 'total_chunks': len(all_chunks),
-                **structured_data
+                'structured_data': json.dumps(structured_data)
             }],
             ids=[f"{character_id}_chunk_{i}"]
         )
@@ -137,7 +142,76 @@ def _chunk_text(text):
     return chunks
 
 
+def inspect_collection():
+    """Inspect the contents of the vector database collection"""
+    client = get_vector_client()
+    
+    try:
+        collection = client.get_collection(COLLECTION_NAME)
+        
+        # Get basic stats
+        count = collection.count()
+        print(f"Collection '{COLLECTION_NAME}' contains {count} items")
+        
+        if count > 0:
+            # Get a sample of items to see structure
+            sample_size = min(5, count)
+            results = collection.get(limit=sample_size)
+            
+            print(f"\nSample of {sample_size} items:")
+            for i in range(len(results['ids'])):
+                print(f"\nID: {results['ids'][i]}")
+                print(f"Metadata: {results['metadatas'][i]}")
+                print(f"Document preview: {results['documents'][i][:100]}...")
+        
+        return collection
+        
+    except Exception as e:
+        print(f"Error inspecting collection: {e}")
+        return None
+
+
+def query_characters(query_text, n_results=5):
+    """Query the vector database for similar characters"""
+    client = get_vector_client()
+    model = get_embedding_model()
+    
+    try:
+        collection = client.get_collection(COLLECTION_NAME)
+        
+        # Generate embedding for query
+        query_embedding = model.encode([query_text])
+        
+        # Query the collection
+        results = collection.query(
+            query_embeddings=query_embedding.tolist(),
+            n_results=n_results
+        )
+        
+        print(f"Query: '{query_text}'")
+        print(f"Found {len(results['ids'][0])} results:")
+        
+        for i in range(len(results['ids'][0])):
+            print(f"\nResult {i+1}:")
+            print(f"ID: {results['ids'][0][i]}")
+            print(f"Distance: {results['distances'][0][i]:.4f}")
+            print(f"Character: {results['metadatas'][0][i].get('character_id', 'Unknown')}")
+            print(f"Content: {results['documents'][0][i][:200]}...")
+        
+        return results
+        
+    except Exception as e:
+        print(f"Error querying collection: {e}")
+        return None
+
+
 if __name__ == "__main__":
     print("This module provides vector database utilities.")
     print("To initialize the database with all characters, run:")
     print("python -m server.database.bootstrap_tools.vector_database_builder")
+    print("\nTo inspect the current database contents:")
+    print("python -c \"from server.config.vector_db import inspect_collection; inspect_collection()\"")
+    print("\nTo query the database:")
+    print("python -c \"from server.config.vector_db import query_characters; query_characters('your query here')\")")
+
+    inspect_collection()

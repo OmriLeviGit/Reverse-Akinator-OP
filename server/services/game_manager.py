@@ -2,7 +2,10 @@
 import json
 from datetime import datetime
 
-from server.config import GAME_TTL
+from langchain.memory import ConversationBufferMemory
+from langchain.memory.chat_message_histories import RedisChatMessageHistory
+
+from server.config import GAME_TTL, REDIS_URL
 from server.config.redis import get_redis
 from server.schemas.character_schemas import Character
 
@@ -12,12 +15,11 @@ class GameManager:
         self.redis = get_redis()
         self.game_ttl = GAME_TTL
 
-    def create_game(self, game_id: str, target_character: Character, prompt: str,
-game_settings: dict) -> None:
+    def create_game(self, game_id: str, target_character: Character, prompt: str, game_settings: dict) -> None:
         """Store sensitive game data in Redis"""
         game_data = {
-            "target_character": target_character.model_dump(),  # Only serialize when storing in Redis
-            "conversation": [{"role": "system", "content": prompt}],
+            "target_character": target_character.model_dump(),
+            "system_prompt": prompt,  # Store prompt separately
             "guesses_made": [],
             "game_settings": game_settings,
             "questions_asked": 0,
@@ -30,6 +32,9 @@ game_settings: dict) -> None:
             self.game_ttl,
             json.dumps(game_data)
         )
+        
+        # Initialize LangChain memory for this game
+        self._get_or_create_memory(game_id)
 
     def get_game_data(self, game_id: str) -> dict | None:
         """Retrieve game data from Redis"""
@@ -56,30 +61,45 @@ game_settings: dict) -> None:
             raise ValueError("Game not found in Redis")
         return game_data["game_settings"]
 
-    def add_conversation_message(self, game_id: str, role: str, content: str):
-        """Add message to conversation and increment question counter if user message"""
+    def _get_or_create_memory(self, game_id: str) -> ConversationBufferMemory:
+        """Get or create LangChain memory for a game"""
+        message_history = RedisChatMessageHistory(
+            session_id=f"chat:{game_id}",
+            url=REDIS_URL,
+            ttl=self.game_ttl
+        )
+        
+        return ConversationBufferMemory(
+            chat_memory=message_history,
+            return_messages=True
+        )
+    
+    def get_memory(self, game_id: str) -> ConversationBufferMemory:
+        """Get LangChain memory for a game"""
+        return self._get_or_create_memory(game_id)
+    
+    def add_user_question(self, game_id: str, question: str):
+        """Add user question and increment counter"""
+        memory = self._get_or_create_memory(game_id)
+        memory.chat_memory.add_user_message(question)
+        
+        # Increment question counter
         game_data = self.get_game_data(game_id)
-        if not game_data:
-            raise ValueError("Game not found in Redis")
-
-        game_data["conversation"].append({
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now().isoformat()
-        })
-
-        # Increment question counter for user messages
-        if role == "user":
+        if game_data:
             game_data["questions_asked"] += 1
+            self.redis.setex(f"game:{game_id}", self.game_ttl, json.dumps(game_data))
+    
+    def add_assistant_response(self, game_id: str, response: str):
+        """Add assistant response to memory"""
+        memory = self._get_or_create_memory(game_id)
+        memory.chat_memory.add_ai_message(response)
 
-        self.redis.setex(f"game:{game_id}", self.game_ttl, json.dumps(game_data))
-
-    def get_conversation(self, game_id: str) -> list[dict]:
-        """Get conversation history"""
+    def get_system_prompt(self, game_id: str) -> str:
+        """Get the system prompt for a game"""
         game_data = self.get_game_data(game_id)
         if not game_data:
             raise ValueError("Game not found in Redis")
-        return game_data["conversation"]
+        return game_data["system_prompt"]
 
     def add_guess(self, game_id: str, guess: str, is_correct: bool):
         """Add a guess to the game and increment guess counter"""

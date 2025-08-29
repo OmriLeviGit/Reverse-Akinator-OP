@@ -61,39 +61,5 @@ def build_vector_database():
     return client, collection, model
 
 
-def get_sample_characters():
-    """Return sample character data for testing"""
-    return [
-        {
-            'name': 'Monkey D. Luffy',
-            'structured': {
-                'height': '174 cm',
-                'age': '19',
-                'first_appearance': 'Chapter 1',
-                'occupation': 'Pirate Captain',
-                'devil_fruit': 'Gomu Gomu no Mi'
-            },
-            'narrative': [
-                "Luffy's basic info and personality...",
-                "Luffy's devil fruit powers and abilities...",
-                "Luffy's family and background...",
-                "Luffy's crew and relationships..."
-            ]
-        },
-    ]
-
-
-def build_sample_database():
-    """Build database with sample data for testing"""
-    client, collection, model = initialize_collection()
-    characters = get_sample_characters()
-
-    for char in characters:
-        add_character_to_db(collection, model, char['name'], char['structured'], char['narrative'])
-
-    print("Sample database built successfully!")
-    print(f"Collection now has {collection.count()} total chunks")
-
-
 if __name__ == "__main__":
     build_vector_database()
