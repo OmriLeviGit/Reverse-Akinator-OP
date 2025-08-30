@@ -9,7 +9,7 @@
     --background: 220 15% 8%;
     --foreground: 210 30% 94%;
     /* Card & Surface Colors */
-    --card: 220 15% 12%;
+    --card: 220 15% 12% / 0.7;
     --card-foreground: 210 30% 94%;
     /* Popover & Overlay Colors */
     --popover: 220 15% 10%;
@@ -26,7 +26,7 @@
     --secondary-foreground-hover: 210 20% 95%;
     /* Muted Elements */
     --muted: 220 15% 15%;
-    --muted-foreground: 220 10% 60%;
+    --muted-foreground: 220 10% 70%;
     /* Accent */
     --accent: 220 15% 25%;
     --accent-foreground: 210 20% 85%;

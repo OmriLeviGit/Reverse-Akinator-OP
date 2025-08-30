@@ -3,7 +3,6 @@ from datetime import datetime
 from fastapi import Request
 
 from server.services.arc_service import ArcService
-from server.services.character_service import CharacterService
 from server.schemas.arc_schemas import Arc
 
 

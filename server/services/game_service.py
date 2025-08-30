@@ -1,6 +1,5 @@
 # server/game_service.py - Pass Character objects directly
 import random
-import time
 from datetime import datetime
 
 from server.services.arc_service import ArcService
@@ -92,16 +91,8 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     # Create game ID and prompt
     game_id = f"game_{datetime.now().timestamp()}"
 
-    a = session_mgr.get_global_arc_limit()
-
-    arcs_until = arc_service.get_arcs_until(session_mgr.get_global_arc_limit())
-    all_arcs = arc_service.get_all_arcs()
-    
-    # Create set of allowed arc names for efficient lookup
-    allowed_arc_names = {arc.name for arc in arcs_until}
-    
-    # Get forbidden arcs as objects (arcs that come after the limit)
-    forbidden_arcs = [arc for arc in all_arcs if arc.name not in allowed_arc_names]
+    # Get forbidden arcs for spoiler protection
+    forbidden_arcs = arc_service.get_forbidden_arcs(session_mgr.get_global_arc_limit())
 
     prompt = prompt_service.create_game_prompt(chosen_character, forbidden_arcs)
 
@@ -115,25 +106,28 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     return character_list
 
 
-def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm, prompt_service: PromptService) -> str:
+def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm, prompt_service: PromptService, arc_service: ArcService) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
             raise ValueError("No active game session")
 
-        start_time = time.time()
         game_id = session_mgr.get_current_game_id()
 
         # Get target character and system prompt
         target_character = game_mgr.get_target_character(game_id)
         system_prompt = game_mgr.get_system_prompt(game_id)
 
-        # Get relevant character context from vector database
-        character_context = prompt_service.get_character_context(target_character.id, question)
+        # Get forbidden arcs for spoiler protection
+        forbidden_arcs = arc_service.get_forbidden_arcs(session_mgr.get_global_arc_limit())
+
+        # Get relevant character context from vector database with arc restrictions
+        character_context = prompt_service.get_character_context(target_character.id, question, forbidden_arcs=forbidden_arcs)
 
         # Get conversation memory
         memory = game_mgr.get_memory(game_id)
         chat_history = memory.messages
+
 
         # Build the complete dynamic prompt
         updated_prompt = prompt_service.build_dynamic_prompt(

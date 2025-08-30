@@ -66,11 +66,12 @@ def ask_question_route(request: GameQuestionRequest,
                        session_mgr: SessionManager = Depends(get_session_manager),
                        game_mgr: GameManager = Depends(get_game_manager),
                        llm_service: LLMService = Depends(get_llm_service),
-                       prompt_service: PromptService = Depends(get_prompt_service)):
+                       prompt_service: PromptService = Depends(get_prompt_service),
+                       arc_service: ArcService = Depends(get_arc_service)):
     try:
         validate_game_session(session_mgr, game_mgr, request.game_id)
 
-        answer = game_service.ask_question(request.question, session_mgr, game_mgr, llm_service, prompt_service)
+        answer = game_service.ask_question(request.question, session_mgr, game_mgr, llm_service, prompt_service, arc_service)
 
         return GameQuestionResponse(
             answer=answer,

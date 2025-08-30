@@ -65,7 +65,7 @@ CHARACTER TYPE: {character.filler_status}"""
         # Handle spoiler restrictions section
         if forbidden_arcs:
             # Create comma-separated list of forbidden arc names
-            spoiler_arc_names = ", ".join(arc.name for arc in forbidden_arcs) + "AND ANYTHING AFTER"
+            spoiler_arc_names = ", ".join(arc.name for arc in forbidden_arcs) + " and anything after"
             prompt = template.replace("{SPOILER_ARCS}", spoiler_arc_names)
         else:
             # Remove the entire spoiler restrictions section if no forbidden arcs
@@ -77,15 +77,22 @@ CHARACTER TYPE: {character.filler_status}"""
         
         return prompt
     
-    def get_character_context(self, character_id: str, question: str, target_results: int = 10, other_results: int = 0)\
+    def get_character_context(self, character_id: str, question: str, target_results: int = 10, other_results: int = 0, forbidden_arcs: list[Arc] = None)\
             -> str:
         """Get relevant character context from vector database based on question"""
         client = get_vector_client()
         model = get_embedding_model()
         collection = client.get_collection(COLLECTION_NAME)
 
-        # Encode the question to find similar content
-        query_embedding = model.encode([question])
+        # Enhance question with arc restrictions if provided
+        enhanced_question = question
+        if forbidden_arcs:
+            forbidden_arc_names = ", ".join(arc.name for arc in forbidden_arcs)
+            arc_restriction = f"\nAvoid information from these story arcs: {forbidden_arc_names}. Do not include spoilers from these arcs."
+            enhanced_question = question + arc_restriction
+
+        # Encode the enhanced question to find similar content
+        query_embedding = model.encode([enhanced_question])
 
         context_parts = []
 

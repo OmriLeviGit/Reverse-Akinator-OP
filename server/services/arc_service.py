@@ -27,3 +27,12 @@ class ArcService:
                     DBArc.last_episode <= arc.episode
                 ).all()
             return [db_arc.to_pydantic() for db_arc in arc_list]
+
+    def get_forbidden_arcs(self, global_arc_limit: Arc) -> list[Arc]:
+        """Get arcs that come after the global arc limit (forbidden/spoiler arcs)"""
+        arcs_until = self.get_arcs_until(global_arc_limit)
+        all_arcs = self.get_all_arcs()
+        allowed_arc_names = {arc.name for arc in arcs_until}
+        
+        # Return forbidden arcs as objects (arcs that come after the limit)
+        return [arc for arc in all_arcs if arc.name not in allowed_arc_names]
