@@ -26,17 +26,19 @@ def get_difficulty_range(difficulty_level: str) -> list[str]:
     return difficulty_mapping[difficulty_level]
 
 
-def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager, character_service: CharacterService, arc_service: ArcService, prompt_service: PromptService) -> \
-list[Character]:
+def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager,
+               character_service: CharacterService, arc_service: ArcService, prompt_service: PromptService
+               ) -> list[Character]:
     """Initialize a new game session"""
 
     # Extract request parameters
-    until_arc, include_unrated, difficulty_level, filler_percentage, include_non_tv_fillers = (
+    selected_arc, include_unrated, difficulty_level, filler_percentage, include_non_tv_fillers = (
         request.arc_selection, request.include_unrated, request.difficulty_level,
         request.filler_percentage, request.include_non_tv_fillers
     )
 
-    arc = arc_service.get_arc_by_name(until_arc)
+    arc = arc_service.get_arc_by_name(selected_arc)
+    
     difficulty_range = get_difficulty_range(difficulty_level)
 
     # Get all possible characters based on filters
@@ -52,7 +54,7 @@ list[Character]:
     # Validate we have characters available
     if not canon_characters and not filler_characters:
         raise ValueError(
-            f"No characters found for arc '{until_arc}' at difficulty {difficulty_level}")
+            f"No characters found for arc '{selected_arc}' at difficulty {difficulty_level}")
 
     # Choose character type based on filler percentage
     random_num = random.random() * 100
@@ -80,7 +82,7 @@ list[Character]:
                 break
 
     game_settings = {
-        "arc_selection": until_arc,
+        "arc_selection": selected_arc,
         "filler_percentage": filler_percentage,
         "include_non_tv_fillers": include_non_tv_fillers,
         "difficulty_level": difficulty_level,
@@ -90,7 +92,16 @@ list[Character]:
     # Create game ID and prompt
     game_id = f"game_{datetime.now().timestamp()}"
 
-    prompt = prompt_service.create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
+    arcs_until = arc_service.get_arcs_until(session_mgr.get_global_arc_limit())
+    all_arcs = arc_service.get_all_arcs()
+    
+    # Create set of allowed arc names for efficient lookup
+    allowed_arc_names = {arc.name for arc in arcs_until}
+    
+    # Get forbidden arcs as objects (arcs that come after the limit)
+    forbidden_arcs = [arc for arc in all_arcs if arc.name not in allowed_arc_names]
+
+    prompt = prompt_service.create_game_prompt(chosen_character, forbidden_arcs)
 
     # Pass Character object directly - GameManager will handle serialization
     game_mgr.create_game(game_id, chosen_character, prompt, game_settings)

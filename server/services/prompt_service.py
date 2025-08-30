@@ -1,6 +1,8 @@
 # server/services/prompt_service.py
 import os
 import json
+import re
+
 from server.config import COLLECTION_NAME, get_embedding_model, get_vector_client, GAME_PROMPT_PATH
 from server.schemas.arc_schemas import Arc
 from server.schemas.character_schemas import Character
@@ -12,7 +14,7 @@ class PromptService:
     def __init__(self):
         self.template_path = GAME_PROMPT_PATH
 
-    def create_game_prompt(self, character: Character, last_arc: Arc) -> str:
+    def create_game_prompt(self, character: Character, forbidden_arcs: list[Arc]) -> str:
         """Create the initial prompt for the LLM using the template file"""
         # Read the prompt template
         with open(self.template_path, 'r', encoding='utf-8') as f:
@@ -59,21 +61,24 @@ CHARACTER TYPE: {character.filler_status}"""
                     print(f"JSON decode error: {e}")
         except Exception as e:
             print(f"Error getting character structured data: {e}")
-            # Continue without structured data if there's an error
 
-        # Handle spoiler arcs
-        if last_arc.name != "All":
-            spoiler_arcs = "Wano, Egghead"  # Default hardcoded for now
+        # Handle spoiler restrictions section
+        if forbidden_arcs:
+            # Create comma-separated list of forbidden arc names
+            spoiler_arc_names = ", ".join(arc.name for arc in forbidden_arcs) + "AND ANYTHING AFTER"
+            prompt = template.replace("{SPOILER_ARCS}", spoiler_arc_names)
         else:
-            spoiler_arcs = "None"
+            # Remove the entire spoiler restrictions section if no forbidden arcs
+            spoiler_section_pattern = r'<spoiler_restrictions>.*?</spoiler_restrictions>\s*'
+            prompt = re.sub(spoiler_section_pattern, '', template, flags=re.DOTALL)
         
-        # Only replace static placeholders that don't change during the game
-        prompt = template.replace("{SPOILER_ARCS}", spoiler_arcs)
+        # Replace character profile placeholder
         prompt = prompt.replace("{CHARACTER_PROFILE_PLACEHOLDER}", character_profile)
         
         return prompt
     
-    def get_character_context(self, character_id: str, question: str, target_results: int = 10, other_results: int = 0) -> str:
+    def get_character_context(self, character_id: str, question: str, target_results: int = 10, other_results: int = 0)\
+            -> str:
         """Get relevant character context from vector database based on question"""
         client = get_vector_client()
         model = get_embedding_model()

@@ -17,7 +17,7 @@ class ArcService:
             arc_list = session.query(DBArc).order_by(DBArc.last_chapter, DBArc.last_episode).all()
             return [db_arc.to_pydantic() for db_arc in arc_list]
 
-    def get_arcs_before(self, arc: Arc) -> list[Arc]:
+    def get_arcs_until(self, arc: Arc) -> list[Arc]:
         with get_db_session() as session:
             if arc.name == "All":
                 arc_list = session.query(DBArc).all()

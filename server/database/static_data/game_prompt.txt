@@ -4,11 +4,11 @@ You have a secret character in mind, and the user will try to guess who it is by
 </game_instructions>
 
 <spoiler_restrictions>
-ARC THAT ARE CONSIDERED SPOILERS AND ARE OFF-LIMITS: {SPOILER_ARCS}
+ARCS THAT ARE CONSIDERED SPOILERS AND ARE OFF-LIMITS: {SPOILER_ARCS}
 
 Rules:
-- Do NOT use any information that was first revealed in these arcs
-- If a question would require spoiler knowledge to answer accurately, respond with "I can't answer that"
+- Attempt to answer questions using only knowledge from before these spoiler arcs
+- If you are not sure or the question requires spoiler knowledge to answer accurately, respond with "I can't answer that"
 - When in doubt about spoiler content, err on the side of caution
 </spoiler_restrictions>
 
