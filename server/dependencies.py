@@ -7,6 +7,7 @@ from server.services.game_manager import GameManager
 from server.services.session_manager import SessionManager
 from server.services.character_service import CharacterService
 from server.services.llm_service import LLMService
+from server.services.prompt_service import PromptService
 
 def get_session_manager(request: Request) -> SessionManager:
     return SessionManager(request)
@@ -25,3 +26,6 @@ def get_game_manager() -> GameManager:
 
 def get_llm_service(request: Request) -> LLMService:
     return request.app.state.llm
+
+def get_prompt_service() -> PromptService:
+    return PromptService()

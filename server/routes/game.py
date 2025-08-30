@@ -7,8 +7,9 @@ from server.services.character_service import CharacterService
 from server.services.session_manager import SessionManager
 from server.services.game_manager import GameManager
 from server.services.llm_service import LLMService
+from server.services.prompt_service import PromptService
 from server.dependencies import get_session_manager, get_character_service, get_llm_service, get_game_manager, \
-    get_arc_service
+    get_arc_service, get_prompt_service
 from server.schemas.game_schemas import (
     GameStartResponse, GameStartRequest,
     GameQuestionResponse, GameQuestionRequest,
@@ -35,9 +36,10 @@ def start_game_route(request: GameStartRequest,
                      session_mgr: SessionManager = Depends(get_session_manager),
                      game_mgr: GameManager = Depends(get_game_manager),
                      character_service: CharacterService = Depends(get_character_service),
-                     arc_service: ArcService = Depends(get_arc_service)):
+                     arc_service: ArcService = Depends(get_arc_service),
+                     prompt_service: PromptService = Depends(get_prompt_service)):
     try:
-        character_pool = game_service.start_game(request, session_mgr, game_mgr, character_service, arc_service)
+        character_pool = game_service.start_game(request, session_mgr, game_mgr, character_service, arc_service, prompt_service)
 
         return GameStartResponse(
             message="Game started successfully",
@@ -63,11 +65,12 @@ def validate_game_session_route(request: GameStatusRequest,
 def ask_question_route(request: GameQuestionRequest,
                        session_mgr: SessionManager = Depends(get_session_manager),
                        game_mgr: GameManager = Depends(get_game_manager),
-                       llm_service: LLMService = Depends(get_llm_service)):  # Fixed this line
+                       llm_service: LLMService = Depends(get_llm_service),
+                       prompt_service: PromptService = Depends(get_prompt_service)):
     try:
         validate_game_session(session_mgr, game_mgr, request.game_id)
 
-        answer = game_service.ask_question(request.question, session_mgr, game_mgr, llm_service)
+        answer = game_service.ask_question(request.question, session_mgr, game_mgr, llm_service, prompt_service)
 
         return GameQuestionResponse(
             answer=answer,

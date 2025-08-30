@@ -1,13 +1,12 @@
 # server/game_service.py - Pass Character objects directly
 import random
-import json
+import time
 from datetime import datetime
 
-from server.config import COLLECTION_NAME, get_embedding_model, get_vector_client
 from server.services.arc_service import ArcService
 from server.services.session_manager import SessionManager
 from server.services.game_manager import GameManager
-from server.schemas.arc_schemas import Arc
+from server.services.prompt_service import PromptService
 from server.schemas.character_schemas import Character
 from server.schemas.game_schemas import GameStartRequest
 from server.services.character_service import CharacterService
@@ -27,7 +26,7 @@ def get_difficulty_range(difficulty_level: str) -> list[str]:
     return difficulty_mapping[difficulty_level]
 
 
-def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager, character_service: CharacterService, arc_service: ArcService) -> \
+def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager, character_service: CharacterService, arc_service: ArcService, prompt_service: PromptService) -> \
 list[Character]:
     """Initialize a new game session"""
 
@@ -72,6 +71,14 @@ list[Character]:
     all_characters = canon_characters + filler_characters
     character_list = sorted(all_characters, key=lambda char: char.name)
 
+    OVERRIDE = True
+
+    if OVERRIDE:
+        for c in character_list:
+            if " ace" in c.name.lower():
+                chosen_character = c
+                break
+
     game_settings = {
         "arc_selection": until_arc,
         "filler_percentage": filler_percentage,
@@ -82,7 +89,8 @@ list[Character]:
 
     # Create game ID and prompt
     game_id = f"game_{datetime.now().timestamp()}"
-    prompt = create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
+
+    prompt = prompt_service.create_game_prompt(chosen_character, session_mgr.get_global_arc_limit())
 
     # Pass Character object directly - GameManager will handle serialization
     game_mgr.create_game(game_id, chosen_character, prompt, game_settings)
@@ -93,115 +101,34 @@ list[Character]:
     print(f"Game ID: {game_id}, character: {chosen_character.name}")
     return character_list
 
-def get_character_context(character_id: str, question: str, target_results: int = 5, other_results: int = 2) -> str:
-    """Get relevant character context from vector database based on question"""
 
-    client = get_vector_client()
-    model = get_embedding_model()
-    collection = client.get_collection(COLLECTION_NAME)
-
-    # Encode the question to find similar content
-    query_embedding = model.encode([question])
-
-    context_parts = []
-
-    # Search for relevant chunks for the target character
-    target_results_data = collection.query(
-        query_embeddings=query_embedding.tolist(),
-        where={"character_id": character_id},
-        n_results=target_results,
-        include=['documents', 'distances', 'metadatas']
-    )
-
-    # Extract and add structured data from target character (from first result)
-    if target_results_data['metadatas'][0]:
-        structured_data_json = target_results_data['metadatas'][0][0].get('structured_data', '{}')
-        try:
-            structured_data = json.loads(structured_data_json) if structured_data_json else {}
-            if structured_data:
-                structured_info = []
-                for key, value in structured_data.items():
-                    if value:  # Only include non-empty values
-                        structured_info.append(f"{key}: {value}")
-                
-                if structured_info:
-                    context_parts.append(f"[STRUCTURED DATA]\n" + "\n".join(structured_info))
-        except json.JSONDecodeError:
-            # Handle case where structured_data might not be JSON
-            pass
-
-    # Add relevant target character chunks
-    target_chunks = []
-    for doc, distance in zip(target_results_data['documents'][0], target_results_data['distances'][0]):
-        if distance < 1.0:
-            target_chunks.append(doc)
-    
-    if target_chunks:
-        context_parts.append(f"[TARGET CHARACTER CONTEXT]\n" + "\n".join(target_chunks))
-
-    # Search for relevant chunks from other characters
-    other_results_data = collection.query(
-        query_embeddings=query_embedding.tolist(),
-        where={"character_id": {"$ne": character_id}},  # Not equal to target character
-        n_results=other_results,
-        include=['documents', 'distances', 'metadatas']
-    )
-
-    # Add other character chunks
-    other_chunks = []
-    for doc, distance, metadata in zip(other_results_data['documents'][0], 
-                                     other_results_data['distances'][0],
-                                     other_results_data['metadatas'][0]):
-        if distance < 1.0:
-            other_char_id = metadata.get('character_id', 'unknown')
-            other_chunks.append(f"{other_char_id}: {doc}")
-    
-    if other_chunks:
-        context_parts.append(f"[OTHER CHARACTERS CONTEXT]\n" + "\n".join(other_chunks))
-
-    return "\n\n".join(context_parts) if context_parts else ""
-
-
-def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm) -> str:
+def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm, prompt_service: PromptService) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
             raise ValueError("No active game session")
 
+        start_time = time.time()
         game_id = session_mgr.get_current_game_id()
-        
+
         # Get target character and system prompt
         target_character = game_mgr.get_target_character(game_id)
         system_prompt = game_mgr.get_system_prompt(game_id)
-        
+
         # Get relevant character context from vector database
-        character_context = get_character_context(target_character.id, question)
-        
+        character_context = prompt_service.get_character_context(target_character.id, question)
+
         # Get conversation memory
         memory = game_mgr.get_memory(game_id)
-        chat_history = memory.chat_memory.messages
-        
-        # Build complete context for LLM
-        context_parts = [system_prompt]
-        
-        if character_context:
-            context_parts.append(f"CHARACTER CONTEXT:\n{character_context}")
-        
-        # Add chat history
-        if chat_history:
-            history_text = "\n".join([
-                f"User: {msg.content}" if msg.type == "human" 
-                else f"Assistant: {msg.content}" 
-                for msg in chat_history
-            ])
-            context_parts.append(f"CHAT HISTORY:\n{history_text}")
-        
-        # Add current question
-        context_parts.append(f"CURRENT QUESTION: {question}")
-        
-        full_context = "\n\n".join(context_parts)
-        response = llm.query(full_context)
-        
+        chat_history = memory.messages
+
+        # Build the complete dynamic prompt
+        updated_prompt = prompt_service.build_dynamic_prompt(
+            system_prompt, character_context, chat_history, question
+        )
+
+        response = llm.query(updated_prompt)
+
         # Now add both question and response to memory
         game_mgr.add_user_question(game_id, question)
         game_mgr.add_assistant_response(game_id, response)
@@ -249,47 +176,3 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
     except Exception as e:
         raise ValueError(f"Error processing guess: {str(e)}")
 
-
-def create_game_prompt(character: Character, last_arc: Arc) -> str:
-    """Create the initial prompt for the LLM"""
-    # Build appearance info from character object
-    appearance_parts = []
-
-    if character.chapter:
-        appearance_parts.append(f"Chapter: {character.chapter}")
-    if character.episode:
-        appearance_parts.append(f"Episode: {character.episode}")
-
-    appearance_info = "; ".join(appearance_parts) if appearance_parts else "No specific appearance info"
-
-    if last_arc.name != "All":
-        # add here to not add spoilers beyond session
-        pass
-
-    instructions = """
-You are playing a character guessing game. You are roleplaying as a specific One Piece character.
-The user will ask you yes/no questions to try to guess who you are.
-
-RULES:
-1. Only answer with "Yes", "No", or "I can't answer that"
-2. Be helpful but don't make it too easy
-3. Don't reveal your name directly
-4. Stay in character
-5. If asked about spoilers beyond the user's arc limit, say "I can't answer that"
-
-"""
-
-    character_prompt = f"""
-<character_profile>
-## SECRET CHARACTER: {character.name}
-
-### CORE INFORMATION
-- APPEARANCE INFO: {appearance_info}
-- CHARACTER TYPE: {character.filler_status}
-
-</character_profile>
-
-Remember to follow the game instructions exactly. Wait for the user's first question before responses.
-"""
-
-    return instructions + character_prompt

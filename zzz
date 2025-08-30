@@ -4,6 +4,6 @@ look at obsidian list
 remove all characters with a certain section (geography, Inhabitants)
 
 to actually do:
-- make sure everything works with the ai
-- swap message counting with fun fact
+- implement basic anti spoiler mechanism with the prompt
 - fill up description and fun fact
+- connect chat history to the one in redis

@@ -2,7 +2,6 @@
 import json
 from datetime import datetime
 
-from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories import RedisChatMessageHistory
 
 from server.config import GAME_TTL, REDIS_URL, get_redis
@@ -60,27 +59,22 @@ class GameManager:
             raise ValueError("Game not found in Redis")
         return game_data["game_settings"]
 
-    def _get_or_create_memory(self, game_id: str) -> ConversationBufferMemory:
-        """Get or create LangChain memory for a game"""
-        message_history = RedisChatMessageHistory(
+    def _get_or_create_memory(self, game_id: str) -> RedisChatMessageHistory:
+        """Get or create LangChain chat message history for a game"""
+        return RedisChatMessageHistory(
             session_id=f"chat:{game_id}",
             url=REDIS_URL,
             ttl=self.game_ttl
         )
-        
-        return ConversationBufferMemory(
-            chat_memory=message_history,
-            return_messages=True
-        )
     
-    def get_memory(self, game_id: str) -> ConversationBufferMemory:
-        """Get LangChain memory for a game"""
+    def get_memory(self, game_id: str) -> RedisChatMessageHistory:
+        """Get LangChain chat message history for a game"""
         return self._get_or_create_memory(game_id)
     
     def add_user_question(self, game_id: str, question: str):
         """Add user question and increment counter"""
         memory = self._get_or_create_memory(game_id)
-        memory.chat_memory.add_user_message(question)
+        memory.add_user_message(question)
         
         # Increment question counter
         game_data = self.get_game_data(game_id)
@@ -91,7 +85,7 @@ class GameManager:
     def add_assistant_response(self, game_id: str, response: str):
         """Add assistant response to memory"""
         memory = self._get_or_create_memory(game_id)
-        memory.chat_memory.add_ai_message(response)
+        memory.add_ai_message(response)
 
     def get_system_prompt(self, game_id: str) -> str:
         """Get the system prompt for a game"""
