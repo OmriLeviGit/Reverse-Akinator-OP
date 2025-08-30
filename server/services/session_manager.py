@@ -13,22 +13,18 @@ class SessionManager:
 
     def has_session_data(self) -> bool:
         """Check if session has been initialized with our app database"""
-        return "session_created" in self.request.session
+        required_fields = {"session_created", "global_arc_limit", "last_activity"}
+        return required_fields.issubset(self.request.session.keys())
 
-    def create_initial_session(self):
-        """Create initial session with defaults"""
+    def create_initial_session(self, arc_limit: str):
+        """Create initial session with provided arc limit"""
         now = datetime.now().isoformat()
         self.request.session.update({
-            "global_arc_limit": "All",
+            "global_arc_limit": arc_limit,
             "session_created": now,
             "last_activity": now
         })
 
-    def get_safe_session_data(self) -> dict:
-        """Get all session data - only user preferences and session metadata"""
-        session_copy = dict(self.request.session)
-
-        return session_copy
 
     # ===== GLOBAL SPOILER SETTINGS =====
     def get_global_arc_limit(self) -> Arc:

@@ -10,23 +10,22 @@ from server.schemas.session_schemas import SessionResponse, UpdateArcLimitRespon
 router = APIRouter(prefix="/api/session", tags=["session"])
 
 
-@router.get("/", response_model=SessionResponse)
-def get_session_data(session_mgr: SessionManager = Depends(get_session_manager),
+@router.post("/", response_model=SessionResponse)
+def get_session_data(request: dict, session_mgr: SessionManager = Depends(get_session_manager),
                      arc_service: ArcService = Depends(get_arc_service)):
+    arc_limit = request.get("arcLimit")
+
     # Ensure session exists (create if needed)
     if not session_mgr.has_session_data():
-        session_mgr.create_initial_session()
+        session_mgr.create_initial_session(arc_limit)
 
     session_mgr.update_last_activity()
 
     all_arcs = arc_service.get_arcs_until(arc_service.get_arc_by_name("All"))
 
-    # Use model_validate with the raw session data
-    raw_session_data = session_mgr.get_safe_session_data()
-
     return SessionResponse(
         message="API is running",
-        sessionData=SessionDataResponse.model_validate(raw_session_data),
+        sessionData=SessionDataResponse.model_validate(session_mgr.request.session),
         availableArcs=all_arcs,
     )
 
@@ -35,17 +34,21 @@ def get_session_data(session_mgr: SessionManager = Depends(get_session_manager),
 def update_arc_limit(request: UpdateArcLimitRequest, session_mgr: SessionManager = Depends(get_session_manager),
                      arc_service: ArcService = Depends(get_arc_service)):
     try:
+        # Ensure session exists (create if needed)
+        if not session_mgr.has_session_data():
+            session_mgr.create_initial_session(request.arc_limit)
+
         session_mgr.set_global_arc_limit(request.arc_limit)
 
         all_arcs = arc_service.get_arcs_until(arc_service.get_arc_by_name("All"))
 
-        # Use the same approach for consistency
-        raw_session_data = session_mgr.get_safe_session_data()
-
         return UpdateArcLimitResponse(
             success=True,
-            sessionData=SessionDataResponse.model_validate(raw_session_data),
+            sessionData=SessionDataResponse.model_validate(session_mgr.request.session),
             availableArcs=all_arcs,
         )
     except Exception as e:
+        print(f"Error in update_arc_limit: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=str(e))

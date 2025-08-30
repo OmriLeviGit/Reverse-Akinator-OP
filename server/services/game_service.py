@@ -92,6 +92,8 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     # Create game ID and prompt
     game_id = f"game_{datetime.now().timestamp()}"
 
+    a = session_mgr.get_global_arc_limit()
+
     arcs_until = arc_service.get_arcs_until(session_mgr.get_global_arc_limit())
     all_arcs = arc_service.get_all_arcs()
     

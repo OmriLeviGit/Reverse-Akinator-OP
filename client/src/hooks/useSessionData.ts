@@ -16,7 +16,8 @@ export const useSessionData = () => {
   } = useQuery({
     queryKey: ["initialData"],
     queryFn: async () => {
-      return sessionApi.getSessionData();
+      const arcLimit = localStorage.getItem("globalArcLimit") || "All";
+      return sessionApi.getSessionData(arcLimit);
     },
     staleTime: 5 * 60 * 1000,
   });

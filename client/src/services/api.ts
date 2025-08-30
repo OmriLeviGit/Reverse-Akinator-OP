@@ -22,8 +22,8 @@ api.interceptors.response.use(
 );
 
 export const sessionApi = {
-  getSessionData: async () => {
-    const response = await api.get("/session/");
+  getSessionData: async (arcLimit: string) => {
+    const response = await api.post("/session/", { arcLimit });
     return response.data;
   },
 

@@ -43,18 +43,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   });
 
-  // Track if we've already synced to avoid infinite loops
-  const [hasSynced, setHasSynced] = useState(false);
-
-  // Sync server session with localStorage preference on startup (only once)
-  useEffect(() => {
-    if (hasSynced || !sessionData) return; // Prevent multiple syncs
-    const savedArcLimit = localStorage.getItem("globalArcLimit");
-    if (savedArcLimit && savedArcLimit !== "All") {
-      updateGlobalArcLimit(savedArcLimit);
-    }
-    setHasSynced(true);
-  }, [sessionData, hasSynced, updateGlobalArcLimit]);
 
   // Enhanced updateGlobalArcLimit that updates both local state and localStorage
   const handleUpdateGlobalArcLimit = (arcLimit: string) => {

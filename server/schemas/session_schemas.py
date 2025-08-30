@@ -11,7 +11,7 @@ class UpdateArcLimitRequest(BaseModel):
 
 
 class SessionDataResponse(BaseModel):
-    global_arc_limit: str = Field(alias="globalArcLimit")
+    global_arc_limit: str = Field(alias="globalArcLimit", default="All")
     session_created: str = Field(alias="sessionCreated")
     last_activity: str = Field(alias="lastActivity")
 
