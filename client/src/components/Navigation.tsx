@@ -24,7 +24,7 @@ const Navigation = ({ globalArcLimit, onMaxArcChange, availableArcs }: Navigatio
   };
 
   return (
-    <nav className="w-full border-b border-border bg-card shadow-sm">
+    <nav className="w-full bg-card shadow-sm">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Left side navigation */}

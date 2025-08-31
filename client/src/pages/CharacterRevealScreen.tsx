@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -50,9 +49,6 @@ const CharacterRevealScreen: React.FC = () => {
   const liveCharacter = getCharacterById(originalCharacter.id);
   const character = liveCharacter || originalCharacter; // Fallback to original
 
-  const handleMaxArcChange = (arcName: string) => {
-    updateGlobalArcLimit(arcName);
-  };
 
   const handleRatingChange = (characterId: string, difficulty: string | null) => {
     const difficultyValue = difficulty || "";
@@ -91,7 +87,7 @@ const CharacterRevealScreen: React.FC = () => {
   };
 
   return (
-    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+    <>
       {/* Header */}
       <div className="container mx-auto px-6 py-8">
         <div className="text-center">
@@ -209,7 +205,7 @@ const CharacterRevealScreen: React.FC = () => {
           </Card>
         </div>
       </main>
-    </Layout>
+    </>
   );
 };
 

@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import Layout from "../components/Layout";
 import { useAppContext } from "../contexts/AppContext";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 import { useCharacterFiltering } from "../hooks/useCharacterFiltering";
@@ -52,10 +51,6 @@ const CharacterManagement: React.FC = () => {
     characterRatings,
   });
 
-  // Spoiler protection handler
-  const handleMaxArcChange = (arcName: string) => {
-    updateGlobalArcLimit(arcName);
-  };
 
   const handleToggleIgnore = async (id: string) => {
     try {
@@ -88,7 +83,7 @@ const CharacterManagement: React.FC = () => {
   }
 
   return (
-    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+    <>
       {/* Main Content */}
       <div className="h-[calc(100vh-theme(spacing.16))] overflow-y-auto">
         <div className="container mx-auto px-4 py-8">
@@ -127,7 +122,7 @@ const CharacterManagement: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

@@ -3,6 +3,7 @@ advance search, be able to search by arc or crew name
 look at obsidian list
 remove all characters with a certain section (geography, Inhabitants)
 
+check how well it works if messages are not bound to a single character
+
 to actually do:
 - fill up description and fun fact
-- connect chat history to the one in redis

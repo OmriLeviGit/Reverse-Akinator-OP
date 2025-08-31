@@ -1,6 +1,5 @@
 // src/pages/GameScreen.tsx - Updated with new hook structure
 import React, { useState, useEffect } from "react";
-import Layout from "../components/Layout";
 import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
 import { useGameGuess } from "../hooks/useGameGuess";
@@ -9,7 +8,7 @@ import { CharacterSidebar } from "../components/game/CharacterSidebar";
 
 const GameScreen: React.FC = () => {
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
-  
+
   // Use the combined useGameSession hook that includes chat
   const {
     currentGameSession,
@@ -35,11 +34,6 @@ const GameScreen: React.FC = () => {
 
   const gameCharacters = currentGameSession?.characterPool || [];
 
-  const handleMaxArcChange = (arcName: string) => {
-    setGlobalArcLimit(arcName);
-    localStorage.setItem("globalArcLimit", arcName);
-    updateGlobalArcLimit(arcName);
-  };
 
   // Initial validation
   useEffect(() => {
@@ -66,12 +60,12 @@ const GameScreen: React.FC = () => {
   if (isValidatingSession || isLoadingMessages) {
     const loadingText = isValidatingSession ? "Validating game session..." : "Loading chat messages...";
     return (
-      <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+      <>
         <div className="container mx-auto px-6 py-4 max-w-7xl flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="ml-2">{loadingText}</span>
         </div>
-      </Layout>
+      </>
     );
   }
 
@@ -81,7 +75,7 @@ const GameScreen: React.FC = () => {
   }
 
   return (
-    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+    <>
       <div className="container mx-auto px-6 py-4 max-w-7xl">
         <div className="flex justify-between items-center">
           <div>
@@ -96,7 +90,7 @@ const GameScreen: React.FC = () => {
             <p className="text-destructive text-sm">{messageError}</p>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 lg:gap-6">
           {/* Chat Area */}
           <div className="flex flex-col h-[calc(100vh-12rem)] sm:h-[calc(100vh-16rem)] max-h-[600px] sm:max-h-[700px] min-h-[300px] sm:min-h-[400px]">
@@ -121,7 +115,7 @@ const GameScreen: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

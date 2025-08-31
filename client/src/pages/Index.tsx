@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout";
 import GameSetupForm from "../components/GameSetupForm";
 import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
@@ -75,9 +74,6 @@ const Index = () => {
     );
   }
 
-  const handleMaxArcChange = (arcName: string) => {
-    updateGlobalArcLimit(arcName);
-  };
 
   // Game setup handlers that update localStorage preferences
   const handleDifficultyChange = (difficulty: "easy" | "medium" | "hard") => {
@@ -140,7 +136,7 @@ const Index = () => {
   };
 
   return (
-    <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
+    <>
       {/* Title Section */}
       <div className="container mx-auto px-6 py-8">
         <div className="text-center">
@@ -172,7 +168,7 @@ const Index = () => {
           />
         </div>
       </main>
-    </Layout>
+    </>
   );
 };
 
