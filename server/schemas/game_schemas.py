@@ -73,19 +73,6 @@ class GameRevealResponse(BaseModel):
     class Config:
         populate_by_name = True
 
-class GameStatusRequest(BaseModel):
-    game_id: str = Field(alias="gameId")
-
-    class Config:
-        populate_by_name = True
-
-class GameStatusResponse(BaseModel):
-    is_valid_game: bool = Field(alias="isValidGame")
-
-    class Config:
-        populate_by_name = True
-
-
 class ChatMessage(BaseModel):
     id: str
     text: str
@@ -94,16 +81,17 @@ class ChatMessage(BaseModel):
     class Config:
         populate_by_name = True
 
-
-class GameChatRequest(BaseModel):
+class GameStatusRequest(BaseModel):
     game_id: str = Field(alias="gameId")
 
     class Config:
         populate_by_name = True
 
-
-class GameChatResponse(BaseModel):
-    messages: list[ChatMessage]
+class GameStatusResponse(BaseModel):
+    is_valid_game: bool = Field(alias="isValidGame")
+    messages: list[ChatMessage] | None = None
 
     class Config:
         populate_by_name = True
+
+

@@ -68,10 +68,6 @@ export const gameApi = {
     return response.data;
   },
 
-  getChatMessages: async (gameId: string) => {
-    const response = await api.post("/game/messages", { gameId });
-    return response.data;
-  },
 };
 
 // Character Data API

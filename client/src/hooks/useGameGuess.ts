@@ -21,13 +21,15 @@ export const useGameGuess = (addMessage: (text: string, isUser: boolean) => void
 
   const executeGuess = async (characterName: string) => {
     setIsProcessingGuess(true);
-    addMessage(`I guess it's ${characterName}!`, true);
     const userGuessTime = Date.now();
+
+    // Optimistic update - add user guess message immediately
+    addMessage(`I guess it's ${characterName}!`, true);
 
     try {
       const guessResult = await makeGuess(characterName);
 
-      if (!guessResult || (guessResult.isCorrect === false && !guessResult.character)) {
+      if (!guessResult) {
         return; // Session invalid, handled by useGameSession
       }
 
@@ -41,6 +43,7 @@ export const useGameGuess = (addMessage: (text: string, isUser: boolean) => void
           },
         });
       } else {
+        // Wait for minimum delay for UX, then add incorrect response
         await waitForMinimumDelay(userGuessTime);
         addMessage(
           `Sorry, that's not correct. The character is not ${characterName}. Try asking more questions!`,

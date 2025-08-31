@@ -136,7 +136,7 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
 
         response = llm.query(updated_prompt)
 
-        # Now add both question and response to memory
+        # Now add both question and response to memory8
         game_mgr.add_user_question(game_id, question)
         game_mgr.add_assistant_response(game_id, response)
         
@@ -158,6 +158,9 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
         target_character = game_mgr.get_target_character(game_id)
         is_correct = character_name.lower() == target_character.name.lower()
 
+        # Add guess messages to UI (not LLM context)
+        game_mgr.add_ui_message(game_id, f"I guess it's {character_name}!", True)
+
         # Get stats from GameManager BEFORE adding the current guess
         questions_asked = game_mgr.get_questions_asked(game_id)
         guesses_made = game_mgr.get_guess_count(game_id) + 1  # +1 for current guess
@@ -176,6 +179,8 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
                 "guesses_made": guesses_made
             }
         else:
+            # Add incorrect guess response as UI message
+            game_mgr.add_ui_message(game_id, f"Sorry, that's not correct. The character is not {character_name}. Try asking more questions!", False)
             return {
                 "is_correct": False
             }

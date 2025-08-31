@@ -33,6 +33,18 @@ class GameManager:
         
         # Initialize LangChain memory for this game
         self._get_or_create_memory(game_id)
+        
+        # Initialize UI messages with welcome message
+        welcome_message = {
+            "id": "welcome",
+            "text": "Welcome to the One Piece Character Guessing Game! I'm thinking of a character. Try to guess who it is!",
+            "isUser": False
+        }
+        self.redis.setex(
+            f"ui_messages:{game_id}",
+            self.game_ttl,
+            json.dumps([welcome_message])
+        )
 
     def get_game_data(self, game_id: str) -> dict | None:
         """Retrieve game data from Redis"""
@@ -126,23 +138,44 @@ class GameManager:
         game_data = self.get_game_data(game_id)
         return game_data["guesses_count"] if game_data else 0
 
+    def add_ui_message(self, game_id: str, text: str, is_user: bool):
+        """Add a UI-only message (not sent to LLM)"""
+        ui_messages = self.get_ui_messages(game_id)
+        new_message = {
+            "id": f"ui_{len(ui_messages)}_{datetime.now().timestamp()}",
+            "text": text,
+            "isUser": is_user
+        }
+        ui_messages.append(new_message)
+        self.redis.setex(f"ui_messages:{game_id}", self.game_ttl, json.dumps(ui_messages))
+
+    def get_ui_messages(self, game_id: str) -> list[dict]:
+        """Get UI-only messages"""
+        data = self.redis.get(f"ui_messages:{game_id}")
+        return json.loads(data) if data else []
+
     def get_chat_messages(self, game_id: str) -> list[dict]:
-        """Get formatted chat messages for a game"""
-        memory = self._get_or_create_memory(game_id)
-        messages = []
+        """Get all chat messages (UI messages + LLM messages combined in order)"""
+        ui_messages = self.get_ui_messages(game_id)
+        llm_messages = []
         
-        # Convert LangChain messages to our format (no welcome message - handled by frontend)
+        # Get LLM messages and convert to our format
+        memory = self._get_or_create_memory(game_id)
         for i, message in enumerate(memory.messages):
-            message_id = f"msg_{i}"
+            message_id = f"llm_{i}"
             is_user = message.type == "human"
-            messages.append({
+            llm_messages.append({
                 "id": message_id,
                 "text": message.content,
                 "isUser": is_user
             })
         
-        return messages
+        # Combine messages - UI messages first (welcome + guesses), then LLM messages in order
+        # This preserves chronological order since UI messages are added at specific points
+        # and LLM messages are added in sequence
+        return ui_messages + llm_messages
 
     def delete_game(self, game_id: str):
         """Delete game data"""
         self.redis.delete(f"game:{game_id}")
+        self.redis.delete(f"ui_messages:{game_id}")

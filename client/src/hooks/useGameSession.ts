@@ -11,11 +11,6 @@ export interface Message {
   isUser: boolean;
 }
 
-const getDefaultWelcomeMessage = (): Message => ({
-  id: "welcome",
-  text: "Welcome to the One Piece Character Guessing Game! I'm thinking of a character. Try to guess who it is!",
-  isUser: false,
-});
 
 export const useGameSession = () => {
   const { currentGameSession, setCurrentGameSession } = useAppContext();
@@ -25,7 +20,7 @@ export const useGameSession = () => {
   const [isValidatingSession, setIsValidatingSession] = useState(false);
   
   // Chat state
-  const [messages, setMessages] = useState<Message[]>([getDefaultWelcomeMessage()]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isProcessingChat, setIsProcessingChat] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -38,7 +33,7 @@ export const useGameSession = () => {
   const handleInvalidSession = useCallback(() => {
     toast.error("Game session expired. Starting a new game...");
     setCurrentGameSession(null);
-    setMessages([getDefaultWelcomeMessage()]);
+    setMessages([]);
     navigate("/");
   }, [setCurrentGameSession, navigate]);
 
@@ -56,17 +51,20 @@ export const useGameSession = () => {
     }
   }, [currentGameSession?.gameId]);
 
-  const fetchMessagesFromServer = async (gameId: string): Promise<Message[]> => {
+  const validateAndLoadMessages = async (gameId: string): Promise<{isValid: boolean, messages: Message[]}> => {
     setIsLoadingMessages(true);
     setMessageError(null);
     
     try {
-      const data = await gameApi.getChatMessages(gameId);
-      return data.messages || [];
+      const data = await gameApi.validateGameSession(gameId);
+      return {
+        isValid: data.isValidGame,
+        messages: data.messages || []
+      };
     } catch (error) {
-      console.error("Error loading messages from server:", error);
-      setMessageError("Failed to load chat messages");
-      return [];
+      console.error("Error validating session and loading messages:", error);
+      setMessageError("Failed to validate session and load chat messages");
+      return {isValid: false, messages: []};
     } finally {
       setIsLoadingMessages(false);
     }
@@ -84,19 +82,16 @@ export const useGameSession = () => {
     setIsValidatingSession(true);
 
     try {
-      // Validate with server AND load messages in parallel
-      const [isValid, messages] = await Promise.all([
-        validateGameSession(),
-        fetchMessagesFromServer(currentGameSession.gameId)
-      ]);
+      // Combined validation and message loading in single API call
+      const {isValid, messages} = await validateAndLoadMessages(currentGameSession.gameId);
 
       if (!isValid) {
         handleInvalidSession();
         return false;
       }
 
-      // Set messages from server - append after welcome message
-      setMessages([getDefaultWelcomeMessage(), ...messages]);
+      // Set messages from server directly (includes welcome message from server)
+      setMessages(messages);
       console.log("✅ Session validated and messages loaded successfully");
       return true;
     } catch (error) {
@@ -107,7 +102,7 @@ export const useGameSession = () => {
     } finally {
       setIsValidatingSession(false);
     }
-  }, [currentGameSession?.gameId, validateGameSession, handleInvalidSession, navigate]);
+  }, [currentGameSession?.gameId, handleInvalidSession, navigate]);
 
   const startGame = async (settings: any) => {
     try {

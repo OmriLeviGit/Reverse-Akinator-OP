@@ -15,8 +15,7 @@ from server.schemas.game_schemas import (
     GameQuestionResponse, GameQuestionRequest,
     GameGuessResponse, GameGuessRequest,
     GameRevealResponse, GameRevealRequest,
-    GameStatusResponse, GameStatusRequest,
-    GameChatResponse, GameChatRequest
+    GameStatusResponse, GameStatusRequest
 )
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -55,10 +54,11 @@ def start_game_route(request: GameStartRequest,
 def validate_game_session_route(request: GameStatusRequest,
                                 session_mgr: SessionManager = Depends(get_session_manager),
                                 game_mgr: GameManager = Depends(get_game_manager)):
-    """Validate if game session is still active across both session and Redis"""
+    """Validate if game session is still active and return messages"""
     try:
         validate_game_session(session_mgr, game_mgr, request.game_id)
-        return GameStatusResponse(isValidGame=True)
+        messages = game_mgr.get_chat_messages(request.game_id)
+        return GameStatusResponse(isValidGame=True, messages=messages)
     except HTTPException:
         return GameStatusResponse(isValidGame=False)
 
@@ -129,15 +129,3 @@ def reveal_character_route(request: GameRevealRequest,
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/messages", response_model=GameChatResponse)
-def get_chat_messages_route(request: GameChatRequest,
-                           session_mgr: SessionManager = Depends(get_session_manager),
-                           game_mgr: GameManager = Depends(get_game_manager)):
-    try:
-        validate_game_session(session_mgr, game_mgr, request.game_id)
-        
-        messages = game_mgr.get_chat_messages(request.game_id)
-        
-        return GameChatResponse(messages=messages)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
