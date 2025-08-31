@@ -118,7 +118,6 @@ class CharacterService:
                 raise ValueError(f"Character with id '{character_id}' not found")
 
             character.difficulty = difficulty
-            print(character.difficulty)
             return character.to_pydantic()
 
     def get_character_by_name(self, character_name: str) -> FullCharacter | None:

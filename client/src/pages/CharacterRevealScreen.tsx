@@ -6,7 +6,6 @@ import { Separator } from "@/components/ui/separator";
 import { Play, ExternalLink, Home } from "lucide-react";
 import { CharacterImage } from "../components/CharacterImage";
 import CharacterDifficultyDropdown from "../components/CharacterDifficultyDropdown";
-import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
@@ -25,7 +24,6 @@ interface RevealData {
 const CharacterRevealScreen: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { availableArcs, updateGlobalArcLimit, globalArcLimit } = useAppContext();
   const { startGame } = useGameSession();
   const { preferences } = useUserPreferences();
   const { getCharacterById, setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
@@ -45,10 +43,8 @@ const CharacterRevealScreen: React.FC = () => {
 
   const { character: originalCharacter, questionsAsked, guessesMade, wasCorrectGuess } = revealData;
 
-  // Get live character data with current ignore/rating status
-  const liveCharacter = getCharacterById(originalCharacter.id);
-  const character = liveCharacter || originalCharacter; // Fallback to original
-
+  // Get live character data with current ignore/rating status, fallback to original
+  const character = (getCharacterById(originalCharacter.id) as FullCharacter) || originalCharacter;
 
   const handleRatingChange = (characterId: string, difficulty: string | null) => {
     const difficultyValue = difficulty || "";
@@ -104,18 +100,14 @@ const CharacterRevealScreen: React.FC = () => {
       <main className="container mx-auto px-6 pb-12">
         <div className="max-w-6xl mx-auto">
           <Card className="border-border/40 shadow-lg overflow-hidden">
-            <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-0 h-[510px]">
+            <div className="lg:grid lg:grid-cols-[auto_1fr] lg:grid-rows-[min-content] flex flex-col">
               {/* Character Image */}
-              <div className="relative overflow-hidden bg-muted/30 flex items-center justify-center p-4 h-full">
-                <CharacterImage
-                  character={character}
-                  size="large"
-                  className="!max-w-[350px] !max-h-full !w-auto !h-auto object-cover object-top"
-                />
+              <div className="bg-muted/30 p-6 overflow-hidden flex">
+                <CharacterImage character={character} size="large" maxWidth={350} />
               </div>
 
               {/* Character Details */}
-              <div className="p-8 ">
+              <div className="p-6 flex flex-col">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h2 className="text-3xl font-bold text-foreground mb-2">{character.name}</h2>
@@ -134,10 +126,19 @@ const CharacterRevealScreen: React.FC = () => {
                 </div>
 
                 {/* Character Description */}
-                <div className="bg-muted/30 rounded-lg p-4 mb-6">
+                <div className="bg-muted/30 rounded-lg p-4 mb-4">
                   <ScrollArea className="h-24">
                     <p className="text-foreground leading-relaxed pr-4">
                       {character.description || "No description available for this character."}
+                    </p>
+                  </ScrollArea>
+                </div>
+
+                {/* Character Fun Fact */}
+                <div className="bg-muted/30 rounded-lg p-4">
+                  <ScrollArea className="h-12">
+                    <p className="text-foreground leading-relaxed pr-4">
+                      {character.funFact || "No fun fact available for this character."}
                     </p>
                   </ScrollArea>
                 </div>
@@ -159,7 +160,7 @@ const CharacterRevealScreen: React.FC = () => {
                 <Separator className="my-6" /> */}
 
                 {/* Rating and Ignore Controls */}
-                <div className="space-y-2 mb-6">
+                <div className="space-y-2 ">
                   <h3 className="text-lg font-semibold text-foreground">Rate this character</h3>
 
                   {/* Difficulty Rating Dropdown */}
