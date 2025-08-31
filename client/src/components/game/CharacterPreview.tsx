@@ -1,9 +1,9 @@
 import React from "react";
-import { Character } from "@/types";
+import { BasicCharacter } from "@/types";
 import { CharacterImage } from "../CharacterImage";
 
 interface CharacterPreviewProps {
-  character: Character;
+  character: BasicCharacter;
   isVisible: boolean;
   position?: { x: number; y: number };
 }

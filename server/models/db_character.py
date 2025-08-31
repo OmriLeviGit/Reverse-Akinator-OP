@@ -4,7 +4,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 import enum
 
 from server.models.base import Base
-from server.schemas.character_schemas import Character
+from server.schemas.character_schemas import FullCharacter, BasicCharacter, FullCharacter
 
 
 # Define the difficulty enum
@@ -26,8 +26,9 @@ class DBCharacter(Base):
     chapter: Mapped[int | None] = mapped_column(Integer)
     episode: Mapped[int | None] = mapped_column(Integer)
     number: Mapped[int | None] = mapped_column(Integer)
-    description: Mapped[str | None] = mapped_column(Text)
-    fun_fact: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    fun_fact: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    affiliations: Mapped[str | None] = mapped_column(Text, nullable=True)
     year: Mapped[int] = mapped_column(Integer)
     note: Mapped[str | None] = mapped_column(String(200))
     appears_in: Mapped[str | None] = mapped_column(String(50))
@@ -85,18 +86,34 @@ class DBCharacter(Base):
             'is_ignored': self.is_ignored
         }
 
-    def to_pydantic(self) -> Character:  # Character is your Pydantic model
-        """Convert SQLAlchemy model to Pydantic model"""
-        return Character(
+    def to_basic_pydantic(self) -> BasicCharacter:
+        """Convert SQLAlchemy model to BasicCharacter Pydantic model"""
+        return BasicCharacter(
+            id=self.id,
+            name=self.name,
+            chapter=self.chapter,
+            episode=self.effective_episode,
+            fillerStatus=self.filler_status,
+            difficulty=self.difficulty,
+            isIgnored=self.is_ignored,
+            wikiLink=self.wiki_link,
+            affiliations=self.affiliations
+        )
+
+    def to_pydantic(self) -> FullCharacter:
+        """Convert SQLAlchemy model to FullCharacter Pydantic model"""
+        return FullCharacter(
             id=self.id,
             name=self.name,
             description=self.description,
+            funFact=self.fun_fact,
             chapter=self.chapter,
-            episode=self.effective_episode,  # Changed from get_character_episode() to effective_episode
+            episode=self.effective_episode,
             fillerStatus=self.filler_status,
-            difficulty=self.difficulty,  # No need for `or ""` since it has a proper default now
+            difficulty=self.difficulty,
             isIgnored=self.is_ignored,
-            wikiLink=self.wiki_link
+            wikiLink=self.wiki_link,
+            affiliations=self.affiliations
         )
 
     def get_character_episode(self) -> int | None:

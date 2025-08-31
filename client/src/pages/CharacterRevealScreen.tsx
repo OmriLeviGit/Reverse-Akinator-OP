@@ -10,13 +10,13 @@ import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
 import { useUserPreferences } from "../hooks/useUserPreferences";
 import { useCharacterRatings } from "@/hooks/useCharacterRatings";
-import { Character } from "../types/character";
+import { FullCharacter } from "../types/character";
 import { toast } from "sonner";
 import CharacterIgnoreButton from "@/components/CharacterIgnoreButton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RevealData {
-  character: Character;
+  character: FullCharacter;
   questionsAsked: number;
   guessesMade: number;
   wasCorrectGuess?: boolean;

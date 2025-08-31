@@ -1,10 +1,10 @@
 import React from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Character } from "@/types";
+import { BasicCharacter } from "@/types";
 import { DIFFICULTY_OPTIONS, Difficulty, toTitleCase } from "@/utils/difficulties";
 
 interface CharacterDifficultyDropdownProps {
-  character: Character;
+  character: BasicCharacter;
   onRatingChange: (characterId: string, difficulty: Difficulty) => void;
   size?: "default" | "small";
 }

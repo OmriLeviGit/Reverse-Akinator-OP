@@ -1,10 +1,10 @@
 // src/hooks/useCharacterSearch.ts
 import { useMemo } from "react";
 import Fuse from "fuse.js";
-import { Character } from "../types/character";
+import { BasicCharacter } from "../types/character";
 
 interface UseCharacterSearchProps {
-  characters: Character[];
+  characters: BasicCharacter[];
   searchTerm: string;
   searchOptions?: Partial<{
     keys: string[];

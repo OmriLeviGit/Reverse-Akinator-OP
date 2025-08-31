@@ -25,9 +25,10 @@ from server.database.bootstrap_tools.generate_small_avatars import create_all_sm
 from server.database.bootstrap_tools.download_large_avatars import download_character_avatars
 from server.database.bootstrap_tools.build_character_csv import scrape_character_data
 from server.database.bootstrap_tools.vector_database_builder import build_vector_database
+from server.database.bootstrap_tools.create_des import CharacterDescriptionPopulator
 
 # CONFIGURATION: Set which step to run
-STEP = "fetch_data"  # Options: "fetch_data", "build_vector_db", "all"
+STEP = "fetch_data"  # Options: "fetch_data", "build_vector_db", "populate_descriptions", "all"
 
 
 def fetch_static_data():
@@ -79,15 +80,32 @@ def build_vector_database_only():
     print("\nVector database build complete!")
 
 
+def populate_character_descriptions():
+    """
+    Populate character descriptions and fun facts in the database.
+    
+    This step requires that:
+    1. Database has been created and populated with characters
+    2. Vector database has been built
+    """
+    print("=== POPULATING CHARACTER DESCRIPTIONS AND FUN FACTS ===")
+    print("This will generate descriptions and fun facts for all characters...")
+    print("This may take a while as it calls the LLM for each character.\n")
+    
+    populator = CharacterDescriptionPopulator()
+    populator.populate_all_characters(skip_existing_descriptions=True, skip_existing_fun_facts=True)
+    print("\nCharacter descriptions and fun facts population complete!")
+
+
 def bootstrap_all():
     """
-    Complete bootstrap process - runs both fetch and build steps.
+    Complete bootstrap process - runs fetch, build, and populate steps.
     
     WARNING: Only use this if you've already configured your whitelist settings
-    in server/config/settings.py. Otherwise, use the two-step process.
+    in server/config/settings.py. Otherwise, use the step-by-step process.
     """
     print("=== COMPLETE BOOTSTRAP PROCESS ===")
-    print("Running complete bootstrap (fetch + build)...")
+    print("Running complete bootstrap (fetch + build + populate descriptions)...")
     print("WARNING: This assumes whitelist settings are already configured!\n")
     
     fetch_static_data()
@@ -97,7 +115,10 @@ def bootstrap_all():
     
     build_vector_database_only()
     
-    print("\nBootstrap complete!")
+    print("\nProceeding to populate character descriptions and fun facts...")
+    populate_character_descriptions()
+    
+    print("\nComplete bootstrap process finished!")
 
 
 if __name__ == "__main__":
@@ -105,9 +126,11 @@ if __name__ == "__main__":
         fetch_static_data()
     elif STEP == "build_vector_db":
         build_vector_database_only()
+    elif STEP == "populate_descriptions":
+        populate_character_descriptions()
     elif STEP == "all":
         bootstrap_all()
     else:
         print(f"Invalid STEP: {STEP}")
-        print("Valid options: 'fetch_data', 'build_vector_db', 'all'")
+        print("Valid options: 'fetch_data', 'build_vector_db', 'populate_descriptions', 'all'")
         print("Update the STEP variable at the top of this file.")

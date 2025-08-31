@@ -6,7 +6,7 @@ from server.services.arc_service import ArcService
 from server.services.session_manager import SessionManager
 from server.services.game_manager import GameManager
 from server.services.prompt_service import PromptService
-from server.schemas.character_schemas import Character
+from server.schemas.character_schemas import BasicCharacter
 from server.schemas.game_schemas import GameStartRequest
 from server.services.character_service import CharacterService
 
@@ -27,7 +27,7 @@ def get_difficulty_range(difficulty_level: str) -> list[str]:
 
 def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr: GameManager,
                character_service: CharacterService, arc_service: ArcService, prompt_service: PromptService
-               ) -> list[Character]:
+               ) -> list[BasicCharacter]:
     """Initialize a new game session"""
 
     # Extract request parameters
@@ -101,10 +101,6 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
 
     # Store ONLY the game ID in session
     session_mgr.set_current_game_id(game_id)
-
-    des = prompt_service.create_character_description(chosen_character.id)
-
-    print(des)
 
     print(f"Game ID: {game_id}, character: {chosen_character.name}")
     return character_list

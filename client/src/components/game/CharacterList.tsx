@@ -1,11 +1,11 @@
 import React from "react";
-import { Character } from "@/types";
+import { BasicCharacter } from "@/types";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CharacterListItem } from "./CharacterListItem.tsx";
 
 interface CharacterListProps {
-  characters: Character[];
+  characters: BasicCharacter[];
   isLoading: boolean;
   searchTerm: string;
   onSearchChange: (term: string) => void;

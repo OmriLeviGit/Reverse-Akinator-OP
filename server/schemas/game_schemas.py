@@ -1,7 +1,7 @@
 # server/schemas/game_schemas.py
 from pydantic import BaseModel, Field
 
-from server.schemas.character_schemas import Character
+from server.schemas.character_schemas import FullCharacter, BasicCharacter
 
 
 class GameStartRequest(BaseModel):
@@ -18,7 +18,7 @@ class GameStartRequest(BaseModel):
 class GameStartResponse(BaseModel):
     message: str
     game_id: str = Field(alias="gameId")
-    character_pool: list[Character] = Field(alias="characterPool")
+    character_pool: list[BasicCharacter] = Field(alias="characterPool")
 
     class Config:
         populate_by_name = True
@@ -50,7 +50,7 @@ class GameGuessRequest(BaseModel):
 
 class GameGuessResponse(BaseModel):
     is_correct: bool = Field(alias="isCorrect")
-    character: Character | None = None
+    character: FullCharacter | None = None
     questions_asked: int | None = Field(None, alias="questionsAsked")
     guesses_made: int | None = Field(None, alias="guessesMade")
 
@@ -66,7 +66,7 @@ class GameRevealRequest(BaseModel):
 
 
 class GameRevealResponse(BaseModel):
-    character: Character
+    character: FullCharacter
     questions_asked: int = Field(alias="questionsAsked")
     guesses_made: int = Field(alias="guessesMade")
 

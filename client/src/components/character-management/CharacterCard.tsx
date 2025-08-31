@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Character } from "../../types/character";
+import { BasicCharacter } from "../../types/character";
 import { CharacterImage } from "../CharacterImage";
 import CharacterDifficultyDropdown from "../CharacterDifficultyDropdown";
 import CharacterIgnoreButton from "../CharacterIgnoreButton";
 
 interface CharacterCardProps {
-  character: Character;
+  character: BasicCharacter;
   onRatingChange: (characterId: string, difficulty: string | null) => void;
   onIgnoreToggle: (characterId: string) => void;
 }

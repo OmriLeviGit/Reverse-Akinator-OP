@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Character } from "@/types";
+import { BasicCharacter } from "@/types";
 
 interface CharacterImageProps {
-  character: Character;
+  character: BasicCharacter;
   size?: "small" | "medium" | "large";
   className?: string;
 }
@@ -29,7 +29,6 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({ character, size 
   const currentImagePath = usingFallback ? fallbackImagePath : characterImagePath;
 
   const handleImageError = () => {
-
     // If we're already using fallback, show error
     if (usingFallback) {
       setImageError(true);

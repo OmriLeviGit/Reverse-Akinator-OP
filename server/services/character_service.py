@@ -3,7 +3,7 @@ from sqlalchemy import or_
 from server.config.database import get_db_session
 from server.models.db_character import DBCharacter
 from server.models.db_arc import DBArc
-from server.schemas.character_schemas import Character
+from server.schemas.character_schemas import FullCharacter, BasicCharacter
 from server.schemas.arc_schemas import Arc
 
 class CharacterService:
@@ -59,44 +59,44 @@ class CharacterService:
 
         return query
 
-    def get_characters_until(self, arc: Arc = None, include_ignored: bool = False) -> list[Character]:
+    def get_characters_until(self, arc: Arc = None, include_ignored: bool = False) -> list[BasicCharacter]:
         """Get all characters up to a specific arc"""
         with get_db_session() as session:
             query = self._build_base_query(session, arc=arc, include_ignored=include_ignored)
             characters = query.all()
-            return [char.to_pydantic() for char in characters]
+            return [char.to_basic_pydantic() for char in characters]
 
     def get_canon_characters(self, arc: Arc = None, difficulty_range: list[str] = None, include_unrated: bool = False,
-                             include_ignored: bool = False) -> list[Character]:
+                             include_ignored: bool = False) -> list[BasicCharacter]:
         """Get canon characters filtered by arc and difficulty using database-level filtering"""
         with get_db_session() as session:
             query = self._build_base_query(session, arc, difficulty_range, include_unrated=include_unrated,
                                            include_ignored=include_ignored)
             query = query.filter(DBCharacter.filler_status.ilike("canon"))
             characters = query.all()
-            return [char.to_pydantic() for char in characters]
+            return [char.to_basic_pydantic() for char in characters]
 
     def get_filler_characters(self, arc: Arc = None, difficulty_range: list[str] = None, include_unrated: bool = False,
-                              include_ignored: bool = False) -> list[Character]:
+                              include_ignored: bool = False) -> list[BasicCharacter]:
         """Get filler characters filtered by arc and difficulty using database-level filtering"""
         with get_db_session() as session:
             query = self._build_base_query(session, arc, difficulty_range, include_unrated=include_unrated,
                                            include_ignored=include_ignored)
             query = query.filter(DBCharacter.filler_status.ilike("filler"))
             characters = query.all()
-            return [char.to_pydantic() for char in characters]
+            return [char.to_basic_pydantic() for char in characters]
 
-    def get_non_canon_characters(self, arc: Arc = None, difficulty_range: list[str] = None, include_unrated: bool = False,
-                                 include_ignored: bool = False) -> list[Character]:
+    def get_non_canon_characters(self, arc: Arc = None, difficulty_range: list[str] = None,
+                                 include_unrated: bool = False, include_ignored: bool = False) -> list[BasicCharacter]:
         """Get non-canon characters (everything except canon) filtered by arc and difficulty"""
         with get_db_session() as session:
             query = self._build_base_query(session, arc, difficulty_range, include_unrated=include_unrated,
                                            include_ignored=include_ignored)
             query = query.filter(~DBCharacter.filler_status.ilike("canon"))
             characters = query.all()
-            return [char.to_pydantic() for char in characters]
+            return [char.to_basic_pydantic() for char in characters]
 
-    def toggle_character_ignore(self, character_id: str) -> Character:
+    def toggle_character_ignore(self, character_id: str) -> FullCharacter:
         """Toggle the ignore status of a character"""
         with get_db_session() as session:
             character = session.query(DBCharacter).filter(DBCharacter.id == character_id).first()
@@ -107,7 +107,7 @@ class CharacterService:
             character.is_ignored = not character.is_ignored
             return character.to_pydantic()
 
-    def update_character_difficulty(self, character_id: str, difficulty: str) -> Character:
+    def update_character_difficulty(self, character_id: str, difficulty: str) -> FullCharacter:
         """
         Update the difficulty rating of a character
         difficulty can be: "unrated", "very easy", "easy", "medium", "hard", "really hard"
@@ -121,8 +121,8 @@ class CharacterService:
             print(character.difficulty)
             return character.to_pydantic()
 
-    def get_character_by_name(self, character_name: str) -> Character | None:
-        """Get a character by their name (case-insensitive)"""
+    def get_character_by_name(self, character_name: str) -> FullCharacter | None:
+        """Get a character by their name (case-insensitive) - returns full character for game reveals"""
         with get_db_session() as session:
             character = session.query(DBCharacter).filter(
                 DBCharacter.name.ilike(f"%{character_name}%")

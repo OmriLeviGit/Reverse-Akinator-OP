@@ -1,5 +1,5 @@
 import { characterApi } from "@/services/api";
-import { Character } from "@/types/character";
+import { BasicCharacter } from "@/types/character";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useCharacterRatings = () => {
@@ -15,7 +15,7 @@ export const useCharacterRatings = () => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) =>
+          characters: old.characters.map((char: BasicCharacter) =>
             char.id === characterId ? { ...char, difficulty } : char
           ),
         };
@@ -38,7 +38,7 @@ export const useCharacterRatings = () => {
         if (!old || !old.characters) return old;
         return {
           ...old,
-          characters: old.characters.map((char: Character) =>
+          characters: old.characters.map((char: BasicCharacter) =>
             char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char
           ),
         };
@@ -61,9 +61,9 @@ export const useCharacterRatings = () => {
       toggleIgnoreMutation.mutate(characterId);
     },
     isUpdatingIgnoreList: toggleIgnoreMutation.isPending,
-    getCharacterById: (characterId: string): Character | undefined => {
+    getCharacterById: (characterId: string): BasicCharacter | undefined => {
       const data = queryClient.getQueryData(["allCharacters"]) as any;
-      return data?.characters?.find((char: Character) => char.id === characterId);
+      return data?.characters?.find((char: BasicCharacter) => char.id === characterId);
     },
   };
 };

@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterFilters";
-import { Character } from "../types/character";
+import { BasicCharacter } from "../types/character";
 import { useCharacterSearch } from "./useCharacterSearch";
 import { getDifficultyNumericValue } from "../utils/difficulties";
 
 interface UseCharacterFilteringProps {
-  allCharacters: Character[];
+  allCharacters: BasicCharacter[];
   ignoreFilter: IgnoreFilter;
   contentFilter: ContentFilter;
   ratingFilter: RatingFilter;

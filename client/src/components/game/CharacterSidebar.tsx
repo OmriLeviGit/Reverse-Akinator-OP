@@ -17,10 +17,10 @@ import {
 import { CharacterList } from "./CharacterList";
 import { useCharacterSearch } from "../../hooks/useCharacterSearch";
 import { useGameSession } from "../../hooks/useGameSession";
-import { Character } from "../../types";
+import { BasicCharacter } from "../../types";
 
 interface CharacterSidebarProps {
-  gameCharacters: Character[];
+  gameCharacters: BasicCharacter[];
   onCharacterSelect: (characterName: string) => void;
 }
 

@@ -1,11 +1,10 @@
 # server/services/prompt_service.py
-import os
 import json
 import re
 
 from server.config import COLLECTION_NAME, get_embedding_model, get_vector_client, GAME_PROMPT_PATH
 from server.schemas.arc_schemas import Arc
-from server.schemas.character_schemas import Character
+from server.schemas.character_schemas import FullCharacter
 
 
 class PromptService:
@@ -14,7 +13,7 @@ class PromptService:
     def __init__(self):
         self.template_path = GAME_PROMPT_PATH
 
-    def create_game_prompt(self, character: Character, forbidden_arcs: list[Arc]) -> str:
+    def create_game_prompt(self, character: FullCharacter, forbidden_arcs: list[Arc]) -> str:
         """Create the initial prompt for the LLM using the template file"""
         # Read the prompt template
         with open(self.template_path, 'r', encoding='utf-8') as f:
@@ -177,14 +176,14 @@ class PromptService:
         results = collection.query(
             query_embeddings=query_embedding.tolist(),
             where={"character_id": character_id},
-            n_results=15,
+            n_results=10,
             include=['documents', 'distances']
         )
 
         # Filter and collect relevant chunks
         relevant_chunks = []
         for doc, distance in zip(results['documents'][0], results['distances'][0]):
-            if distance < 0.9:  # More selective threshold for quality
+            if distance < 1.0:  # More selective threshold for quality
                 relevant_chunks.append(doc)
 
         if not relevant_chunks:
@@ -217,14 +216,14 @@ Write the character description now:"""
         results = collection.query(
             query_embeddings=query_embedding.tolist(),
             where={"character_id": character_id},
-            n_results=15,
+            n_results=10,
             include=['documents', 'distances']
         )
 
         # Filter and collect relevant chunks
         relevant_chunks = []
         for doc, distance in zip(results['documents'][0], results['distances'][0]):
-            if distance < 0.9:  # More selective threshold for quality
+            if distance < 1.0:  # More selective threshold for quality
                 relevant_chunks.append(doc)
 
         if not relevant_chunks:

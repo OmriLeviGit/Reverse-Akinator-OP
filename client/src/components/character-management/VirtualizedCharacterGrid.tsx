@@ -1,10 +1,10 @@
 // src/components/character-management/VirtualizedCharacterGrid.tsx
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { CharacterCard } from "./CharacterCard";
-import { Character } from "../../types/character"; // Use the existing Character type
+import { BasicCharacter } from "../../types/character"; // Use the existing Character type
 
 interface VirtualizedCharacterGridProps {
-  characters: Character[];
+  characters: BasicCharacter[];
   onRatingChange: (characterId: string, difficulty: string | null) => void;
   onIgnoreToggle: (characterId: string) => void;
   itemsPerPage?: number;
@@ -16,7 +16,7 @@ export const VirtualizedCharacterGrid: React.FC<VirtualizedCharacterGridProps> =
   onIgnoreToggle,
   itemsPerPage = 20,
 }) => {
-  const [visibleCharacters, setVisibleCharacters] = useState<Character[]>([]);
+  const [visibleCharacters, setVisibleCharacters] = useState<BasicCharacter[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);

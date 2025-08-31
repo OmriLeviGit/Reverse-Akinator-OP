@@ -1,23 +1,32 @@
 from pydantic import BaseModel, Field
 
 
-class Character(BaseModel):
+class BasicCharacter(BaseModel):
     id: str
     name: str
-    description: str | None = None
     chapter: int | None = None
     episode: int | None = None
     filler_status: str = Field(alias="fillerStatus")
     difficulty: str
     is_ignored: bool = Field(False, alias="isIgnored")
     wiki_link: str | None = Field(None, alias="wikiLink")
+    affiliations: str | None = None
 
     class Config:
         populate_by_name = True
 
+
+class FullCharacter(BasicCharacter):
+    description: str = ""
+    fun_fact: str = Field(default="", alias="funFact")
+
+    class Config:
+        populate_by_name = True
+
+
 # Responses
 class CharactersResponse(BaseModel):
-    characters: list[Character]
+    characters: list[BasicCharacter]
     count: int | None = None
     arc: str | None = None
 

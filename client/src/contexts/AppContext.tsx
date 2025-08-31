@@ -1,13 +1,13 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { useSessionData } from "../hooks/useSessionData";
 import { useCharacters } from "../hooks/useCharacters";
-import { SessionData, Arc, Character, GameSession } from "../types";
+import { SessionData, Arc, BasicCharacter, GameSession } from "../types";
 
 interface AppContextType {
   // Server data
   sessionData: SessionData | null;
   availableArcs: Arc[];
-  characters: Character[];
+  characters: BasicCharacter[];
   isLoading: boolean;
   charactersLoaded: boolean;
   // Global Arc Limit State
@@ -42,7 +42,6 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return null;
     }
   });
-
 
   // Enhanced updateGlobalArcLimit that updates both local state and localStorage
   const handleUpdateGlobalArcLimit = (arcLimit: string) => {

@@ -5,7 +5,7 @@ from datetime import datetime
 from langchain_community.chat_message_histories import RedisChatMessageHistory
 
 from server.config import GAME_TTL, REDIS_URL, get_redis
-from server.schemas.character_schemas import Character
+from server.schemas.character_schemas import FullCharacter
 
 
 class GameManager:
@@ -13,7 +13,7 @@ class GameManager:
         self.redis = get_redis()
         self.game_ttl = GAME_TTL
 
-    def create_game(self, game_id: str, target_character: Character, prompt: str, game_settings: dict) -> None:
+    def create_game(self, game_id: str, target_character: FullCharacter, prompt: str, game_settings: dict) -> None:
         """Store sensitive game data in Redis"""
         game_data = {
             "target_character": target_character.model_dump(),
@@ -43,14 +43,14 @@ class GameManager:
         """Check if game exists in Redis"""
         return self.redis.exists(f"game:{game_id}") > 0
 
-    def get_target_character(self, game_id: str) -> Character:
+    def get_target_character(self, game_id: str) -> FullCharacter:
         """Get the target character for a game as Character object"""
         game_data = self.get_game_data(game_id)
         if not game_data:
             raise ValueError("Game not found in Redis")
 
         # Convert dict back to Character object
-        return Character(**game_data["target_character"])
+        return FullCharacter(**game_data["target_character"])
 
     def get_game_settings(self, game_id: str) -> dict:
         """Get game settings"""

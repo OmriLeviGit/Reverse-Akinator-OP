@@ -1,10 +1,10 @@
 import React, { useState, useRef } from "react";
-import { Character } from "@/types"; // Add this line
+import { BasicCharacter } from "@/types"; // Add this line
 import { CharacterImage } from "../CharacterImage";
 import { CharacterPreview } from "./CharacterPreview";
 
 interface CharacterListItemProps {
-  character: Character;
+  character: BasicCharacter;
   onSelect: (characterName: string) => void;
   disabled?: boolean;
 }
