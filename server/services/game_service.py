@@ -72,7 +72,7 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     all_characters = canon_characters + filler_characters
     character_list = sorted(all_characters, key=lambda char: char.name)
 
-    OVERRIDE = True
+    OVERRIDE = False
 
     if OVERRIDE:
         for c in character_list:
@@ -101,6 +101,10 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
 
     # Store ONLY the game ID in session
     session_mgr.set_current_game_id(game_id)
+
+    des = prompt_service.create_character_description(chosen_character.id)
+
+    print(des)
 
     print(f"Game ID: {game_id}, character: {chosen_character.name}")
     return character_list

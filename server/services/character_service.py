@@ -59,14 +59,14 @@ class CharacterService:
 
         return query
 
-    def get_characters_until(self, arc: Arc, include_ignored: bool = False) -> list[Character]:
+    def get_characters_until(self, arc: Arc = None, include_ignored: bool = False) -> list[Character]:
         """Get all characters up to a specific arc"""
         with get_db_session() as session:
             query = self._build_base_query(session, arc=arc, include_ignored=include_ignored)
             characters = query.all()
             return [char.to_pydantic() for char in characters]
 
-    def get_canon_characters(self, arc: Arc, difficulty_range: list[str], include_unrated: bool,
+    def get_canon_characters(self, arc: Arc = None, difficulty_range: list[str] = None, include_unrated: bool = False,
                              include_ignored: bool = False) -> list[Character]:
         """Get canon characters filtered by arc and difficulty using database-level filtering"""
         with get_db_session() as session:
@@ -76,7 +76,7 @@ class CharacterService:
             characters = query.all()
             return [char.to_pydantic() for char in characters]
 
-    def get_filler_characters(self, arc: Arc, difficulty_range: list[str], include_unrated: bool,
+    def get_filler_characters(self, arc: Arc = None, difficulty_range: list[str] = None, include_unrated: bool = False,
                               include_ignored: bool = False) -> list[Character]:
         """Get filler characters filtered by arc and difficulty using database-level filtering"""
         with get_db_session() as session:
@@ -86,7 +86,7 @@ class CharacterService:
             characters = query.all()
             return [char.to_pydantic() for char in characters]
 
-    def get_non_canon_characters(self, arc: Arc, difficulty_range: list[str], include_unrated: bool,
+    def get_non_canon_characters(self, arc: Arc = None, difficulty_range: list[str] = None, include_unrated: bool = False,
                                  include_ignored: bool = False) -> list[Character]:
         """Get non-canon characters (everything except canon) filtered by arc and difficulty"""
         with get_db_session() as session:
@@ -120,3 +120,14 @@ class CharacterService:
             character.difficulty = difficulty
             print(character.difficulty)
             return character.to_pydantic()
+
+    def get_character_by_name(self, character_name: str) -> Character | None:
+        """Get a character by their name (case-insensitive)"""
+        with get_db_session() as session:
+            character = session.query(DBCharacter).filter(
+                DBCharacter.name.ilike(f"%{character_name}%")
+            ).first()
+            
+            if character:
+                return character.to_pydantic()
+            return None

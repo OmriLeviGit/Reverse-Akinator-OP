@@ -163,6 +163,87 @@ class PromptService:
 
         return "\n\n".join(context_parts) if context_parts else ""
     
+    def create_character_description(self, character_id: str) -> str | None:
+        """Create a fun, spoiler-free description of a character focusing on personality and relationships"""
+        client = get_vector_client()
+        model = get_embedding_model()
+        collection = client.get_collection(COLLECTION_NAME)
+
+        # Search for character info focusing on personality and relationships
+        personality_query = "personality traits character behavior relationships friends allies enemies interactions social abilities power"
+        query_embedding = model.encode([personality_query])
+
+        # Get relevant character information
+        results = collection.query(
+            query_embeddings=query_embedding.tolist(),
+            where={"character_id": character_id},
+            n_results=15,
+            include=['documents', 'distances']
+        )
+
+        # Filter and collect relevant chunks
+        relevant_chunks = []
+        for doc, distance in zip(results['documents'][0], results['distances'][0]):
+            if distance < 0.9:  # More selective threshold for quality
+                relevant_chunks.append(doc)
+
+        if not relevant_chunks:
+            return
+
+        # Create context for the LLM
+        character_info = "\n".join(relevant_chunks)
+        
+        # Prompt for generating the description
+        description_prompt = f"""You are a character expert. Based on the following information about a character, write a fun and engaging 2-3 sentence description that focuses on their personality and relationships with others. Avoid major plot spoilers.
+
+Character Information:
+{character_info}
+
+Write the character description now:"""
+
+        return description_prompt
+
+    def create_character_fun_fact(self, character_id: str) -> str | None:
+        """Create a fun and interesting fact about a character"""
+        client = get_vector_client()
+        model = get_embedding_model()
+        collection = client.get_collection(COLLECTION_NAME)
+
+        # Search for character info focusing on interesting details, trivia, and unique aspects
+        fun_fact_query = "interesting facts trivia unique unusual special abilities powers quirks habits hobbies talents skills achievements background history origins"
+        query_embedding = model.encode([fun_fact_query])
+
+        # Get relevant character information
+        results = collection.query(
+            query_embeddings=query_embedding.tolist(),
+            where={"character_id": character_id},
+            n_results=15,
+            include=['documents', 'distances']
+        )
+
+        # Filter and collect relevant chunks
+        relevant_chunks = []
+        for doc, distance in zip(results['documents'][0], results['distances'][0]):
+            if distance < 0.9:  # More selective threshold for quality
+                relevant_chunks.append(doc)
+
+        if not relevant_chunks:
+            return None
+
+        # Create context for the LLM
+        character_info = "\n".join(relevant_chunks)
+        
+        # Prompt for generating the fun fact
+        fun_fact_prompt = f"""You are a character trivia expert. Based on the following information about a character, write one interesting and fun fact about them. Focus on something unique, surprising, or entertaining about their abilities, personality traits, quirks, or physical characteristics. Keep it to one short sentence and avoid any plot events, story outcomes, or narrative developments.
+
+Character Information:
+{character_info}
+
+Write one fun fact about this character now:"""
+
+        return fun_fact_prompt
+
+
     def build_dynamic_prompt(self, base_prompt: str, character_context: str, chat_history: list, question: str) -> str:
         """Build the complete prompt with dynamic content for a specific question"""
         updated_prompt = base_prompt
