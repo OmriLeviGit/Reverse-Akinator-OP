@@ -39,7 +39,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                   message.isUser ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                <p className="text-base whitespace-pre-wrap break-words">{message.text}</p>
               </div>
             </div>
           ))}

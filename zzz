@@ -1,9 +1,15 @@
-attempt to get the main arc of a character, not just mentioned, for the spoiler mechanism
-advance search, be able to search by arc or crew name
-look at obsidian list
-remove all characters with a certain section (geography, Inhabitants)
-
-check how well it works if messages are not bound to a single character
+adding metadata to the vector db:
+- attempt to get the first main arc a character appeared
+- add a tag to each paragraph (which arc does this info belong to if it occurred in a specific arc)
 
 to actually do:
 - fill up description and fun fact
+- make affiliations searchable
+- look at obsidian list
+
+manual:
+- remove all characters with a certain section (geography, Inhabitants)
+- remove imu stuff like that
+
+spoiler attempts:
+- check how well it works if messages are not bound to a single character

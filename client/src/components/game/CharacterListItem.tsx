@@ -51,19 +51,14 @@ export const CharacterListItem: React.FC<CharacterListItemProps> = ({ character,
     <div>
       <div
         ref={itemRef}
-        className={`bg-card rounded-xl p-3 border border-border transition-all duration-200 cursor-pointer ${
-          disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-secondary hover:border-secondary-hover"
+        className={`transition-all duration-200 cursor-pointer ${
+          disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-80"
         }`}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="flex items-center space-x-3 w-full">
-          <CharacterImage character={character} size="small" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm leading-tight">{character.name}</p>
-          </div>
-        </div>
+        <CharacterImage character={character} size="small" />
       </div>
 
       <CharacterPreview character={character} isVisible={showPreview} position={previewPosition} />

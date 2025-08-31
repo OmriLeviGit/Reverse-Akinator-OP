@@ -22,6 +22,7 @@ export const CharacterPreview: React.FC<CharacterPreviewProps> = ({ character, i
     >
       <div className="bg-popover border border-border rounded-lg p-3 shadow-xl animate-in fade-in-0 zoom-in-95 duration-200">
         <CharacterImage character={character} size="medium" />
+        <p className="text-sm font-medium text-foreground text-center mt-2 break-words w-32">{character.name}</p>
       </div>
     </div>
   );

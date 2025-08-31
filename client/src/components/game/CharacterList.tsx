@@ -32,17 +32,19 @@ export const CharacterList: React.FC<CharacterListProps> = ({
         />
       </div>
       {/* Scrollable Character List */}
-      <ScrollArea className="flex-1 px-4">
-        <div className="py-4 space-y-2">
+      <ScrollArea className="flex-1 p-0">
+        <div className="p-4">
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
               <p className="text-xs text-muted-foreground">Loading characters...</p>
             </div>
           ) : characters.length > 0 ? (
-            characters.map((character, index) => (
-              <CharacterListItem key={character.id || index} character={character} onSelect={onCharacterSelect} />
-            ))
+            <div className="flex flex-wrap gap-0">
+              {characters.map((character, index) => (
+                <CharacterListItem key={character.id || index} character={character} onSelect={onCharacterSelect} />
+              ))}
+            </div>
           ) : (
             <p className="text-xs text-muted-foreground text-center py-8">No characters found</p>
           )}

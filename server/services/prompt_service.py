@@ -33,9 +33,7 @@ class PromptService:
         client = get_vector_client()
         collection = client.get_collection(COLLECTION_NAME)
 
-        character_profile = f"""SECRET CHARACTER: {character.name}
-APPEARANCE INFO: {appearance_info}
-CHARACTER TYPE: {character.filler_status}"""
+        character_profile = f"""SECRET CHARACTER: {character.name}\nFIRST APPEARANCE : {appearance_info}"""
 
         # Get structured data for the target character
         try:
