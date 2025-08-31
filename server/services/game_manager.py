@@ -126,6 +126,23 @@ class GameManager:
         game_data = self.get_game_data(game_id)
         return game_data["guesses_count"] if game_data else 0
 
+    def get_chat_messages(self, game_id: str) -> list[dict]:
+        """Get formatted chat messages for a game"""
+        memory = self._get_or_create_memory(game_id)
+        messages = []
+        
+        # Convert LangChain messages to our format (no welcome message - handled by frontend)
+        for i, message in enumerate(memory.messages):
+            message_id = f"msg_{i}"
+            is_user = message.type == "human"
+            messages.append({
+                "id": message_id,
+                "text": message.content,
+                "isUser": is_user
+            })
+        
+        return messages
+
     def delete_game(self, game_id: str):
         """Delete game data"""
         self.redis.delete(f"game:{game_id}")

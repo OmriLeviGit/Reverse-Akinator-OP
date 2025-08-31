@@ -15,7 +15,8 @@ from server.schemas.game_schemas import (
     GameQuestionResponse, GameQuestionRequest,
     GameGuessResponse, GameGuessRequest,
     GameRevealResponse, GameRevealRequest,
-    GameStatusResponse, GameStatusRequest
+    GameStatusResponse, GameStatusRequest,
+    GameChatResponse, GameChatRequest
 )
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -125,5 +126,18 @@ def reveal_character_route(request: GameRevealRequest,
             questionsAsked=questions_asked,
             guessesMade=guesses_made
         )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/messages", response_model=GameChatResponse)
+def get_chat_messages_route(request: GameChatRequest,
+                           session_mgr: SessionManager = Depends(get_session_manager),
+                           game_mgr: GameManager = Depends(get_game_manager)):
+    try:
+        validate_game_session(session_mgr, game_mgr, request.game_id)
+        
+        messages = game_mgr.get_chat_messages(request.game_id)
+        
+        return GameChatResponse(messages=messages)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

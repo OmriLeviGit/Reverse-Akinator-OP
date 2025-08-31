@@ -84,3 +84,26 @@ class GameStatusResponse(BaseModel):
 
     class Config:
         populate_by_name = True
+
+
+class ChatMessage(BaseModel):
+    id: str
+    text: str
+    is_user: bool = Field(alias="isUser")
+
+    class Config:
+        populate_by_name = True
+
+
+class GameChatRequest(BaseModel):
+    game_id: str = Field(alias="gameId")
+
+    class Config:
+        populate_by_name = True
+
+
+class GameChatResponse(BaseModel):
+    messages: list[ChatMessage]
+
+    class Config:
+        populate_by_name = True

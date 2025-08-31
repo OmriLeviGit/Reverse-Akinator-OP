@@ -4,25 +4,28 @@ import Layout from "../components/Layout";
 import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
 import { useGameGuess } from "../hooks/useGameGuess";
-import { useGameChat } from "../hooks/useGameChat";
 import { ChatArea } from "../components/game/ChatArea";
 import { CharacterSidebar } from "../components/game/CharacterSidebar";
 
 const GameScreen: React.FC = () => {
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
-  const { currentGameSession, validateSessionOnPageLoad, isValidatingSession } = useGameSession();
-
-  // Use the combined useGameChat hook
+  
+  // Use the combined useGameSession hook that includes chat
   const {
+    currentGameSession,
+    validateSessionOnPageLoad,
+    isValidatingSession,
     messages,
-    addMessage,
     inputMessage,
     setInputMessage,
     isProcessingChat,
+    isLoadingMessages,
+    messageError,
     handleSendMessage,
+    addMessage,
     textareaRef,
     messagesEndRef,
-  } = useGameChat(currentGameSession?.gameId);
+  } = useGameSession();
 
   // Pass addMessage to useGameGuess
   const { isProcessingGuess, handleCharacterSelect } = useGameGuess(addMessage);
@@ -59,13 +62,14 @@ const GameScreen: React.FC = () => {
     }
   }, [sessionData]);
 
-  // Show loading while validating
-  if (isValidatingSession) {
+  // Show loading while validating or loading messages
+  if (isValidatingSession || isLoadingMessages) {
+    const loadingText = isValidatingSession ? "Validating game session..." : "Loading chat messages...";
     return (
       <Layout globalArcLimit={globalArcLimit} onMaxArcChange={handleMaxArcChange} availableArcs={availableArcs}>
         <div className="container mx-auto px-6 py-4 max-w-7xl flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <span className="ml-2">Validating game session...</span>
+          <span className="ml-2">{loadingText}</span>
         </div>
       </Layout>
     );
@@ -87,6 +91,12 @@ const GameScreen: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 pb-4 sm:pb-8 max-w-7xl">
+        {messageError && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+            <p className="text-destructive text-sm">{messageError}</p>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 lg:gap-6">
           {/* Chat Area */}
           <div className="flex flex-col h-[calc(100vh-12rem)] sm:h-[calc(100vh-16rem)] max-h-[600px] sm:max-h-[700px] min-h-[300px] sm:min-h-[400px]">
