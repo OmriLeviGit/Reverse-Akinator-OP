@@ -1,0 +1,2 @@
+[console_scripts]
+guessing-game = guessing_game.app:main

@@ -29,10 +29,10 @@ export const CharacterImage: React.FC<CharacterImageProps> = ({
 
   // Determine image paths based on size
   const characterImagePath =
-    size === "large" ? `/img/lg_avatars/${character.id}.webp` : `/img/sm_avatars/${character.id}.webp`;
+    size === "large" ? `/img/avatars/large/${character.id}.webp` : `/img/avatars/small/${character.id}.webp`;
 
   const fallbackImagePath =
-    size === "large" ? `/img/lg_avatars/_NoPicAvailable.webp` : `/img/sm_avatars/_NoPicAvailable.webp`;
+    size === "large" ? `/img/avatars/large/_NoPicAvailable.webp` : `/img/avatars/small/_NoPicAvailable.webp`;
 
   // Current image path based on fallback state
   const currentImagePath = usingFallback ? fallbackImagePath : characterImagePath;

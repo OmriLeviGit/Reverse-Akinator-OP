@@ -1,3 +1,24 @@
+Metadata-Version: 2.4
+Name: guessing_game
+Version: 0.1.0
+Summary: A One Piece character guessing game
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+
 # Guess Game
 
 A reverse Akinator-style guessing game where the app selects a random character and players ask yes/no questions to identify who it is. Players must deduce the character through strategic questioning.
@@ -32,8 +53,7 @@ A reverse Akinator-style guessing game where the app selects a random character 
 ## Getting Started
 
 ### Prerequisites
-- Python 3.9+ (3.11 recommended)
-- [uv](https://astral.sh/uv) - Fast Python package manager
+- Python 3.8+
 - Node.js 18+
 - Redis (or use Docker Compose)
 - AI API key for question answering
@@ -49,7 +69,7 @@ echo "GOOGLE_AI_API_KEY=your_api_key_here" > .env
 
 3. Run with Docker Compose:
 ```bash
-docker-compose -f docker/docker-compose.yaml up -d
+docker-compose up -d
 ```
 
 The application will be available at `http://localhost:3000`
@@ -57,16 +77,22 @@ The application will be available at `http://localhost:3000`
 ### Manual Setup
 
 #### Backend Setup
-1. Install dependencies with uv:
+1. Create and activate virtual environment:
 ```bash
-uv sync
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-2. Start Redis server (if not using Docker)
-
-3. Run the FastAPI server:
+2. Install dependencies:
 ```bash
-uv run python -m guessing_game.app
+pip install -r requirements.txt
+```
+
+3. Start Redis server (if not using Docker)
+
+4. Run the FastAPI server:
+```bash
+uvicorn server.app:app --reload --port 8000
 ```
 
 #### Frontend Setup
@@ -107,29 +133,29 @@ python -m server.database.bootstrap_tools.fetch_character_data
 - Sanitizes character names for filesystem compatibility
 - Outputs: `server/database/character_data.csv`
 
-#### Phase 2: Character Processing
+#### 2. Avatar Download
 ```bash
-cd scripts
-uv run python -m bootstrap_tools.bootstrap_orchestrator --phase=2
+python -m server.database.bootstrap_tools.download_large_avatars
+```
+- Downloads high-resolution character images from wiki pages
+- Implements rate limiting and 403 error handling
+- Prioritizes anime images over manga images
+- Converts images to WebP format for optimization
+- Outputs: `server/database/img/lg_avatars/*.webp`
+
+Optional: Start from specific letter to resume interrupted downloads:
+```bash
+python -m server.database.bootstrap_tools.download_large_avatars M
 ```
 
-For testing with limited characters:
+#### 3. Thumbnail Generation
 ```bash
-cd scripts
-uv run python -m bootstrap_tools.bootstrap_orchestrator --phase=2 --limit=10
+python -m server.database.bootstrap_tools.create_small_avatars
 ```
-
-To resume from a specific character:
-```bash
-cd scripts
-uv run python -m bootstrap_tools.bootstrap_orchestrator --phase=2 --start-from="Character_Name"
-```
-
-Phase 2 includes:
-- Character data scraping from wiki pages
-- Avatar downloading and processing
-- Database storage with vector embeddings
-- Thumbnail generation
+- Creates square thumbnails from large images
+- Crops from top-center to preserve character faces
+- Resizes to 128x128 pixels by default
+- Outputs: `server/database/img/sm_avatars/*.webp`
 
 ### Bootstrap Features
 - **Skip existing**: Avoids re-downloading existing files
@@ -142,19 +168,17 @@ Phase 2 includes:
 
 ```
 guess_game/
-├── src/
-│   └── guessing_game/        # Main Python package
-│       ├── config/           # Configuration files
-│       ├── database/         # Database models and utilities
-│       ├── models/           # Data models
-│       ├── routes/           # API endpoints
-│       ├── schemas/          # Data validation schemas
-│       ├── services/         # Business logic services
-│       ├── dependencies.py   # Dependency injection
-│       └── app.py            # FastAPI app entry point
-├── scripts/
-│   └── bootstrap_tools/      # Database population scripts
-├── docker/                   # Docker configuration files
+├── server/                    # FastAPI backend
+│   ├── database/             # Database models and utilities
+│   │   ├── bootstrap_tools/  # Database population scripts
+│   │   ├── img/             # Character images (generated)
+│   │   └── character_data.csv # Character database (generated)
+│   ├── llm/                 # AI integration
+│   ├── pydantic_schemas/    # Data validation schemas
+│   ├── routes/              # API endpoints
+│   ├── GameManager.py       # Game logic
+│   ├── SessionManager.py    # Session management
+│   └── app.py               # FastAPI app
 ├── client/                   # React frontend
 │   ├── src/
 │   │   ├── components/      # React components

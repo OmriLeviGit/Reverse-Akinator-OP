@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "guessing_game"
+version = "0.1.0"
+description = "A One Piece character guessing game"
+readme = "README.md"
+requires-python = ">=3.9,<3.12"
+dependencies = [
+    "requests~=2.32.4",
+    "protobuf~=5.29.5",
+    "SQLAlchemy~=2.0.42",
+    "pydantic~=2.11.7",
+    "fastapi~=0.116.1",
+    "uvicorn~=0.35.0",
+    "starlette~=0.47.2",
+    "itsdangerous==2.2.0",
+    "redis==6.4.0",
+    "python-dotenv==1.1.1",
+    "pillow~=11.3.0",
+    "beautifulsoup4~=4.13.5",
+    "langchain==0.3.27",
+    "langchain-core~=0.3.74",
+    "langchain-google-genai==2.1.9",
+    "langchain-openai==0.3.31",
+    "chromadb~=1.0.20",
+    "pandas~=2.3.2",
+    "lxml~=6.0.1",
+    "sentence-transformers~=5.1.0",
+    "langchain_community~=0.3.29",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "black",
+    "flake8",
+    "mypy",
+]
+
+[project.scripts]
+guessing-game = "guessing_game.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/guessing_game"]
+
+[tool.black]
+line-length = 120
+target-version = ['py39', 'py310', 'py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["redis.*", "chromadb.*", "sentence_transformers.*"]
+ignore_missing_imports = true

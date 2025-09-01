@@ -1,0 +1,7 @@
+
+[dev]
+pytest
+pytest-asyncio
+black
+flake8
+mypy
