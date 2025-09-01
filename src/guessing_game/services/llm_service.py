@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.language_models import BaseLanguageModel
 
@@ -9,6 +10,7 @@ class LLMService:
     def __init__(self):
         self._requests = defaultdict(deque)
         self._current_model = None
+        load_dotenv()
 
     def set_model(self, provider: str, **kwargs) -> BaseLanguageModel:
         """Set the current model. LangChain handles the interface consistency."""

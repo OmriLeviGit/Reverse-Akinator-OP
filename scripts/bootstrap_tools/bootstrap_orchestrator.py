@@ -53,6 +53,7 @@ class BootstrapOrchestrator:
         Args:
             skip_csv (bool): Skip CSV generation (if already exists)
         """
+        phase1_start = time.time()
         print("=" * 80)
         print("PHASE 1: PREPARATION")
         print("=" * 80)
@@ -75,21 +76,22 @@ class BootstrapOrchestrator:
             # Step 3: Interactive discovery prompt
             self._ask_discovery_choice()
             
-            print(f"\n[SUCCESS] Phase 1 completed successfully!")
+            phase1_duration = time.time() - phase1_start
+            print(f"\n[SUCCESS] Phase 1 completed successfully in {phase1_duration:.2f} seconds!")
             print("You can now run Phase 2 with: --phase=2")
             
         except Exception as e:
-            print(f"\n[FAILED] Phase 1 failed: {e}")
+            phase1_duration = time.time() - phase1_start
+            print(f"\n[FAILED] Phase 1 failed after {phase1_duration:.2f} seconds: {e}")
             raise
     
-    def run_phase2_processing(self, limit=None, start_from=None, generate_descriptions=True):
+    def run_phase2_processing(self, limit=None, start_from=None):
         """
         Run Phase 2: Unified Character Processing
         
         Args:
             limit (int): Limit number of characters for testing
             start_from (str): Character ID to resume from
-            generate_descriptions (bool): Whether to generate AI descriptions
         """
         # First, confirm settings are updated
         self._confirm_settings_updated()
@@ -98,25 +100,30 @@ class BootstrapOrchestrator:
             print(f"[TEST MODE] Processing only {limit} characters")
         if start_from:
             print(f"[RESUME MODE] Starting from character '{start_from}'")
-        if not generate_descriptions:
-            print(f"[FAST MODE] Skipping AI-generated descriptions")
         
+        return self._run_phase2_core(limit, start_from)
+    
+    def _run_phase2_core(self, limit, start_from):
+        """
+        Core Phase 2 processing logic
+        """
+        phase2_start = time.time()
         try:
             # Create character processor
             processor = CharacterProcessor(
-                delay_between_characters=2.0,  # Be respectful to the wiki
+                delay_between_characters=1.0,  # Be respectful to the wiki
                 delay_between_requests=0.1
             )
             
             # Process characters
             results = processor.process_all_characters(
                 start_from=start_from,
-                limit=limit,
-                generate_descriptions=generate_descriptions
+                limit=limit
             )
             
             if results.get('success', True):
-                print(f"\n[SUCCESS] Phase 2 completed successfully!")
+                phase2_duration = time.time() - phase2_start
+                print(f"\n[SUCCESS] Phase 2 completed successfully in {phase2_duration:.2f} seconds!")
                 
                 # Show summary
                 stats = results.get('stats', {})
@@ -125,21 +132,26 @@ class BootstrapOrchestrator:
                 print(f"  Success rate: {stats.get('successful', 0)}/{stats.get('total_processed', 0)}")
                 print(f"  Avatars downloaded: {stats.get('avatars_downloaded', 0)}")
                 print(f"  Descriptions generated: {stats.get('descriptions_generated', 0)}")
+                print(f"  Total duration: {phase2_duration:.2f} seconds")
                 
                 # Suggest next step
                 if limit:
                     print(f"\n[TEST] Test completed. For full processing: run without --limit")
                 
             else:
-                print(f"\n[FAILED] Phase 2 failed: {results.get('error')}")
+                phase2_duration = time.time() - phase2_start
+                print(f"\n[FAILED] Phase 2 failed after {phase2_duration:.2f} seconds: {results.get('error')}")
                 return False
                 
         except KeyboardInterrupt:
-            print("\n\n[STOPPED]  Phase 2 interrupted by user")
-            print("[TIP] You can resume by running with: --phase=2 --start-from=<last_processed_character>")
+            phase2_duration = time.time() - phase2_start
+            print(f"\n\n[STOPPED] Phase 2 interrupted by user after {phase2_duration:.2f} seconds")
+            if not limit:  # Only show resume tip for full runs
+                print("[TIP] You can resume by running with: --phase=2 --start-from=<last_processed_character>")
             return False
         except Exception as e:
-            print(f"\n[FAILED] Phase 2 failed: {e}")
+            phase2_duration = time.time() - phase2_start
+            print(f"\n[FAILED] Phase 2 failed after {phase2_duration:.2f} seconds: {e}")
             raise
         
         return True
@@ -148,18 +160,20 @@ class BootstrapOrchestrator:
         """Ask user whether to run section discovery"""
         print("\nStep 3: Section Discovery")
         print("=" * 50)
-        print("Section discovery analyzes wiki pages to find available data sections.")
-        print("This is needed to configure WHITELISTED_SECTIONS in settings.py")
+        print("Section discovery analyzes wiki pages to find available data sections and table entries.")
+        print("Desirable sections and table entries are needed to be configured in WHITELISTED_SECTIONS and WHITELISTED_STATISTICS in scripts/bootstrap_tools/bootstrap_settings.py")
         print("")
         print("IMPORTANT:")
-        print("- If you haven't updated settings.py yet → Choose YES")
-        print("- If you already updated settings.py → Choose NO")
+        print("- If you haven't discovered the sections and updated bootstrap_settings.py yet → Choose YES, and after discovery manually update the desirable settings before moving to phase 2")
+        print("- If you have already updated the scripts/bootstrap_tools/bootstrap_settings.py → Choose NO to continue to phase 2")
         print("=" * 50)
         
         while True:
             choice = input("\nRun section discovery? [y/N]: ").strip().lower()
             if choice in ['', 'n', 'no']:
                 print("\nSkipping section discovery (settings assumed to be configured)")
+                print("\nStarting Phase 2: Character Processing...")
+                self._run_phase2_core(None, None)
                 break
             elif choice in ['y', 'yes']:
                 print("\nRunning section discovery...")
@@ -168,8 +182,8 @@ class BootstrapOrchestrator:
                 
                 print("\n" + "!" * 80)
                 print("NEXT STEPS REQUIRED:")
-                print("1. Check server/database/static_data/discovery_results.txt")
-                print("2. Update server/config/settings.py:")
+                print("1. Check the discovery results output")
+                print("2. Update scripts/bootstrap_tools/bootstrap_settings.py:")
                 print("   - Add relevant sections to WHITELISTED_SECTIONS")
                 print("   - Add relevant statistics to WHITELISTED_STATISTICS")
                 print("3. Rerun Phase 1 and choose 'N' for discovery")
@@ -187,7 +201,7 @@ class BootstrapOrchestrator:
         print("=" * 80)
         print("")
         print("Before processing characters, please confirm that you have updated")
-        print("the WHITELISTED_SECTIONS in server/config/settings.py")
+        print("the WHITELISTED_SECTIONS and WHITELISTED_STATISTICS in scripts/bootstrap_tools/bootstrap_settings.py")
         print("")
         print("Options:")
         print("  1. Yes, I have updated the settings → Continue with Phase 2")
@@ -201,7 +215,7 @@ class BootstrapOrchestrator:
                 return True
             elif choice == '2':
                 print("\n[INFO] Please run Phase 1 first to configure settings:")
-                print("python server/database/bootstrap_tools/bootstrap_orchestrator.py --phase=1")
+                print("python scripts/bootstrap_tools/bootstrap_orchestrator.py --phase=1")
                 print("\nThen return here and run Phase 2.")
                 raise SystemExit(0)  # Clean exit
             else:
@@ -280,8 +294,6 @@ def main():
                        help='Limit number of characters to process (Phase 2)')
     parser.add_argument('--start-from', type=str,
                        help='Character ID to resume from (Phase 2)')
-    parser.add_argument('--no-descriptions', action='store_true',
-                       help='Skip AI-generated descriptions for faster processing (Phase 2)')
     
     args = parser.parse_args()
     
@@ -300,8 +312,7 @@ def main():
         elif args.phase == 2:
             orchestrator.run_phase2_processing(
                 limit=args.limit,
-                start_from=args.start_from,
-                generate_descriptions=not args.no_descriptions
+                start_from=args.start_from
             )
         
         else:
@@ -320,9 +331,9 @@ def main():
             print(f"  • Generates AI descriptions and fun facts")
             print(f"")
             print(f"Quick start:")
-            print(f"  Phase 1 (Setup):     python {Path(__file__).name} --phase=1")
-            print(f"  Phase 2 (Process):   python {Path(__file__).name} --phase=2 --limit=5")
-            print(f"  Check Status:        python {Path(__file__).name} --status")
+            print(f"  Phase 1 (Setup):     python scripts/bootstrap_tools/bootstrap_orchestrator.py --phase=1")
+            print(f"  Phase 2 (Process):   python scripts/bootstrap_tools/bootstrap_orchestrator.py --phase=2 --limit=5")
+            print(f"  Check Status:        python scripts/bootstrap_tools/bootstrap_orchestrator.py --status")
     
     except KeyboardInterrupt:
         print(f"\n\n[STOPPED] Bootstrap interrupted by user")

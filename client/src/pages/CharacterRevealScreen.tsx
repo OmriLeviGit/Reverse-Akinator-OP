@@ -43,8 +43,26 @@ const CharacterRevealScreen: React.FC = () => {
 
   const { character: originalCharacter, questionsAsked, guessesMade, wasCorrectGuess } = revealData;
 
-  // Get live character data with current ignore/rating status, fallback to original
-  const character = (getCharacterById(originalCharacter.id) as FullCharacter) || originalCharacter;
+  // Merge original full character data with live ratings/ignore status
+  const liveCharacterData = getCharacterById(originalCharacter.id);
+  const [character, setCharacter] = useState<FullCharacter>(() => ({
+    ...originalCharacter,
+    ...(liveCharacterData && {
+      difficulty: liveCharacterData.difficulty,
+      isIgnored: liveCharacterData.isIgnored,
+    }),
+  }));
+
+  // Update character when live data changes
+  useEffect(() => {
+    setCharacter({
+      ...originalCharacter,
+      ...(liveCharacterData && {
+        difficulty: liveCharacterData.difficulty,
+        isIgnored: liveCharacterData.isIgnored,
+      }),
+    });
+  }, [originalCharacter, liveCharacterData]);
 
   const handleRatingChange = (characterId: string, difficulty: string | null) => {
     const difficultyValue = difficulty || "";
@@ -82,6 +100,8 @@ const CharacterRevealScreen: React.FC = () => {
     navigate("/");
   };
 
+  console.log("character", character);
+
   return (
     <>
       {/* Header */}
@@ -108,7 +128,7 @@ const CharacterRevealScreen: React.FC = () => {
 
               {/* Character Details */}
               <div className="p-6 flex flex-col">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h2 className="text-3xl font-bold text-foreground mb-2">{character.name}</h2>
                     {character.wikiLink && (
@@ -126,27 +146,30 @@ const CharacterRevealScreen: React.FC = () => {
                 </div>
 
                 {/* Character Description */}
-                <div className="bg-muted/30 rounded-lg p-4 mb-4">
-                  <ScrollArea className="h-24">
-                    <p className="text-foreground leading-relaxed pr-4">
-                      {character.description || "No description available for this character."}
-                    </p>
-                  </ScrollArea>
+                <div className="bg-muted/40 rounded-lg p-2 mb-4">
+                  <p className="text-foreground leading-relaxed">
+                    {character.description || "No description available for this character."}
+                  </p>
                 </div>
 
                 {/* Character Fun Fact */}
-                <div className="bg-muted/30 rounded-lg p-4">
-                  <ScrollArea className="h-12">
-                    <p className="text-foreground leading-relaxed pr-4">
-                      {character.funFact || "No fun fact available for this character."}
-                    </p>
-                  </ScrollArea>
+                <div className="bg-muted/40 rounded-lg p-2">
+                  <p className="text-foreground leading-relaxed">
+                    {character.funFact ? (
+                      <>
+                        <div className="text-primary font-semibold">Fun fact:</div>
+                        <div>{character.funFact}</div>
+                      </>
+                    ) : (
+                      "No fun fact available for this character."
+                    )}
+                  </p>
                 </div>
 
                 <Separator className="my-6" />
 
                 {/* Game Stats - Temporarily disabled*/}
-                {/* <div className="grid grid-cols-2 gap-4 mb-6">
+                {/* <div className="grid grid-cols-2 gap-4">
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
                     <div className="text-2xl font-bold text-foreground">{questionsAsked}</div>
                     <div className="text-sm text-muted-foreground">Questions Asked</div>

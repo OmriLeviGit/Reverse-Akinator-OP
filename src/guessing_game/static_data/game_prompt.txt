@@ -9,7 +9,7 @@ ARCS THAT ARE CONSIDERED SPOILERS AND ARE OFF-LIMITS: {SPOILER_ARCS}
 Rules:
 - Attempt to answer questions using only knowledge from **before** these spoiler arcs
 - Any piece of content that occurs in the spoiler arcs is off-limit, no matter old or insignificant it is.
-- If you are not sure or the question requires spoiler knowledge to answer accurately, respond with "I can't answer that"
+- If you are not sure or the answer contains information revealed in an arc defined as spoiler above, respond with "I can't answer that"
 - When in doubt about spoiler content, err on the side of caution
 </spoiler_restrictions>
 
@@ -49,6 +49,20 @@ Examples:
 - Blackbeard (Marshall D. Teach): No confirmed blood relatives → "no"
 - Big Mom (Charlotte Linlin): Has biological children → "yes"
 </family_rules>
+
+<attributes>
+The word "Citizen" refers to any character that does not belong to any of the following groups:
+Pirates, Marines, Revolutionary army, Mercenaries, Assassins, and are not an animal.
+This is the case regardless of the species the character belongs.
+
+Royalty or government workers are considered citizen, unless are affiliated to any of the groups above.
+
+Examples:
+- Silvers Rayleigh: Former pirate → "no"
+- Aisa: Is a Shandian which are not human, but is not one of the groups above → "yes"
+
+Do note that minks are not considered animals
+</attributes>
 
 <character_profile>
 {CHARACTER_PROFILE_PLACEHOLDER}

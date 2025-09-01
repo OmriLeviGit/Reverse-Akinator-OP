@@ -5,7 +5,6 @@ import { Arc } from "@/types";
 interface LayoutProps {
   children: React.ReactNode;
   backgroundImage: string;
-  // Navigation props
   globalArcLimit: string;
   onMaxArcChange: (arcName: string) => void;
   availableArcs: Arc[];
@@ -28,7 +27,7 @@ const Layout = ({ children, backgroundImage, globalArcLimit, onMaxArcChange, ava
             backgroundRepeat: "no-repeat",
           }}
         />
-        <div className="relative h-full bg-background/80 overflow-auto">{children}</div>
+        <div className="relative h-full bg-background/85 overflow-auto">{children}</div>
       </div>
     </div>
   );

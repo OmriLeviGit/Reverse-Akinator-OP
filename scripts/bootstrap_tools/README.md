@@ -1,197 +1,196 @@
-# Bootstrap Tools - Optimized Pipeline
+# Bootstrap Tools
 
-This directory contains the optimized bootstrap pipeline for the One Piece character guessing game. The new pipeline **reduces character scraping from 6+ iterations to just 2 iterations**, eliminating redundant web requests and processing time.
+Unified pipeline for bootstrapping the One Piece character guessing game database and assets. This system processes character data from the One Piece wiki, extracts comprehensive information, and stores it across multiple databases and formats.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# Check current status
+# Check current system status
 python bootstrap_orchestrator.py --status
 
-# Phase 1: Setup (one-time)
+# Phase 1: Initial setup and preparation
 python bootstrap_orchestrator.py --phase=1
 
-# Configure whitelist (manual step - see output from Phase 1)
-
-# Phase 2: Test with 5 characters
+# Phase 2: Process characters (test with 5 characters first)
 python bootstrap_orchestrator.py --phase=2 --limit=5
 
-# Phase 2: Process all characters
+# Phase 2: Process all characters (after configuration)
 python bootstrap_orchestrator.py --phase=2
 
-# Phase 3: Post-processing
-python bootstrap_orchestrator.py --phase=3
+# Resume from specific character if interrupted
+python bootstrap_orchestrator.py --phase=2 --start-from="CHARACTER_ID"
 ```
 
-## 📁 Directory Structure
+## System Overview
+
+The bootstrap system operates in two main phases:
+
+### Phase 1: Preparation
+- Scrapes character lists from One Piece wiki
+- Creates character CSV with IDs and wiki URLs
+- Initializes SQL and vector databases
+- Optionally discovers available wiki sections and statistics
+- Requires manual configuration of section/statistic whitelists
+
+### Phase 2: Character Processing
+- Processes each character in a single pass
+- Scrapes structured data, narrative content, and images
+- Stores data in SQL database with full character information
+- Creates vector embeddings for semantic search
+- Downloads and processes avatar images (large and small versions)
+- Generates AI-powered descriptions and fun facts
+- Extracts and stores character affiliations
+
+## Directory Structure
 
 ```
 bootstrap_tools/
-├── phase1_preparation/           # One-time setup scripts
-│   ├── build_character_csv.py    # ✅ Create character list from wiki
-│   ├── database_builder.py       # ✅ Initialize SQL + Vector DB
-│   └── section_and_table_discovery.py  # ✅ Discover sections (for whitelist)
-├── phase2_processing/            # Unified character processing
-│   ├── enhanced_character_scraping.py  # ✅ Enhanced scraper (avatars + affiliations)
-│   ├── data_storage_manager.py   # ✅ Unified storage across all DBs
-│   └── character_processor.py    # ✅ Single-pass character pipeline
-├── phase3_postprocessing/        # Final steps
-│   └── generate_small_avatars.py # ✅ Create avatar thumbnails
-├── legacy/                       # Old scripts (for reference)
-└── pipeline_orchestrator.py     # ✅ Main entry point
+├── phase1_preparation/           # Initial setup scripts
+│   ├── build_character_csv.py    # Creates character list from wiki
+│   ├── database_builder.py       # Initializes databases
+│   └── section_and_table_discovery.py  # Discovers available wiki data
+├── phase2_processing/            # Main character processing
+│   ├── character_processor.py    # Main processing pipeline
+│   ├── enhanced_character_scraping.py  # Wiki data extraction
+│   ├── data_storage_manager.py   # Unified data storage
+│   └── generate_small_avatars.py # Avatar thumbnail creation
+├── data/                         # Generated data files
+│   ├── character_data.csv        # Character list with wiki URLs
+│   └── discovery_results.txt     # Section discovery output
+├── bootstrap_settings.py         # Configuration settings
+├── bootstrap_orchestrator.py     # Main entry point
+└── README.md                     # This file
 ```
 
-## 🔄 Pipeline Phases
+## Configuration
 
-### Phase 1: Preparation
-- **Input**: Wiki URLs
-- **Output**: Character CSV, initialized databases, section discovery
-- **Iterations**: 1 (section discovery only)
+### Required Manual Configuration
 
-### Phase 2: Unified Processing  
-- **Input**: Character CSV + configured whitelist
-- **Output**: Complete character data in all systems
-- **Iterations**: 1 (processes each character completely)
-- **Per Character**:
-  - ✅ Scrape all data (structured + narrative + avatars + affiliations)
-  - ✅ Store in SQL database
-  - ✅ Store in vector database
-  - ✅ Download avatar images
-  - ✅ Create small avatar thumbnails
-  - ✅ Generate AI descriptions & fun facts
-  - ✅ Store affiliations
+After running Phase 1 with section discovery, you must update `bootstrap_settings.py`:
 
-### Phase 3: Post-processing
-- **Input**: Downloaded avatars
-- **Output**: Optimized thumbnails
-- **Iterations**: 0 (file processing only)
-
-## 🎯 Key Improvements
-
-| Aspect | Old Pipeline | New Pipeline | Improvement |
-|--------|--------------|--------------|-------------|
-| **Character Iterations** | 6+ times | 2 times | **80% reduction** |
-| **Web Requests** | ~18,000+ | ~6,000 | **66% reduction** |
-| **Processing Time** | ~8-12 hours | ~2-3 hours | **75% faster** |
-| **Error Recovery** | Start over | Resume from failure | **Robust** |
-| **Progress Tracking** | Limited | Detailed stats | **Transparent** |
-
-## 📋 Usage Examples
-
-### Testing & Development
-```bash
-# Test with 3 characters, no AI descriptions (fast)
-python bootstrap_orchestrator.py --phase=2 --limit=3 --no-descriptions
-
-# Resume from a specific character
-python bootstrap_orchestrator.py --phase=2 --start-from="Monkey_D._Luffy"
-
-# Complete test pipeline
-python bootstrap_orchestrator.py --all --limit=10
-```
-
-### Production Use
-```bash
-# Full Phase 1 setup
-python bootstrap_orchestrator.py --phase=1
-
-# Full Phase 2 processing (after whitelist configuration)
-python bootstrap_orchestrator.py --phase=2
-
-# Complete pipeline (whitelist must be configured)
-python bootstrap_orchestrator.py --all --skip-discovery
-```
-
-### Status & Monitoring
-```bash
-# Check current state
-python bootstrap_orchestrator.py --status
-
-# Phase 2 shows detailed progress every 10 characters
-# Ctrl+C to interrupt and resume later
-```
-
-## ⚙️ Configuration
-
-### Required Manual Step
-After Phase 1, you must update `server/config/settings.py`:
-
+**WHITELISTED_SECTIONS**: List of wiki page sections to extract
 ```python
 WHITELISTED_SECTIONS = [
-    'introduction',
-    'appearance', 
-    'personality',
-    'abilities',
-    'history',
-    # ... add relevant sections from discovery_results.txt
+    'Abilities',
+    'Appearance', 
+    'History',
+    'Personality',
+    # Add sections based on discovery_results.txt
 ]
+```
 
+**WHITELISTED_STATISTICS**: List of infobox statistics to extract
+```python
 WHITELISTED_STATISTICS = [
     ('age', 'statistics'),
     ('height', 'statistics'),
     ('bounty', 'statistics'),
-    # ... add relevant statistics from discovery_results.txt
+    # Add statistics based on discovery_results.txt
 ]
 ```
 
-### Performance Tuning
-Edit `character_processor.py`:
+### Processing Settings
 
-```python
-# Faster processing (less respectful to wiki)
-delay_between_characters=1.0  # Default: 2.0
+Modify `character_processor.py` for performance tuning:
+- `delay_between_characters`: Delay between character processing (default: 2.0 seconds)
+- `delay_between_requests`: Delay between individual web requests (default: 0.1 seconds)
 
-# Skip AI descriptions for faster processing
-generate_descriptions=False   # Default: True
-```
+## Usage Examples
 
-## 🔧 Error Handling
-
-### Common Issues
-1. **403 Errors**: Automatic rate limiting with backoff
-2. **Network Timeouts**: Individual character failures don't stop processing
-3. **Database Errors**: Detailed error reporting with continuation
-4. **Interrupted Processing**: Resume from last processed character
-
-### Recovery Commands
+### Development and Testing
 ```bash
-# Resume Phase 2 from specific character
-python bootstrap_orchestrator.py --phase=2 --start-from="CHARACTER_ID"
+# Test with limited characters
+python bootstrap_orchestrator.py --phase=2 --limit=10
 
-# Reprocess failed characters (check logs for IDs)
-python bootstrap_orchestrator.py --phase=2 --limit=10 --start-from="FAILED_CHARACTER"
+# Resume interrupted processing
+python bootstrap_orchestrator.py --phase=2 --start-from="Monkey_D._Luffy"
 
-# Check what's missing
+# Skip CSV generation if already exists
+python bootstrap_orchestrator.py --phase=1 --skip-csv
+
+# Check system status anytime
 python bootstrap_orchestrator.py --status
 ```
 
-## 📊 Expected Results
+### Production Workflow
+```bash
+# 1. Initial setup (first time only)
+python bootstrap_orchestrator.py --phase=1
 
-For ~3000 characters:
-- **Phase 1**: ~30 minutes (mostly section discovery)
-- **Phase 2**: ~2-3 hours (depends on AI generation)  
-- **Phase 3**: ~5 minutes
+# 2. Configure bootstrap_settings.py based on discovery results
 
-**Success Rates**:
-- SQL Database: ~99% (failures are usually character data issues)
-- Vector Database: ~95% (requires narrative content)
-- Avatar Downloads: ~90% (some characters have no images)
-- AI Descriptions: ~85% (requires sufficient context)
+# 3. Process all characters
+python bootstrap_orchestrator.py --phase=2
+```
 
-## 🆚 Migration from Old System
+## Error Handling and Recovery
 
-The legacy scripts are preserved in `legacy/` folder:
-- `bootstrap.py` → `pipeline_orchestrator.py`
-- `vector_database_builder.py` → `character_processor.py`
-- `download_large_avatars.py` → integrated into `character_processor.py`
-- etc.
+### Built-in Error Recovery
+- **403 Rate Limiting**: Automatic 5-minute breaks after consecutive 403 errors
+- **Network Timeouts**: Individual character failures don't stop processing
+- **Processing Interruption**: Resume from last processed character
+- **Retry Logic**: Up to 3 attempts per character for transient failures
 
-Old workflow still works but is **6x slower** and less reliable.
+### Common Recovery Commands
+```bash
+# Resume from specific character
+python bootstrap_orchestrator.py --phase=2 --start-from="FAILED_CHARACTER_ID"
 
-## 💡 Tips
+# Check what has been processed
+python bootstrap_orchestrator.py --status
 
-1. **Start with testing**: Use `--limit=5` to verify everything works
-2. **Monitor progress**: Phase 2 shows detailed stats every 10 characters  
-3. **Use resume**: Don't restart from beginning if interrupted
-4. **Check status**: Use `--status` to see current state anytime
-5. **Configure whitelist carefully**: More sections = slower but richer data
+# Reprocess specific range
+python bootstrap_orchestrator.py --phase=2 --limit=50 --start-from="CHARACTER_ID"
+```
+
+## Output and Results
+
+### Generated Assets
+- **SQL Database**: Complete character information with structured data
+- **Vector Database**: Semantic embeddings for character search
+- **Large Avatars**: High-resolution character images (client/public/img/avatars/large/)
+- **Small Avatars**: Thumbnail versions for UI (client/public/img/avatars/small/)
+- **AI Content**: Generated character descriptions and fun facts
+
+## Performance
+
+### Expected Processing Times
+For ~2500 characters:
+- Phase 1 (with discovery): 1-2 hours
+- Phase 2 (full processing): 3-4 hours
+- Total system setup: 4-6 hours
+
+### Optimization
+- Use `--limit` for testing to avoid full processing during development
+- Adjust delay settings in character_processor.py for faster processing
+- Monitor progress through automatic status updates every 10 characters
+
+## Monitoring and Status
+
+The system provides detailed progress tracking:
+- Real-time processing status with character counts
+- Success/failure rates for each component
+- Detailed statistics on data extraction and storage
+- Resume capabilities with specific character targeting
+
+Use `--status` to check current system state including:
+- Character CSV existence
+- Database connection and content
+- Avatar file counts
+- Discovery results availability
+
+## Dependencies
+
+Key Python packages:
+- requests (wiki scraping)
+- BeautifulSoup4 (HTML parsing)  
+- Pillow (image processing)
+- pandas (data manipulation)
+- SQLAlchemy (database ORM)
+- ChromaDB (vector database)
+
+The system integrates with the main application's:
+- Database models and configuration
+- Vector database setup
+- LLM services for content generation
+- Prompt services for AI interactions

@@ -1,22 +1,9 @@
+manual:
+- ignore all characters with a certain section (geography, Inhabitants)
+
 adding metadata to the vector db:
 - attempt to get the first main arc a character appeared
 - add a tag to each paragraph (which arc does this info belong to if it occurred in a specific arc)
 
-to actually do:
-- fill up description and fun fact
-- consider whats citizen in a prompt
-- define animals or other species
-
-manual:
-- remove all characters with a certain section (geography, Inhabitants)
-
 spoiler attempts:
 - check how well it works if messages are not bound to a single character
-
-characters to remove:
-bjorn
-all blackbeard crew
-imu
-all gorosei
-xebec
-joyboy

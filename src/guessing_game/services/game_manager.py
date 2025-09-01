@@ -1,6 +1,7 @@
 # server/game_manager.py
 import json
 from datetime import datetime
+from redis.exceptions import ConnectionError, TimeoutError
 
 from langchain_community.chat_message_histories import RedisChatMessageHistory
 
@@ -15,36 +16,40 @@ class GameManager:
 
     def create_game(self, game_id: str, target_character: FullCharacter, prompt: str, game_settings: dict) -> None:
         """Store sensitive game data in Redis"""
-        game_data = {
-            "target_character": target_character.model_dump(),
-            "system_prompt": prompt,  # Store prompt separately
-            "guesses_made": [],
-            "game_settings": game_settings,
-            "questions_asked": 0,
-            "guesses_count": 0,
-            "created_at": datetime.now().isoformat()
-        }
+        try:
+            game_data = {
+                "target_character": target_character.model_dump(),
+                "system_prompt": prompt,  # Store prompt separately
+                "guesses_made": [],
+                "game_settings": game_settings,
+                "questions_asked": 0,
+                "guesses_count": 0,
+                "created_at": datetime.now().isoformat()
+            }
 
-        self.redis.setex(
-            f"game:{game_id}",
-            self.game_ttl,
-            json.dumps(game_data)
-        )
-        
-        # Initialize LangChain memory for this game
-        self._get_or_create_memory(game_id)
-        
-        # Initialize UI messages with welcome message
-        welcome_message = {
-            "id": "welcome",
-            "text": "Welcome to the One Piece Character Guessing Game! I'm thinking of a character. Try to guess who it is!",
-            "isUser": False
-        }
-        self.redis.setex(
-            f"ui_messages:{game_id}",
-            self.game_ttl,
-            json.dumps([welcome_message])
-        )
+            self.redis.setex(
+                f"game:{game_id}",
+                self.game_ttl,
+                json.dumps(game_data)
+            )
+            
+            # Initialize LangChain memory for this game
+            self._get_or_create_memory(game_id)
+            
+            # Initialize UI messages with welcome message
+            welcome_message = {
+                "id": "welcome",
+                "text": "Welcome to the One Piece Character Guessing Game! I'm thinking of a character. Try to guess who it is!",
+                "isUser": False
+            }
+            self.redis.setex(
+                f"ui_messages:{game_id}",
+                self.game_ttl,
+                json.dumps([welcome_message])
+            )
+        except (ConnectionError, TimeoutError) as e:
+            print(f"Redis connection error in create_game: {e}")
+            raise RuntimeError("Game service unavailable")
 
     def get_game_data(self, game_id: str) -> dict | None:
         """Retrieve game data from Redis"""

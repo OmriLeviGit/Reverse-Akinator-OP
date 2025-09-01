@@ -142,8 +142,8 @@ const GameSetupForm = ({
         {/* Filler Character Settings */}
         <div className="space-y-2">
           <h3 className="text-xl font-semibold text-foreground">Filler Character Probability</h3>
-          <div className="space-y-4">
-            <div className="space-y-3">
+          <div className="space-y-5">
+            <div className="space-y-5">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Probability</span>
                 <span className="text-sm font-medium text-foreground">{fillerSliderValue[0]}%</span>
@@ -153,7 +153,7 @@ const GameSetupForm = ({
                 onValueChange={handleFillerSliderChange}
                 min={0}
                 max={100}
-                step={5}
+                step={1}
                 className="w-full"
               />
             </div>

@@ -15,13 +15,16 @@ from .enhanced_character_scraping import scrape_character_complete
 from .data_storage_manager import DataStorageManager
 
 # 403 handling configuration
-MAX_CONSECUTIVE_403S = 2  # Same as legacy downloader
-BLOCK_RETRY_DELAY = 300   # 5 minutes in seconds
+MAX_CONSECUTIVE_403S = 2
+BLOCK_RETRY_DELAY = 300
 
 
 class CharacterProcessor:
     """
-    Unified character processing pipeline that scrapes and stores all character data in one pass
+    Unified character processing pipeline that scrapes character data from wiki URLs
+    and stores it in both SQL and vector databases with avatar downloading.
+    
+    Handles rate limiting, 403 error blocking, and provides retry logic with statistics tracking.
     """
     
     def __init__(self, delay_between_characters=1.0, delay_between_requests=0.1):
@@ -72,13 +75,11 @@ class CharacterProcessor:
                 reader = csv.DictReader(file)
                 for row in reader:
                     character_id = row.get('ID')
-                    character_name = row.get('Name')
                     wiki_url = row.get('Wiki')
                     
-                    if character_id and character_name and wiki_url:
+                    if character_id and wiki_url:
                         characters.append({
                             'id': character_id.strip(),
-                            'name': character_name.strip(),
                             'wiki_url': wiki_url.strip()
                         })
                 
@@ -88,22 +89,23 @@ class CharacterProcessor:
         
         return characters
     
-    def process_single_character(self, character_info: dict, generate_descriptions: bool = True) -> dict:
+    def process_single_character(self, character_info: dict, verbose=False, retry_count=0) -> dict:
         """
         Process a single character completely
         
         Args:
-            character_info (dict): Character info with keys 'id', 'name', 'wiki_url' 
-            generate_descriptions (bool): Whether to generate AI descriptions and fun facts
+            character_info (dict): Character info with keys 'id', 'wiki_url'
+            verbose (bool): Enable verbose output (currently unused)
+            retry_count (int): Current retry attempt (0 = first attempt)
             
         Returns:
             dict: Processing results
         """
         character_id = character_info['id']
-        character_name = character_info['name']
         wiki_url = character_info['wiki_url']
         
-        print(f"\n--- Processing: {character_name} ({character_id}) ---")
+        retry_prefix = f"[RETRY {retry_count}] " if retry_count > 0 else ""
+        print(f"\n--- {retry_prefix}Processing: {character_id} ---")
         print(f"Wiki: {wiki_url}")
         
         try:
@@ -111,12 +113,11 @@ class CharacterProcessor:
             print("Step 1: Scraping character data...")
             character_data = scrape_character_complete(wiki_url)
             
-            # Check for 403 blocking
+            # Check for 403 blocking (keep existing 403 logic unchanged)
             if character_data.get('error') == '403_BLOCKED':
                 return self._handle_403_block(character_info)
             
             # Add basic info to character data
-            character_data['name'] = character_name
             character_data['wiki_url'] = wiki_url
             
             # Log what was found
@@ -133,8 +134,7 @@ class CharacterProcessor:
             print("Step 2: Storing character data...")
             storage_results = self.storage_manager.store_character_complete(
                 character_id, 
-                character_data, 
-                generate_descriptions=generate_descriptions
+                character_data
             )
             
             # Step 3: Update statistics
@@ -142,10 +142,7 @@ class CharacterProcessor:
             
             # Reset 403 counter on successful processing
             self.consecutive_403_errors = 0
-            
-            # Step 4: Print summary
-            self.storage_manager.print_storage_summary(storage_results)
-            
+
             return {
                 'success': True,
                 'character_id': character_id,
@@ -160,17 +157,27 @@ class CharacterProcessor:
             }
             
         except Exception as e:
-            print(f"[FAIL] Error processing {character_name}: {e}")
-            self.stats['failed'] += 1
+            print(f"[FAIL] Error processing {character_id}: {e}")
             
-            return {
-                'success': False,
-                'character_id': character_id,
-                'error': str(e)
-            }
+            # Retry logic for general errors (not 403)
+            if retry_count < 3:  # Allow up to 3 total attempts (0, 1, 2)
+                print(f"[RETRY] Will retry {character_id} in 5 seconds... (attempt {retry_count + 1}/3)")
+                time.sleep(5)
+                return self.process_single_character(character_info, verbose, retry_count + 1)
+            else:
+                # All retries exhausted
+                print(f"[FAIL] All retries exhausted for {character_id}")
+                self.stats['failed'] += 1
+                
+                return {
+                    'success': False,
+                    'character_id': character_id,
+                    'error': str(e),
+                    'retries_attempted': retry_count
+                }
     
     def process_characters_batch(self, characters: list[dict], start_index: int = 0, 
-                               limit: int | None = None, generate_descriptions: bool = True) -> dict:
+                               limit: int | None = None) -> dict:
         """
         Process a batch of characters
         
@@ -178,7 +185,6 @@ class CharacterProcessor:
             characters (list): List of character info dicts
             start_index (int): Index to start processing from (for resuming)
             limit (int): Maximum number of characters to process (None for all)
-            generate_descriptions (bool): Whether to generate AI descriptions and fun facts
             
         Returns:
             dict: Batch processing results
@@ -192,7 +198,6 @@ class CharacterProcessor:
         print(f"{'=' * 80}")
         print(f"Total characters: {total_characters}")
         print(f"Processing: {start_index} to {end_index - 1} ({end_index - start_index} characters)")
-        print(f"Generate descriptions: {generate_descriptions}")
         print(f"{'=' * 80}")
         
         batch_results = []
@@ -204,7 +209,7 @@ class CharacterProcessor:
             print(f"\n[{i + 1}/{total_characters}] ", end="")
             
             # Process character
-            result = self.process_single_character(character_info, generate_descriptions)
+            result = self.process_single_character(character_info)
             batch_results.append(result)
             
             if result['success']:
@@ -231,15 +236,13 @@ class CharacterProcessor:
             'stats': self.stats.copy()
         }
     
-    def process_all_characters(self, start_from: str | None = None, limit: int | None = None,
-                             generate_descriptions: bool = True) -> dict:
+    def process_all_characters(self, start_from: str | None = None, limit: int | None = None) -> dict:
         """
         Process all characters from the CSV file
         
         Args:
             start_from (str): Character ID to start from (for resuming)
             limit (int): Maximum number of characters to process  
-            generate_descriptions (bool): Whether to generate AI descriptions and fun facts
             
         Returns:
             dict: Complete processing results
@@ -247,6 +250,7 @@ class CharacterProcessor:
         
         # Load character list
         print("Loading character list from CSV...")
+
         characters = self.load_character_list()
         
         if not characters:
@@ -268,8 +272,7 @@ class CharacterProcessor:
         results = self.process_characters_batch(
             characters, 
             start_index=start_index, 
-            limit=limit,
-            generate_descriptions=generate_descriptions
+            limit=limit
         )
         
         # Final summary
@@ -280,13 +283,12 @@ class CharacterProcessor:
     def _handle_403_block(self, character_info: dict) -> dict:
         """Handle 403 blocking with retry logic similar to legacy downloader"""
         character_id = character_info['id']
-        character_name = character_info['name']
         wiki_url = character_info['wiki_url']
         
         self.consecutive_403_errors += 1
         self.stats['403_blocks_encountered'] += 1
         
-        print(f"[FAIL] Access blocked for {character_name} (403 error #{self.consecutive_403_errors})")
+        print(f"[FAIL] Access blocked for {character_id} (403 error #{self.consecutive_403_errors})")
         
         if self.consecutive_403_errors >= MAX_CONSECUTIVE_403S:
             print(f"\n[TIME] PAUSE: {MAX_CONSECUTIVE_403S} consecutive 403 errors detected.")
@@ -303,7 +305,7 @@ class CharacterProcessor:
             self.consecutive_403_errors = 0  # Reset counter after the break
             
             # RETRY the current character after the break
-            print(f"[RETRY] Retrying {character_name}: {wiki_url}")
+            print(f"[RETRY] Retrying {character_id}: {wiki_url}")
             self.stats['characters_retried'] += 1
             
             # Recursive call to retry the character
@@ -327,13 +329,7 @@ class CharacterProcessor:
             self.stats['avatars_downloaded'] += 1
         if storage_results.get('small_avatar'):
             self.stats['small_avatars_created'] += 1
-        if storage_results.get('descriptions'):
-            self.stats['descriptions_generated'] += 1
-        if storage_results.get('fun_facts'):
-            self.stats['fun_facts_generated'] += 1
-        if storage_results.get('affiliations'):
-            self.stats['affiliations_stored'] += 1
-    
+
     def _print_progress_summary(self):
         """Print current progress summary"""
         total = self.stats['total_processed']
@@ -385,7 +381,6 @@ def main():
     # Configuration
     START_FROM = None  # Set to character ID to resume from a specific character
     LIMIT = 5  # Set to None to process all characters, or a number to limit for testing
-    GENERATE_DESCRIPTIONS = True  # Set to False to skip LLM-generated content for faster processing
     
     # Create processor
     processor = CharacterProcessor(
@@ -397,8 +392,7 @@ def main():
     try:
         results = processor.process_all_characters(
             start_from=START_FROM,
-            limit=LIMIT,
-            generate_descriptions=GENERATE_DESCRIPTIONS
+            limit=LIMIT
         )
         
         if results.get('success', True):  # Default to True if key doesn't exist

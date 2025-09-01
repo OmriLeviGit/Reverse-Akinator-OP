@@ -100,8 +100,8 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
             </SelectTrigger>
             <SelectContent className="bg-popover border-border">
               <SelectItem value="all">All Difficulties</SelectItem>
-              <SelectItem value="rated-only">All Rated</SelectItem>
-              <SelectItem value="unrated-only">Unrated</SelectItem>
+              <SelectItem value="rated-only">Rated Only</SelectItem>
+              <SelectItem value="unrated-only">Unrated Only</SelectItem>
               {DIFFICULTY_OPTIONS.filter((diff) => diff !== "unrated").map((difficulty) => (
                 <SelectItem key={difficulty} value={difficulty}>
                   {toTitleCase(difficulty)}

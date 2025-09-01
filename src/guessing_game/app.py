@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 load_dotenv()
 
-from guessing_game.config import get_redis
+from guessing_game.config import get_redis, test_redis_connection
 from guessing_game.services.character_service import CharacterService
 from guessing_game.services.llm_service import LLMService
 from guessing_game.routes import session
@@ -34,14 +34,14 @@ async def lifespan(app: FastAPI):
     # Initialize repository
     app.state.repository = CharacterService()
 
-    # Use Redis from config
-    try:
+    # Test Redis connection with clearer error handling
+    success, message = test_redis_connection()
+    if success:
         app.state.redis_client = get_redis()
-        app.state.redis_client.ping()
-        print("Connected to Redis successfully")
-    except Exception as e:
-        print(f"WARNING: Could not connect to Redis: {e}")
-        print("Game functionality will not work.")
+        print(message)
+    else:
+        print(f"WARNING: {message}")
+        print("Game functionality will not work. Please start Redis server to enable game features.")
 
     yield
 

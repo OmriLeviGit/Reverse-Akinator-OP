@@ -193,7 +193,7 @@ class PromptService:
         character_info = "\n".join(relevant_chunks)
         
         # Prompt for generating the description
-        description_prompt = f"""You are a character expert. Based on the following information about a character, write a fun and engaging 2-3 sentence description that focuses on their personality and relationships with others. Avoid major plot spoilers.
+        description_prompt = f"""You are a character expert. Based on the following information about a character, write a short fun and engaging 1-2 sentence description that focuses on their personality and relationships with others. Avoid major plot spoilers.
 
 Character Information:
 {character_info}

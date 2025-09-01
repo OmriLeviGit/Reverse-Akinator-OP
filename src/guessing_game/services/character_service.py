@@ -1,5 +1,5 @@
 # server/services/character_service.py
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from guessing_game.config.database import get_db_session
 from guessing_game.models.db_character import DBCharacter
 from guessing_game.models.db_arc import DBArc
@@ -8,7 +8,36 @@ from guessing_game.schemas.arc_schemas import Arc
 
 class CharacterService:
     def __init__(self):
-        pass  # No need for database manager anymore
+        self.excluded_character_ids = [
+            "Imu",
+            "Bjorn",
+            "joyboy",
+            "Rocks_D._Xebec",
+            "Monkey_D._Garp",
+
+            # gorosei
+            "Marcus_Mars",
+            "Topman_Warcury",
+            "Ethanbaron_V._Nusjuro",
+            "Shepherd_Ju_Peter",
+            "Figarland_Garling",
+            "Jaygarcia_Saturn",
+
+            # black beard
+            "Marshall_D._Teach",
+            "Shiryu",
+            "Jesus_Burgess",
+            "Vasco_Shot",
+            "Sanjuan_Wolf",
+            "Doc_Q",
+            "Laffitte"
+            "Avalo_Pizarro",
+            "Catarina_Devon",
+            "Van_Augur",
+
+            # other
+            "zunesha"
+        ]
 
     def _build_base_query(self, session, arc: Arc | None = None, difficulty_range: list[str] | None = None,
                           include_unrated: bool = False, include_ignored: bool = True):
@@ -56,6 +85,12 @@ class CharacterService:
                     (DBCharacter.effective_episode.is_(None)) |
                     (DBCharacter.effective_episode <= db_arc.last_episode)
                 )
+
+        # Apply character exclusion filter (case-insensitive)
+        if self.excluded_character_ids:
+            # Convert exclusion list to lowercase for case-insensitive comparison
+            excluded_ids_lower = [char_id.lower() for char_id in self.excluded_character_ids]
+            query = query.filter(~func.lower(DBCharacter.id).in_(excluded_ids_lower))
 
         return query
 
@@ -119,6 +154,15 @@ class CharacterService:
 
             character.difficulty = difficulty
             return character.to_pydantic()
+
+    def get_full_character_by_id(self, character_id: str) -> FullCharacter | None:
+        """Get a character by their ID - returns full character"""
+        with get_db_session() as session:
+            character = session.query(DBCharacter).filter(DBCharacter.id == character_id).first()
+            
+            if character:
+                return character.to_pydantic()
+            return None
 
     def get_character_by_name(self, character_name: str) -> FullCharacter | None:
         """Get a character by their name (case-insensitive) - returns full character for game reveals"""

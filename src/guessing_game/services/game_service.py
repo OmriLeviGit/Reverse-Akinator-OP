@@ -80,6 +80,8 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
                 chosen_character = c
                 break
 
+    chosen_character = character_service.get_full_character_by_id(chosen_character.id)
+
     game_settings = {
         "arc_selection": selected_arc,
         "filler_percentage": filler_percentage,
@@ -146,6 +148,20 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
         raise ValueError(f"Error processing question: {str(e)}")
 
 
+def _get_game_end_data(session_mgr: SessionManager, game_mgr: GameManager) -> dict:
+    """Helper function to get character and stats data when a game ends"""
+    game_id = session_mgr.get_current_game_id()
+    character = game_mgr.get_target_character(game_id)
+    questions_asked = game_mgr.get_questions_asked(game_id)
+    guesses_made = game_mgr.get_guess_count(game_id)
+    
+    return {
+        "character": character,
+        "questions_asked": questions_asked,
+        "guesses_made": guesses_made,
+        "game_id": game_id
+    }
+
 def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameManager) -> dict:
     """Process a character guess"""
     try:
@@ -161,22 +177,23 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
         # Add guess messages to UI (not LLM context)
         game_mgr.add_ui_message(game_id, f"I guess it's {character_name}!", True)
 
-        # Get stats from GameManager BEFORE adding the current guess
-        questions_asked = game_mgr.get_questions_asked(game_id)
-        guesses_made = game_mgr.get_guess_count(game_id) + 1  # +1 for current guess
-
         # GameManager handles guess recording and counter increment
         game_mgr.add_guess(game_id, character_name, is_correct)
 
         if is_correct:
+            # Get data before cleaning up game
+            game_data = _get_game_end_data(session_mgr, game_mgr)
+            # Add 1 to guesses_made since we just recorded the current guess
+            game_data["guesses_made"] += 1
+            
             game_mgr.delete_game(game_id)
             session_mgr.clear_current_game()
 
             return {
                 "is_correct": True,
-                "character": target_character,
-                "questions_asked": questions_asked,
-                "guesses_made": guesses_made
+                "character": game_data["character"],
+                "questions_asked": game_data["questions_asked"],
+                "guesses_made": game_data["guesses_made"]
             }
         else:
             # Add incorrect guess response as UI message
@@ -187,4 +204,25 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
 
     except Exception as e:
         raise ValueError(f"Error processing guess: {str(e)}")
+
+def reveal_character(session_mgr: SessionManager, game_mgr: GameManager) -> dict:
+    """Reveal the character when user gives up"""
+    try:
+        if not session_mgr.has_active_game():
+            raise ValueError("No active game session")
+
+        # Get data before cleaning up game
+        game_data = _get_game_end_data(session_mgr, game_mgr)
+        
+        game_mgr.delete_game(game_data["game_id"])
+        session_mgr.clear_current_game()
+
+        return {
+            "character": game_data["character"],
+            "questions_asked": game_data["questions_asked"],
+            "guesses_made": game_data["guesses_made"]
+        }
+        
+    except Exception as e:
+        raise ValueError(f"Error revealing character: {str(e)}")
 

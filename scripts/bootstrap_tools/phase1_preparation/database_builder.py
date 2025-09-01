@@ -56,8 +56,8 @@ class DatabaseBuilder:
             if session.query(DBArc).count() == 0:
                 self.load_arcs_from_json()
 
-    def load_characters_from_csv(self):
-        """Load characters from CSV file"""
+    def _create_character_from_row(self, row):
+        """Create a DBCharacter object from a CSV row"""
         field_mapping = {
             'ID': 'id',
             'Name': 'name',
@@ -71,34 +71,39 @@ class DatabaseBuilder:
             'Appears in': 'appears_in'
         }
 
+        character_data = {}
+        for csv_key, model_key in field_mapping.items():
+            if csv_key in row:
+                value = row[csv_key]
+
+                # Convert empty strings to None
+                if value == '':
+                    value = None
+                # Handle episode and number fields specially
+                elif model_key in ['episode', 'number'] and value is not None:
+                    try:
+                        value = int(float(value))
+                    except ValueError:
+                        # If episode/number is a string, move it to appears_in and set to None
+                        character_data['appears_in'] = value
+                        value = None
+                # Convert string numbers to integers for other integer fields
+                elif model_key in ['chapter', 'year'] and value is not None:
+                    value = int(float(value))
+
+                character_data[model_key] = value
+
+        return DBCharacter(**character_data)
+
+
+    def load_characters_from_csv(self):
+        """Load characters from CSV file"""
         with get_db_session() as session:
             try:
                 with open(self.characters_file, 'r', encoding='utf-8') as file:
                     reader = csv.DictReader(file)
                     for row in reader:
-                        character_data = {}
-                        for csv_key, model_key in field_mapping.items():
-                            if csv_key in row:
-                                value = row[csv_key]
-
-                                # Convert empty strings to None
-                                if value == '':
-                                    value = None
-                                # Handle episode and number fields specially
-                                elif model_key in ['episode', 'number'] and value is not None:
-                                    try:
-                                        value = int(float(value))
-                                    except ValueError:
-                                        # If episode/number is a string, move it to appears_in and set to None
-                                        character_data['appears_in'] = value
-                                        value = None
-                                # Convert string numbers to integers for other integer fields
-                                elif model_key in ['chapter', 'year'] and value is not None:
-                                    value = int(float(value))
-
-                                character_data[model_key] = value
-
-                        character = DBCharacter(**character_data)
+                        character = self._create_character_from_row(row)
                         session.add(character)
 
                 print(f"Loaded characters from {self.characters_file}")

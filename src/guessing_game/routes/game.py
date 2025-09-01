@@ -49,6 +49,8 @@ def start_game_route(request: GameStartRequest,
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail="Service temporarily unavailable")
 
 @router.post("/validate", response_model=GameStatusResponse)
 def validate_game_session_route(request: GameStatusRequest,
@@ -81,6 +83,8 @@ def ask_question_route(request: GameQuestionRequest,
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail="Service temporarily unavailable")
 
 @router.post("/guess", response_model=GameGuessResponse)
 def make_guess_route(request: GameGuessRequest,
@@ -105,6 +109,8 @@ def make_guess_route(request: GameGuessRequest,
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail="Service temporarily unavailable")
 
 @router.post("/reveal", response_model=GameRevealResponse)
 def reveal_character_route(request: GameRevealRequest,
@@ -113,19 +119,15 @@ def reveal_character_route(request: GameRevealRequest,
     try:
         validate_game_session(session_mgr, game_mgr, request.game_id)
 
-        game_id = session_mgr.get_current_game_id()
-        character = game_mgr.get_target_character(game_id)
-        questions_asked = game_mgr.get_questions_asked(game_id)
-        guesses_made = game_mgr.get_guess_count(game_id)
-
-        game_mgr.delete_game(game_id)
-        session_mgr.clear_current_game()
+        result = game_service.reveal_character(session_mgr, game_mgr)
 
         return GameRevealResponse(
-            character=character,
-            questionsAsked=questions_asked,
-            guessesMade=guesses_made
+            character=result["character"],
+            questionsAsked=result["questions_asked"],
+            guessesMade=result["guesses_made"]
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail="Service temporarily unavailable")
 
