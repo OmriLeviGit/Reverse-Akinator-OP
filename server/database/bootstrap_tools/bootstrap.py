@@ -25,7 +25,7 @@ from server.database.bootstrap_tools.generate_small_avatars import create_all_sm
 from server.database.bootstrap_tools.download_large_avatars import download_character_avatars
 from server.database.bootstrap_tools.build_character_csv import scrape_character_data
 from server.database.bootstrap_tools.vector_database_builder import build_vector_database
-from server.database.bootstrap_tools.create_des import CharacterDescriptionPopulator
+from server.database.bootstrap_tools.create_description_and_fun_fact import CharacterDescriptionPopulator
 
 # CONFIGURATION: Set which step to run
 STEP = "fetch_data"  # Options: "fetch_data", "build_vector_db", "populate_descriptions", "all"

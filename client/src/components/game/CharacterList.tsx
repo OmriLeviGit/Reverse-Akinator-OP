@@ -2,6 +2,8 @@ import React from "react";
 import { BasicCharacter } from "@/types";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 import { CharacterListItem } from "./CharacterListItem.tsx";
 
 interface CharacterListProps {
@@ -20,10 +22,21 @@ export const CharacterList: React.FC<CharacterListProps> = ({
   onCharacterSelect,
 }) => {
   return (
-    <>
+    <TooltipProvider>
+      <>
       {/* Search Header */}
       <div className="p-4 border-b border-border/40 flex-shrink-0">
-        <h3 className="text-sm font-semibold text-foreground mb-3">Select Character</h3>
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-sm font-semibold text-foreground">Select Character</h3>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Tip: Use '/' prefix to search character affiliations (e.g., /straw hats)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
         <Input
           placeholder="Search characters..."
           value={searchTerm}
@@ -50,6 +63,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
           )}
         </div>
       </ScrollArea>
-    </>
+      </>
+    </TooltipProvider>
   );
 };

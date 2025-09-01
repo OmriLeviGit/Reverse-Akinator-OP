@@ -34,15 +34,24 @@ export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} 
       return characters;
     }
 
+    // Check if search term starts with '/' for affiliations search
+    const isAffiliationsSearch = searchTerm.startsWith('/');
+    const actualSearchTerm = isAffiliationsSearch ? searchTerm.slice(1) : searchTerm;
+
     // Add normalized versions of searchable fields to each character
     const charactersWithNormalized = characters.map((character) => ({
       ...character,
       normalizedName: removeAccents(character.name),
+      normalizedAffiliations: character.affiliations ? removeAccents(character.affiliations) : null,
     }));
 
     // Consistent default options for ALL uses
+    const defaultKeys = isAffiliationsSearch 
+      ? ["affiliations", "normalizedAffiliations"] // Search affiliations when starting with '/'
+      : ["name", "normalizedName"]; // Search names by default
+
     const defaultOptions = {
-      keys: ["name", "normalizedName"], // Search both original and normalized names
+      keys: defaultKeys,
       threshold: 0.2, // More strict matching by default
       includeScore: true,
       minMatchCharLength: 1,
@@ -56,8 +65,8 @@ export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} 
     // Create Fuse instance and search
     const fuse = new Fuse(charactersWithNormalized, fuseOptions);
 
-    // Normalize the search term as well
-    const normalizedSearchTerm = removeAccents(searchTerm);
+    // Normalize the actual search term (without the '/' prefix)
+    const normalizedSearchTerm = removeAccents(actualSearchTerm);
     const searchResults = fuse.search(normalizedSearchTerm);
 
     return searchResults.map((result) => result.item);
