@@ -1,5 +1,6 @@
 # server/game_service.py - Pass Character objects directly
 import random
+import os
 from datetime import datetime
 
 from guessing_game.services.arc_service import ArcService
@@ -72,12 +73,13 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     all_characters = canon_characters + filler_characters
     character_list = sorted(all_characters, key=lambda char: char.name)
 
-    OVERRIDE = False
-
-    if OVERRIDE:
+    # Check for environment variable override
+    override_character = os.getenv('FORCE_CHARACTER')
+    if override_character:
         for c in character_list:
-            if " ace" in c.name.lower():
+            if override_character.lower() in c.name.lower():
                 chosen_character = c
+                print(f"Character overridden to: {chosen_character.name}")
                 break
 
     chosen_character = character_service.get_full_character_by_id(chosen_character.id)

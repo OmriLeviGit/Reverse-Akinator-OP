@@ -30,7 +30,7 @@ class CharacterService:
             "Vasco_Shot",
             "Sanjuan_Wolf",
             "Doc_Q",
-            "Laffitte"
+            "Laffitte",
             "Avalo_Pizarro",
             "Catarina_Devon",
             "Van_Augur",

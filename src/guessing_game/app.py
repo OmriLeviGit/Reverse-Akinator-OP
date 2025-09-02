@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 load_dotenv()
 
-from guessing_game.config import get_redis, test_redis_connection
+from guessing_game.config import get_redis, test_redis_connection, get_embedding_model
 from guessing_game.services.character_service import CharacterService
 from guessing_game.services.llm_service import LLMService
 from guessing_game.routes import session
@@ -43,6 +43,9 @@ async def lifespan(app: FastAPI):
         print(f"WARNING: {message}")
         print("Game functionality will not work. Please start Redis server to enable game features.")
 
+    print("Preloading embedding model...")
+    get_embedding_model()
+    print("Embedding model loaded")
     yield
 
     print("Application shutting down...")

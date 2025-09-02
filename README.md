@@ -49,7 +49,7 @@ echo "GOOGLE_AI_API_KEY=your_api_key_here" > .env
 
 3. Run with Docker Compose:
 ```bash
-docker-compose -f docker/docker-compose.yaml up -d
+docker-compose up -d
 ```
 
 The application will be available at `http://localhost:3000`
@@ -154,7 +154,6 @@ guess_game/
 │       └── app.py            # FastAPI app entry point
 ├── scripts/
 │   └── bootstrap_tools/      # Database population scripts
-├── docker/                   # Docker configuration files
 ├── client/                   # React frontend
 │   ├── src/
 │   │   ├── components/      # React components
@@ -163,5 +162,5 @@ guess_game/
 │   └── package.json
 ├── docker-compose.yaml       # Docker services
 ├── Dockerfile               # Backend container
-└── requirements.txt         # Python dependencies
+└── pyproject.toml           # Python dependencies
 ```

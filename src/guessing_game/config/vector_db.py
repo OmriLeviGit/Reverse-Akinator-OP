@@ -29,7 +29,6 @@ def get_vector_client():
 def get_embedding_model():
     """Get the embedding model (cached)"""
     if not hasattr(get_embedding_model, '_model'):
-        print("Loading embedding model (this may take a few minutes on first run)...")
         get_embedding_model._model = SentenceTransformer(EMBEDDING_MODEL)
 
     return get_embedding_model._model

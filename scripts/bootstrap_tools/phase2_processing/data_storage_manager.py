@@ -120,6 +120,11 @@ class DataStorageManager:
             structured_data = character_data.get('structured_data', {})
             narrative_sections = character_data.get('narrative_sections', {})
 
+            # Delete any existing data for this character
+            self.vector_collection.delete(
+                where={"character_id": character_id}
+            )
+
             add_character_to_db(
                 self.vector_collection,
                 self.vector_model,

@@ -28,13 +28,15 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy
 
-# Copy application source code and dependency files
-COPY src/ ./src/
-COPY pyproject.toml ./
-COPY uv.lock ./
+# Copy dependency files first for better caching
+COPY pyproject.toml uv.lock README.md ./
 
-# Install dependencies and package using uv
-RUN uv sync --frozen --no-dev
+# Install dependencies using uv (cached layer)
+RUN uv sync --frozen --no-dev --extra-index-url https://download.pytorch.org/whl/cpu
+
+# Copy application source code and other files
+COPY src/ ./src/
+COPY .env* ./
 
 # Add .venv/bin to PATH
 ENV PATH="/app/.venv/bin:$PATH"
@@ -49,7 +51,7 @@ RUN chmod +x /app/scripts/backup-db.sh
 # Set up cron job
 RUN echo "0 2 * * * cd /app && /app/scripts/backup-db.sh >> /var/log/backup.log 2>&1" | crontab -
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/src
 
 EXPOSE 3000
 
