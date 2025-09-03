@@ -40,13 +40,12 @@ def initialize_collection():
 
     try:
         collection = client.get_collection(COLLECTION_NAME)
-        print("Found existing collection")
     except:
+        print("Creating a new collection...")
         collection = client.create_collection(
             name=COLLECTION_NAME,
             metadata=COLLECTION_METADATA
         )
-        print("Created new collection")
 
     return client, collection, get_embedding_model()
 

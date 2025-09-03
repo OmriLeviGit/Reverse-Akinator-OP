@@ -1,4 +1,3 @@
-# server/database/bootstrap_tools/phase1_preparation/database_builder.py
 import csv
 import json
 import sys
@@ -14,6 +13,7 @@ from guessing_game.config.vector_db import initialize_collection
 from guessing_game.models.base import Base
 from guessing_game.models.db_arc import DBArc
 from guessing_game.models.db_character import DBCharacter
+
 
 class DatabaseBuilder:
     def __init__(self):
@@ -40,13 +40,76 @@ class DatabaseBuilder:
         """Drop all database tables"""
         Base.metadata.drop_all(self.engine)
 
-    def reset_database(self):
-        """Drop and recreate all tables and initialize vector DB"""
-        print("\n", "=" * 20, "Database reset", "=" * 20)
+    def reset_vector_db(self):
+        """Clear vector database data by deleting and recreating collection"""
+        try:
+            print("Clearing vector database data...")
+            client, collection, model = initialize_collection()
+
+            # Delete the entire collection
+            client.delete_collection(collection.name)
+            print(f"Deleted collection: {collection.name}")
+
+            # Recreate the collection
+            client, collection, model = initialize_collection()
+            print("Vector database reinitialized with fresh collection")
+
+        except Exception as e:
+            print(f"Error resetting vector DB: {e}")
+            raise
+
+    def reset_database(self, reset_vector=True):
+        """Drop and recreate all tables and optionally reset vector DB"""
+        print("\n" + "=" * 50)
+        print("DATABASE RESET WARNING")
+        print("=" * 50)
+        print("This will:")
+        print("- Drop and recreate all SQL database tables")
+        print("- Delete all character and arc data")
+
+        if reset_vector:
+            print("- Clear all vector database data")
+            print("- Delete all scraped character information")
+
+        print("\nThis action cannot be undone!")
+        print("=" * 50)
+
+        # Get user confirmation
+        response = input("\nAre you sure you want to reset the database(s)? This includes the description and fun facts (yes/no): ").lower().strip()
+
+        if response != 'yes':
+            print("Database reset cancelled.")
+            return False
+
+        # Double confirmation for vector DB
+        if reset_vector:
+            print("\nVector database contains scraped character data that takes time to rebuild.")
+            vector_response = input(
+                "Are you sure you want to reset the vector database too? (yes/no): ").lower().strip()
+
+            if vector_response != 'yes':
+                reset_vector = False
+                print("Will reset SQL database only, preserving vector database.")
+
+        print("\n" + "=" * 20 + " Starting Reset " + "=" * 20)
+
+        # Reset SQL database
+        print("Resetting SQL database...")
         self.drop_tables()
         self.create_tables()
-        self.initialize_vector_db()
+
+        # Reset vector database if requested
+        if reset_vector:
+            self.reset_vector_db()
+        else:
+            # Just initialize if not resetting
+            self.initialize_vector_db()
+
+        # Load initial data
         self.load_initial_data()
+
+        print("=" * 20 + " Reset Complete " + "=" * 20)
+        return True
 
     def load_initial_data(self):
         with get_db_session() as session:
@@ -95,7 +158,6 @@ class DatabaseBuilder:
 
         return DBCharacter(**character_data)
 
-
     def load_characters_from_csv(self):
         """Load characters from CSV file"""
         with get_db_session() as session:
@@ -129,9 +191,12 @@ class DatabaseBuilder:
                 print(f"Error loading JSON: {e}")
                 raise
 
+
 def main():
     builder = DatabaseBuilder()
-    builder.reset_database()
+    # Reset both databases by default, but ask for confirmation
+    builder.reset_database(reset_vector=True)
+
 
 if __name__ == "__main__":
     main()

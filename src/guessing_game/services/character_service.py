@@ -36,7 +36,8 @@ class CharacterService:
             "Van_Augur",
 
             # other
-            "zunesha"
+            "zunesha",
+            "Shanks"
         ]
 
     def _build_base_query(self, session, arc: Arc | None = None, difficulty_range: list[str] | None = None,

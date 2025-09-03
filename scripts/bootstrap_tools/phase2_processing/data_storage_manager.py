@@ -19,7 +19,7 @@ from ..phase1_preparation.database_builder import DatabaseBuilder
 
 class DataStorageManager:
     """Unified manager for storing all character data across different databases and systems"""
-    
+
     def __init__(self, vector_collection, vector_model):
         self.vector_collection = vector_collection
         self.vector_model = vector_model
@@ -27,61 +27,58 @@ class DataStorageManager:
         self.llm_service = LLMService()
         # Set up the LLM model for descriptions/fun facts
         self.llm_service.set_model('gemini', model='gemini-1.5-flash')
-        
+
         # Initialize database builder for metadata updates
         self.database_builder = DatabaseBuilder()
-        
+
         # Ensure avatar directories exist
         os.makedirs(LARGE_AVATARS_DIR, exist_ok=True)
         os.makedirs(SMALL_AVATARS_DIR, exist_ok=True)
-    
+
     def store_character_complete(self, character_id, character_data):
         """
         Store complete character data across all systems
-        
-        Args:
-            character_id (str): Character identifier
-            character_data (dict): Complete character data with keys:
-                - structured_data: dict
-                - narrative_sections: dict 
-                - avatar_url: str or None
-                - affiliations: str (semicolon-separated)
-                - wiki_url: str
-            
+
         Returns:
-            dict: Storage results with success/failure for each component:
-                - character_id: str - The character ID
-                - sql_db: bool - Success of SQL database update (metadata, description, fun_fact, affiliations)
-                - vector_db: bool - Success of vector database storage
-                - avatar_download: bool or "403_BLOCKED" - Avatar download result
-                - small_avatar: bool - Small avatar creation result
+        dict: Storage results with success/failure for each component:
+            - sql_db: bool - Success of SQL database update
+            - vector_db: bool - Success of vector database storage
+            - avatar_download: bool or "403_BLOCKED" - Avatar download result
+            - all_skipped: bool - True if all operations were skipped
         """
         results = {
             'sql_db': False,
             'vector_db': False,
             'avatar_download': False,
-            'small_avatar': False,
+            'all_skipped': False,
         }
 
         try:
             # 1. Update character metadata in SQL Database
-            results['sql_db'] =self.add_character_metadata(character_id, character_data)
+            sql_result = self.add_character_metadata(character_id, character_data)
+            results['sql_db'] = sql_result['success']
+            sql_skipped = sql_result['skipped']
 
             # 2. Store in Vector Database
-            results['vector_db'] = self._store_in_vector_db(character_id, character_data)
+            vector_result = self._store_in_vector_db(character_id, character_data)
+            results['vector_db'] = vector_result['success']
+            vector_skipped = vector_result['skipped']
 
             # 3. Download and process avatar
+            avatar_skipped = True
             if character_data.get('avatar_url'):
                 avatar_result = self._download_avatar(character_id, character_data['avatar_url'])
                 if avatar_result == "403_BLOCKED":
                     results['avatar_download'] = "403_BLOCKED"
-                    results['small_avatar'] = False
-                elif avatar_result:
-                    results['avatar_download'] = True
-                    results['small_avatar'] = self._create_small_avatar(character_id)
-                else:
-                    results['avatar_download'] = False
-                    results['small_avatar'] = False
+                    avatar_skipped = False  # This is an actual result, not a skip
+                elif isinstance(avatar_result, dict):
+                    if avatar_result['success']:
+                        self._create_small_avatar(character_id)
+                        results['avatar_download'] = True
+                    avatar_skipped = avatar_result['skipped']
+
+            # Determine if everything was skipped
+            results['all_skipped'] = sql_skipped and vector_skipped and avatar_skipped
 
             return results
 
@@ -90,40 +87,56 @@ class DataStorageManager:
             return results
 
     def add_character_metadata(self, character_id, character_data):
-        """Add or overwrite description, fun fact and affiliations for an existing character"""
+        """Add description, fun fact and affiliations for an existing character only if they don't exist"""
         with get_db_session() as session:
             character = session.query(DBCharacter).filter_by(id=character_id).first()
 
             if not character:
                 print(f"Character {character_id} not found")
-                return False
+                return {'success': False, 'skipped': False}
 
-            affiliations = character_data.get('affiliations')
-            description = self._generate_description(character_id)
-            fun_fact = self._generate_fun_fact(character_id)
+            updated_fields = []
 
-            if description is not None:
-                character.description = description
+            # Only update description if it's empty/None
+            if not character.description:
+                description = self._generate_description(character_id)
+                if description is not None:
+                    character.description = description
+                    updated_fields.append("description")
 
-            if fun_fact is not None:
-                character.fun_fact = fun_fact
+            # Only update fun_fact if it's empty/None
+            if not character.fun_fact:
+                fun_fact = self._generate_fun_fact(character_id)
+                if fun_fact is not None:
+                    character.fun_fact = fun_fact
+                    updated_fields.append("fun_fact")
 
-            if affiliations is not None:
-                character.affiliations = affiliations
+            #  Update affiliations as they were scraped regardless
+            character.affiliations = character_data.get('affiliations')
 
-            print(f"Updated character {character_id} metadata")
-            return True
+            if updated_fields:
+                print(f"Updated character {character_id}: {', '.join(updated_fields)}")
+                return {'success': True, 'skipped': False}
+            else:
+                print(f"Character {character_id} already has description and fun_fact - skipped")
+                return {'success': True, 'skipped': True}
 
     def _store_in_vector_db(self, character_id, character_data, verbose=False):
         """Store character data in vector database"""
         try:
-            structured_data = character_data.get('structured_data', {})
-            narrative_sections = character_data.get('narrative_sections', {})
-
-            # Delete any existing data for this character
-            self.vector_collection.delete(
+            # Check if data already exists
+            existing_data = self.vector_collection.get(
                 where={"character_id": character_id}
             )
+
+            if existing_data['ids']:
+                if verbose:
+                    print(f"  Skipping {character_id} - already exists ({len(existing_data['ids'])} documents)")
+                return {'success': True, 'skipped': True}
+
+            # No existing data, proceed with adding
+            structured_data = character_data.get('structured_data', {})
+            narrative_sections = character_data.get('narrative_sections', {})
 
             add_character_to_db(
                 self.vector_collection,
@@ -135,28 +148,31 @@ class DataStorageManager:
 
             if verbose:
                 print(f"  Stored in vector DB: {character_id}")
-            return True
+            return {'success': True, 'skipped': False}
 
         except Exception as e:
             print(f"  Error storing {character_id} in vector DB: {e}")
-            return False
+            return {'success': False, 'skipped': False}
 
     def _download_avatar(self, character_id, avatar_url, verbose=False):
         """Download character avatar image"""
         try:
-            # Handle placeholder images
+            # Determine save path
             if 'NoPicAvailable' in avatar_url:
-                placeholder_path = LARGE_AVATARS_DIR / "_NoPicAvailable.webp"
-
-                if placeholder_path.exists():
-                    # Placeholder already downloaded
-                    print(f"  Avatar: using existing placeholder for {character_id}")
-                    return True
-
-                message = f"  Avatar: downloading placeholder for {character_id}"
+                save_path = LARGE_AVATARS_DIR / "_NoPicAvailable.webp"
+                avatar_type = "placeholder"
             else:
-                message = f"  Avatar: downloading for {character_id}"
+                save_path = LARGE_AVATARS_DIR / f"{character_id}.webp"
+                avatar_type = "character"
 
+            # Check if avatar already exists
+            if save_path.exists():
+                if verbose:
+                    print(f"  Avatar: {avatar_type} already exists for {character_id}")
+                return {'success': True, 'skipped': True}
+
+            # Avatar doesn't exist, proceed with download
+            message = f"  Avatar: downloading {avatar_type} for {character_id}"
             if verbose:
                 print(message)
 
@@ -180,14 +196,9 @@ class DataStorageManager:
                 img = img.convert('RGB')
 
             # Save image
-            if 'NoPicAvailable' in avatar_url:
-                save_path = LARGE_AVATARS_DIR / "_NoPicAvailable.webp"
-            else:
-                save_path = LARGE_AVATARS_DIR / f"{character_id}.webp"
-
             img.save(save_path, 'WEBP', quality=95, optimize=True)
 
-            return True
+            return {'success': True, 'skipped': False}
 
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 403:
@@ -195,16 +206,22 @@ class DataStorageManager:
                 return "403_BLOCKED"
             else:
                 print(f"  HTTP error {e.response.status_code} for avatar {character_id}: {e}")
-                return False
+                return {'success': False, 'skipped': False}
         except Exception as e:
             print(f"  Error downloading avatar for {character_id}: {e}")
-            return False
+            return {'success': False, 'skipped': False}
 
     def _create_small_avatar(self, character_id, verbose=False):
         """Create small avatar thumbnail"""
         try:
             large_path = LARGE_AVATARS_DIR / f"{character_id}.webp"
             small_path = SMALL_AVATARS_DIR / f"{character_id}.webp"
+
+            # Check if small avatar already exists
+            if small_path.exists():
+                if verbose:
+                    print(f"  Small avatar already exists: {character_id}")
+                return True
 
             # Check if placeholder should be used
             if not large_path.exists():
@@ -280,7 +297,7 @@ class DataStorageManager:
 
             if description and description.strip():
                 return description.strip()
-            
+
             return None
 
         except Exception as e:
@@ -301,17 +318,17 @@ class DataStorageManager:
 
             if fun_fact and fun_fact.strip():
                 return fun_fact.strip()
-            
+
             return None
 
         except Exception as e:
             print(f"  Error generating fun fact for {character_id}: {e}")
             return None
-    
+
     def get_storage_stats(self):
         """Get statistics about stored data"""
         stats = {}
-        
+
         try:
             # SQL database stats
             with get_db_session() as session:
@@ -322,15 +339,12 @@ class DataStorageManager:
                 stats['characters_with_fun_facts'] = session.query(DBCharacter).filter(
                     DBCharacter.fun_fact.isnot(None)
                 ).count()
-            
+
             # Avatar stats
             large_avatars = list(LARGE_AVATARS_DIR.glob("*.webp"))
-            small_avatars = list(SMALL_AVATARS_DIR.glob("*.webp"))
-            
             stats['large_avatars'] = len(large_avatars)
-            stats['small_avatars'] = len(small_avatars)
-            
+
         except Exception as e:
             print(f"Error getting storage stats: {e}")
-        
+
         return stats
