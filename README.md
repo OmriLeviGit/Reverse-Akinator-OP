@@ -1,4 +1,4 @@
-# Guess Game
+# Reverse Akinator
 
 A reverse Akinator-style guessing game where the app selects a random character and players ask yes/no questions to identify who it is. Players must deduce the character through strategic questioning.
 

@@ -92,7 +92,7 @@ WHITELISTED_STATISTICS = [
 ### Processing Settings
 
 Modify `character_processor.py` for performance tuning:
-- `delay_between_characters`: Delay between character processing (default: 2.0 seconds)
+- `delay_between_characters`: Delay between character processing (default: 0.5-1.5 seconds)
 - `delay_between_requests`: Delay between individual web requests (default: 0.1 seconds)
 
 ## Usage Examples
@@ -156,9 +156,9 @@ python bootstrap_orchestrator.py --phase=2 --limit=50 --start-from="CHARACTER_ID
 
 ### Expected Processing Times
 For ~2500 characters:
-- Phase 1 (with discovery): 1-2 hours
-- Phase 2 (full processing): 3-4 hours
-- Total system setup: 4-6 hours
+- Phase 1 (with discovery): 1-1.5 hours
+- Phase 2 (full processing): 3 hours
+- Total system setup: 4-5 hours
 
 ### Optimization
 - Use `--limit` for testing to avoid full processing during development

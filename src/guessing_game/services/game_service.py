@@ -74,15 +74,12 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     character_list = sorted(all_characters, key=lambda char: char.name)
 
     # Check for environment variable override
-    override_character = os.getenv('FORCE_CHARACTER')
-    if override_character:
-        for c in character_list:
-            if override_character.lower() in c.name.lower():
-                chosen_character = c
-                print(f"Character overridden to: {chosen_character.name}")
-                break
+    override_character = get_character_override(character_list)
 
-    chosen_character = character_service.get_full_character_by_id(chosen_character.id)
+    if override_character:
+        chosen_character = override_character
+
+    full_chosen_character = character_service.get_full_character_by_id(chosen_character.id)
 
     game_settings = {
         "arc_selection": selected_arc,
@@ -98,17 +95,36 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     # Get forbidden arcs for spoiler protection
     forbidden_arcs = arc_service.get_forbidden_arcs(session_mgr.get_global_arc_limit())
 
-    prompt = prompt_service.create_game_prompt(chosen_character, forbidden_arcs)
+    prompt = prompt_service.create_game_prompt(full_chosen_character, forbidden_arcs)
 
     # Pass Character object directly - GameManager will handle serialization
-    game_mgr.create_game(game_id, chosen_character, prompt, game_settings)
+    game_mgr.create_game(game_id, full_chosen_character, prompt, game_settings)
 
     # Store ONLY the game ID in session
     session_mgr.set_current_game_id(game_id)
 
-    print(f"Game ID: {game_id}, character: {chosen_character.name}")
+    print(f"Game ID: {game_id}, character: {full_chosen_character.name}")
     return character_list
 
+def get_character_override(character_list):
+    try:
+        file_path = 'character_override.txt'
+        full_path = os.path.abspath(file_path)
+        print(f"Looking for override file at: {full_path}")
+        with open(file_path, 'r') as f:
+            override_character = f.read().strip()
+            print(f"Override file contains: {override_character}. Attempting to override..")
+
+            if override_character:
+                for c in character_list:
+                    if override_character.lower() in c.id.lower():
+                        print(f"Character overridden to: {c.name}")
+                        return c
+        return None
+    except:
+        print("No override file")
+
+        return None
 
 def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm, prompt_service: PromptService, arc_service: ArcService) -> str:
     """Process a question about the character"""
