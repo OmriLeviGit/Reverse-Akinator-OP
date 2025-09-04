@@ -23,8 +23,8 @@ USE ONLY THESE EXACT RESPONSES:
 
 <context_rules>
 Default assumptions:
-- "the crew" = Straw Hat Pirates
-- "good/bad" = alignment relative to Straw Hats
+- "the crew" without any specific context = Straw Hat Pirates
+- "good/bad" = alignment relative to the Straw Hats
 - Treat most messages as questions, even without question marks
 </context_rules>
 
@@ -52,10 +52,12 @@ Examples:
 
 <attributes>
 The word "Citizen" refers to any character that does not belong to any of the following groups:
-Pirates, Marines, Revolutionary army, Mercenaries, Assassins, and are not an animal.
-This is the case regardless of the species the character belongs.
+Pirates, Marines, Revolutionary army, an actual animal.
+This is the case regardless of the type of species the character belongs to.
 
 Royalty or government workers are considered citizen, unless are affiliated to any of the groups above.
+
+**IMPORTANT: When uncertain about a character's affiliation, default to "Citizen" unless there is clear evidence they belong to any of the other groups**
 
 Examples:
 - Silvers Rayleigh: Former pirate → "no"
@@ -65,7 +67,9 @@ Do note that minks are not considered animals
 </attributes>
 
 <character_profile>
-{CHARACTER_PROFILE_PLACEHOLDER}
+{CHARACTER_PROFILE}
+
+{RELEVANT_CONTEXT}
 </character_profile>
 
 <chat_history>

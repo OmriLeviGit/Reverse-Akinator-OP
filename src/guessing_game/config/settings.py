@@ -22,8 +22,7 @@ GAME_PROMPT_PATH = STATIC_DATA_DIR / "game_prompt.txt"
 
 # Embedding settings
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-CHUNK_SIZE = 200  # Target number of words per chunk (was previously character-based)
-CHUNK_OVERLAP = 100
+CHUNK_SIZE = 120  # Target number of *words* per chunk
 
 # ChromaDB settings
 COLLECTION_NAME = "characters"

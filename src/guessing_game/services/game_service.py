@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 from guessing_game.services.arc_service import ArcService
+from guessing_game.services.llm_service import LLMService
 from guessing_game.services.session_manager import SessionManager
 from guessing_game.services.game_manager import GameManager
 from guessing_game.services.prompt_service import PromptService
@@ -73,7 +74,6 @@ def start_game(request: GameStartRequest, session_mgr: SessionManager, game_mgr:
     all_characters = canon_characters + filler_characters
     character_list = sorted(all_characters, key=lambda char: char.name)
 
-    # Check for environment variable override
     override_character = get_character_override(character_list)
 
     if override_character:
@@ -126,7 +126,8 @@ def get_character_override(character_list):
 
         return None
 
-def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm, prompt_service: PromptService, arc_service: ArcService) -> str:
+def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManager, llm: LLMService,
+                 prompt_service: PromptService) -> str:
     """Process a question about the character"""
     try:
         if not session_mgr.has_active_game():
@@ -138,25 +139,21 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
         target_character = game_mgr.get_target_character(game_id)
         system_prompt = game_mgr.get_system_prompt(game_id)
 
-        # Get forbidden arcs for spoiler protection
-        forbidden_arcs = arc_service.get_forbidden_arcs(session_mgr.get_global_arc_limit())
-
         # Get relevant character context from vector database with arc restrictions
-        character_context = prompt_service.get_character_context(target_character.id, question, forbidden_arcs=forbidden_arcs)
+        character_context = prompt_service.get_character_context(target_character.id, question)
 
         # Get conversation memory
         memory = game_mgr.get_memory(game_id)
         chat_history = memory.messages
 
+        # Build complete dynamic prompt
+        updated_prompt = prompt_service.build_dynamic_prompt(system_prompt, character_context, chat_history, question)
 
-        # Build the complete dynamic prompt
-        updated_prompt = prompt_service.build_dynamic_prompt(
-            system_prompt, character_context, chat_history, question
-        )
+        # Use session ID for rate limiting
+        session_id = id(session_mgr.request.session)  # Get unique session identifier
+        response = llm.query(updated_prompt, user_id=str(session_id))
 
-        response = llm.query(updated_prompt)
-
-        # Now add both question and response to memory8
+        # Now add both question and response to memory
         game_mgr.add_user_question(game_id, question)
         game_mgr.add_assistant_response(game_id, response)
         

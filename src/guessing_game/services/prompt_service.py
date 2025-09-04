@@ -18,46 +18,6 @@ class PromptService:
         # Read the prompt template
         with open(self.template_path, 'r', encoding='utf-8') as f:
             template = f.read()
-        
-        # Build appearance info from character object
-        appearance_parts = []
-        if character.chapter:
-            appearance_parts.append(f"Chapter: {character.chapter}")
-        if character.episode:
-            appearance_parts.append(f"Episode: {character.episode}")
-        
-        appearance_info = "\n".join(appearance_parts) if appearance_parts else "No specific appearance info"
-        
-        # Build static character profile (without structured data)
-        client = get_vector_client()
-        collection = client.get_collection(COLLECTION_NAME)
-
-        character_profile = f"""SECRET CHARACTER: {character.name}\nFIRST APPEARANCE : {appearance_info}"""
-
-        # Get structured data for the target character
-        try:
-            target_results_data = collection.get(
-                where={"character_id": character.id},
-                include=['metadatas']
-            )
-
-            # Extract and add structured data from target character (from first result)
-            if target_results_data['metadatas'] and len(target_results_data['metadatas']) > 0:
-                structured_data_json = target_results_data['metadatas'][0].get('structured_data', '{}')
-                try:
-                    structured_data = json.loads(structured_data_json) if structured_data_json else {}
-                    if structured_data:
-                        structured_info = []
-                        for key, value in structured_data.items():
-                            if value:  # Only include non-empty values
-                                structured_info.append(f"{key}: {value}")
-
-                        if structured_info:
-                            character_profile += f"\n[STRUCTURED DATA]\n" + "\n".join(structured_info)
-                except json.JSONDecodeError as e:
-                    print(f"JSON decode error: {e}")
-        except Exception as e:
-            print(f"Error getting character structured data: {e}")
 
         # Handle spoiler restrictions section
         if forbidden_arcs:
@@ -66,30 +26,78 @@ class PromptService:
             prompt = template.replace("{SPOILER_ARCS}", spoiler_arc_names)
         else:
             # Remove the entire spoiler restrictions section if no forbidden arcs
-            spoiler_section_pattern = r'<spoiler_restrictions>.*?</spoiler_restrictions>\s*'
+            spoiler_section_pattern = r'<spoiler_restrictions>.*?</spoiler_restrictions>\n*'
             prompt = re.sub(spoiler_section_pattern, '', template, flags=re.DOTALL)
-        
+
+        character_profile = self._build_character_profile(character)
+
         # Replace character profile placeholder
-        prompt = prompt.replace("{CHARACTER_PROFILE_PLACEHOLDER}", character_profile)
-        
+        prompt = prompt.replace("{CHARACTER_PROFILE}", character_profile)
+
         return prompt
-    
-    def get_character_context(self, character_id: str, question: str, target_results: int = 10, other_results: int = 0, forbidden_arcs: list[Arc] = None)\
-            -> str:
+
+    def _build_character_profile(self, character: FullCharacter) -> str:
+        """Build structured character profile"""
+        sections = [f"SECRET CHARACTER: {character.name}"]
+
+        # Appearance info
+        if character.chapter or character.episode:
+            appearance_parts = []
+            if character.chapter:
+                appearance_parts.append(f"Chapter: {character.chapter}")
+            if character.episode:
+                appearance_parts.append(f"Episode: {character.episode}")
+            sections.append("First appearance: " + ", ".join(appearance_parts))
+
+        # Structured data
+        structured_info = self._get_structured_data(character.id)
+        if structured_info:
+            sections.append("[STRUCTURED DATA]")
+            sections.extend(structured_info)
+
+        return "\n".join(sections)
+
+    def _get_structured_data(self, character_id: str) -> list[str]:
+        """Get structured data for character from vector database"""
+        client = get_vector_client()
+        collection = client.get_collection(COLLECTION_NAME)
+
+        try:
+            target_results_data = collection.get(
+                where={"character_id": character_id},
+                include=['metadatas']
+            )
+
+            # Extract and process structured data from target character
+            if target_results_data['metadatas'] and len(target_results_data['metadatas']) > 0:
+                structured_data_json = target_results_data['metadatas'][0].get('structured_data', '{}')
+                try:
+                    structured_data = json.loads(structured_data_json) if structured_data_json else {}
+                    if structured_data:
+                        structured_info = []
+                        for key, value in structured_data.items():
+                            if value:
+                                structured_info.append(f"{key}: {value}")
+                        return structured_info
+                except json.JSONDecodeError as e:
+                    print(f"JSON decode error: {e}")
+        except Exception as e:
+            print(f"Error getting character structured data: {e}")
+
+        return []
+
+    def get_character_context(self, character_id: str, question: str, target_results: int = 6,
+                              other_results: int = 0) -> str:
         """Get relevant character context from vector database based on question"""
         client = get_vector_client()
         model = get_embedding_model()
         collection = client.get_collection(COLLECTION_NAME)
 
-        # Enhance question with arc restrictions if provided
-        enhanced_question = question
-        if forbidden_arcs:
-            forbidden_arc_names = ", ".join(arc.name for arc in forbidden_arcs)
-            arc_restriction = f"\nAvoid information from these story arcs: {forbidden_arc_names}. Do not include spoilers from these arcs."
-            enhanced_question = question + arc_restriction
+        # Enhance the question but also include original for character-specific keywords
+        enhanced_query = self.enhance_question_for_search(question)
 
-        # Encode the enhanced question to find similar content
-        query_embedding = model.encode([enhanced_question])
+        # Encode the combined question to find similar content
+        query_embedding = model.encode([enhanced_query])
 
         context_parts = []
 
@@ -106,44 +114,15 @@ class PromptService:
         for doc, distance in zip(target_results_data['documents'][0], target_results_data['distances'][0]):
             if distance < 1.0:
                 target_chunks.append(doc)
-        
+
         if target_chunks:
-            # Group chunks by field type (e.g., [appearance], [history], etc.)
-            grouped_chunks = {}
-            for chunk in target_chunks:
-                # Extract the field type from the chunk (e.g., [appearance], [history])
-                if chunk.startswith('[') and ']' in chunk:
-                    field_type = chunk.split(']')[0] + ']'
-                    content = chunk.split(']', 1)[1].strip()
-                    if field_type not in grouped_chunks:
-                        grouped_chunks[field_type] = []
-                    grouped_chunks[field_type].append(f"- {field_type} {content}")
-                else:
-                    # If no field type, put in 'other' category
-                    if '[other]' not in grouped_chunks:
-                        grouped_chunks['[other]'] = []
-                    grouped_chunks['[other]'].append(f"- {chunk}")
-            
-            # Sort field types with [introduction] first, then alphabetically
-            sorted_chunks = []
-            field_types = list(grouped_chunks.keys())
-            
-            # Add [introduction] first if it exists
-            if '[introduction]' in field_types:
-                sorted_chunks.extend(grouped_chunks['[introduction]'])
-                field_types.remove('[introduction]')
-            
-            # Add remaining field types alphabetically
-            for field_type in sorted(field_types):
-                sorted_chunks.extend(grouped_chunks[field_type])
-            
-            context_parts.append(f"[TARGET CHARACTER CONTEXT]\n" + "\n".join(sorted_chunks))
+            context_parts.append(f"[TARGET CHARACTER CONTEXT]\n" + "\n".join(target_chunks))
 
         if other_results > 0:
             # Search for relevant chunks from other characters
             other_results_data = collection.query(
                 query_embeddings=query_embedding.tolist(),
-                where={"character_id": {"$ne": character_id}},  # Not equal to target character
+                where={"character_id": {"$ne": character_id}},
                 n_results=other_results,
                 include=['documents', 'distances', 'metadatas']
             )
@@ -151,17 +130,81 @@ class PromptService:
             # Add other character chunks
             other_chunks = []
             for doc, distance, metadata in zip(other_results_data['documents'][0],
-                                             other_results_data['distances'][0],
-                                             other_results_data['metadatas'][0]):
+                                               other_results_data['distances'][0],
+                                               other_results_data['metadatas'][0]):
                 if distance < 1.0:
                     other_char_id = metadata.get('character_id', 'unknown')
                     other_chunks.append(f"- {other_char_id}: {doc}")
 
             if other_chunks:
-                context_parts.append(f"[OTHER CHARACTERS CONTEXT THAT MAY OR MAY NOT BE RELATED]\n" + "\n".join(other_chunks))
+                context_parts.append(f"[OTHER CHARACTERS CONTEXT]\n" + "\n".join(other_chunks))
 
         return "\n\n".join(context_parts) if context_parts else ""
-    
+
+    def enhance_question_for_search(self, question: str) -> str:
+        """Transform user question into better vector search terms"""
+
+        # Map common question patterns to search terms
+        question_mappings = {
+            # Strength/Power questions
+            r'strong|powerful|strength': 'physical strength combat ability fighting power battle',
+            r'devil fruit|powers|abilities': 'devil fruit powers abilities special skills',
+
+            # Relationship questions
+            r'family|relative|parent|child|kid|brother|sister|sibling': 'family parents children siblings relatives blood relation',
+            r'crew|team|group|member': 'crew pirates marines organization group affiliation',
+            r'friend|ally|enemy': 'relationships allies enemies friends rivals interactions',
+
+            # Physical appearance
+            r'young|old|age': 'age years old appearance youth elderly',
+            r'hair|color': 'hair color appearance physical features',
+
+            # Personality
+            r'good|evil|bad|moral': 'personality morality character behavior alignment ethics',
+
+            # Role/Status
+            r'captain|leader': 'captain leader commander authority position role',
+            r'citizen': 'occupation job civilian family',
+        }
+
+        question_lower = question.lower()
+
+        # Find matching enhancement terms
+        enhanced_terms = None
+        for pattern, search_terms in question_mappings.items():
+            if re.search(pattern, question_lower):
+                enhanced_terms = search_terms
+                break
+
+        # Always include the original question, plus enhanced terms if found
+        if enhanced_terms:
+            return f"{enhanced_terms} {question}"
+
+        return question
+
+    def build_dynamic_prompt(self, base_prompt: str, character_context: str, chat_history: list, question: str) -> str:
+        """Build the complete prompt with dynamic content for a specific question"""
+        updated_prompt = base_prompt
+
+        # Replace the RELEVANT_CONTEXT placeholder
+        updated_prompt = updated_prompt.replace("{RELEVANT_CONTEXT}", f"\n[RELEVANT CONTEXT]\n{character_context}")
+
+        # Add chat history
+        if chat_history:
+            history_text = "\n".join([
+                f"User: {msg.content}" if hasattr(msg, 'type') and msg.type == "human"
+                else f"Assistant: {msg.content}"
+                for msg in chat_history
+            ])
+            updated_prompt = updated_prompt.replace("{CHAT_HISTORY_PLACEHOLDER}", history_text)
+        else:
+            updated_prompt = updated_prompt.replace("{CHAT_HISTORY_PLACEHOLDER}", "No previous conversation yet")
+
+        # Add current question
+        updated_prompt = updated_prompt.replace("{CURRENT_QUESTION}", question)
+
+        return updated_prompt
+
     def create_character_description(self, character_id: str) -> str | None:
         """Create a fun, spoiler-free description of a character focusing on personality and relationships"""
         client = get_vector_client()
@@ -183,7 +226,7 @@ class PromptService:
         # Filter and collect relevant chunks
         relevant_chunks = []
         for doc, distance in zip(results['documents'][0], results['distances'][0]):
-            if distance < 1.0:  # More selective threshold for quality
+            if distance < 1.0:
                 relevant_chunks.append(doc)
 
         if not relevant_chunks:
@@ -241,43 +284,3 @@ Character Information:
 Write one fun fact about this character now:"""
 
         return fun_fact_prompt
-
-
-    def build_dynamic_prompt(self, base_prompt: str, character_context: str, chat_history: list, question: str) -> str:
-        """Build the complete prompt with dynamic content for a specific question"""
-        updated_prompt = base_prompt
-        
-        # Add character context to the existing character profile
-        if character_context:
-            # Find the existing character profile in the prompt
-            if '<character_profile>' in updated_prompt and '</character_profile>' in updated_prompt:
-                # Extract the existing profile content
-                start = updated_prompt.find('<character_profile>') + len('<character_profile>')
-                end = updated_prompt.find('</character_profile>')
-                existing_profile = updated_prompt[start:end].strip()
-                
-                # Create enhanced profile with structured data
-                enhanced_profile = f"{existing_profile}\n\n{character_context}"
-                
-                # Replace the profile section
-                updated_prompt = (
-                    updated_prompt[:start] + 
-                    f"\n{enhanced_profile}\n" + 
-                    updated_prompt[end:]
-                )
-        
-        # Add chat history
-        if chat_history:
-            history_text = "\n".join([
-                f"User: {msg.content}" if hasattr(msg, 'type') and msg.type == "human" 
-                else f"Assistant: {msg.content}" 
-                for msg in chat_history
-            ])
-            updated_prompt = updated_prompt.replace("{CHAT_HISTORY_PLACEHOLDER}", history_text)
-        else:
-            updated_prompt = updated_prompt.replace("{CHAT_HISTORY_PLACEHOLDER}", "No previous conversation")
-        
-        # Add current question
-        updated_prompt = updated_prompt.replace("{CURRENT_QUESTION}", question)
-        
-        return updated_prompt
