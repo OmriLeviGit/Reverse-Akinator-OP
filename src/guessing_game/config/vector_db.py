@@ -50,8 +50,6 @@ def initialize_collection():
     return client, collection, get_embedding_model()
 
 
-
-
 def add_character_to_db(collection, model, character_id, structured_data, narrative_sections):
     """Add a character with chunking - handles narrative sections dict"""
 
@@ -91,58 +89,55 @@ def _count_words(text):
 def _create_section_based_chunks(narrative_sections):
     """Create chunks by combining paragraphs from same sections, maintaining order"""
     all_chunks = []
-    
+
     # Convert sections to ordered list preserving section order
     ordered_paragraphs = []
     for section_name, paragraphs in narrative_sections.items():
-        for paragraph in paragraphs:
-            ordered_paragraphs.append((section_name, paragraph))
-    
+        for paragraph_text in paragraphs:
+            ordered_paragraphs.append((section_name, paragraph_text))
+
     if not ordered_paragraphs:
         return []
-    
+
     current_chunk = ""
     current_section = None
-    
-    for section_name, paragraph in ordered_paragraphs:
-        paragraph_text = f"[{section_name}] {paragraph}"
-        
-        # If this is a different section and we have content, finalize current chunk
-        if current_section is not None and current_section != section_name and current_chunk:
-            all_chunks.append(current_chunk.strip())
-            current_chunk = paragraph_text
-            current_section = section_name
+    last_finalized_section = None  # Track section of last chunk added to all_chunks
+
+    for section_name, paragraph_text in ordered_paragraphs:
+
+        # If we're switching sections, finalize current chunk
+        if current_section is not None and current_section != section_name:
+            if current_chunk:  # Only finalize if we have content
+                all_chunks.append(current_chunk.strip())
+                last_finalized_section = current_section
+            current_chunk = ""
+
+        current_section = section_name
+
+        # Add current paragraph to the chunk
+        if current_chunk:
+            current_chunk += " " + paragraph_text
         else:
-            # Add to current chunk (same section or first paragraph)
-            if current_chunk:
-                current_chunk += " " + paragraph_text
-            else:
-                current_chunk = paragraph_text
-            current_section = section_name
-            
-            # If chunk is now >= target word count and we have more paragraphs, check if next is different section
-            if _count_words(current_chunk) >= CHUNK_SIZE:
-                # Look ahead to see if next paragraph is different section
-                current_idx = ordered_paragraphs.index((section_name, paragraph))
-                if current_idx < len(ordered_paragraphs) - 1:
-                    next_section, _ = ordered_paragraphs[current_idx + 1]
-                    if next_section != current_section:
-                        # Next is different section, finalize this chunk
-                        all_chunks.append(current_chunk.strip())
-                        current_chunk = ""
-                        current_section = None
-    
-    # Add final chunk
+            current_chunk = paragraph_text
+
+        # If chunk is now >= target size, finalize it
+        if _count_words(current_chunk) >= CHUNK_SIZE:
+            all_chunks.append(current_chunk.strip())
+            last_finalized_section = current_section
+            current_chunk = ""
+            current_section = None  # Reset section so next paragraph starts fresh
+
+    # Add final chunk if any content remains
     if current_chunk:
         all_chunks.append(current_chunk.strip())
-    
-    # Merge small final chunk with previous chunk if needed
-    if len(all_chunks) > 1 and _count_words(all_chunks[-1]) < CHUNK_SIZE // 2:
-        last_chunk = all_chunks.pop()
-        all_chunks[-1] += " " + last_chunk
-    
-    return all_chunks
+        # Check if we should merge with previous chunk (same section and small)
+        if (len(all_chunks) > 1 and
+                _count_words(all_chunks[-1]) < CHUNK_SIZE // 2 and
+                last_finalized_section == current_section):
+            last_chunk = all_chunks.pop()
+            all_chunks[-1] += " " + last_chunk
 
+    return all_chunks
 
 def _chunk_text(text):
     """Helper function to chunk a single text (deprecated - use _create_section_based_chunks)"""
@@ -166,7 +161,6 @@ def _chunk_text(text):
         chunks.append(current_chunk.strip())
 
     return chunks
-
 
 def inspect_collection():
     """Inspect the contents of the vector database collection"""
