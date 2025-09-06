@@ -34,7 +34,6 @@ class GameQuestionRequest(BaseModel):
 
 class GameQuestionResponse(BaseModel):
     answer: str
-    questions_asked: int = Field(alias="questionsAsked")
 
     class Config:
         populate_by_name = True
@@ -90,6 +89,14 @@ class GameStatusRequest(BaseModel):
 class GameStatusResponse(BaseModel):
     is_valid_game: bool = Field(alias="isValidGame")
     messages: list[ChatMessage] | None = None
+
+    class Config:
+        populate_by_name = True
+
+
+class LLMResponse(BaseModel):
+    reasoning: str
+    answer: str  # Should be one of: "yes", "no", "I don't know", "I can't answer that"
 
     class Config:
         populate_by_name = True

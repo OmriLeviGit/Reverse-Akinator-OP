@@ -293,7 +293,7 @@ class DataStorageManager:
                 return None
 
             # Generate description using LLM
-            description = self.llm_service.query(description_prompt)
+            description = self.llm_service.generate(description_prompt)
 
             if description and description.strip():
                 return description.strip()
@@ -314,7 +314,7 @@ class DataStorageManager:
                 return None
 
             # Generate fun fact using LLM
-            fun_fact = self.llm_service.query(fun_fact_prompt)
+            fun_fact = self.llm_service.generate(fun_fact_prompt)
 
             if fun_fact and fun_fact.strip():
                 return fun_fact.strip()

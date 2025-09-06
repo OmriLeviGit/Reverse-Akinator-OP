@@ -2,6 +2,8 @@
 import json
 import re
 
+from langchain_core.messages import SystemMessage, HumanMessage
+
 from guessing_game.config import COLLECTION_NAME, get_embedding_model, get_vector_client, GAME_PROMPT_PATH
 from guessing_game.schemas.arc_schemas import Arc
 from guessing_game.schemas.character_schemas import FullCharacter
@@ -182,28 +184,19 @@ class PromptService:
 
         return question
 
-    def build_dynamic_prompt(self, base_prompt: str, character_context: str, chat_history: list, question: str) -> str:
-        """Build the complete prompt with dynamic content for a specific question"""
-        updated_prompt = base_prompt
-
-        # Replace the RELEVANT_CONTEXT placeholder
-        updated_prompt = updated_prompt.replace("{RELEVANT_CONTEXT}", f"\n[RELEVANT CONTEXT]\n{character_context}")
-
-        # Add chat history
-        if chat_history:
-            history_text = "\n".join([
-                f"User: {msg.content}" if hasattr(msg, 'type') and msg.type == "human"
-                else f"Assistant: {msg.content}"
-                for msg in chat_history
-            ])
-            updated_prompt = updated_prompt.replace("{CHAT_HISTORY_PLACEHOLDER}", history_text)
-        else:
-            updated_prompt = updated_prompt.replace("{CHAT_HISTORY_PLACEHOLDER}", "No previous conversation yet")
-
-        # Add current question
-        updated_prompt = updated_prompt.replace("{CURRENT_QUESTION}", question)
-
-        return updated_prompt
+    def build_dynamic_prompt(self, base_prompt: str, character_context: str, chat_history: list, question: str) -> list:
+        """Build the complete message sequence with dynamic content for a specific question"""
+        # Replace the RELEVANT_CONTEXT placeholder in the system prompt
+        system_content = base_prompt.replace("{RELEVANT_CONTEXT}", f"\n[RELEVANT CONTEXT]\n{character_context}")
+        
+        # Build message sequence
+        messages = [
+            SystemMessage(content=system_content),
+            *chat_history,  # Already HumanMessage/AIMessage objects from LangChain memory
+            HumanMessage(content=question)  # Current question
+        ]
+        
+        return messages
 
     def create_character_description(self, character_id: str) -> str | None:
         """Create a fun, spoiler-free description of a character focusing on personality and relationships"""

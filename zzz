@@ -7,3 +7,9 @@ adding metadata to the vector db:
 
 spoiler attempts:
 - check how well it works if messages are not bound to a single character
+
+---
+create a test suite
+make the llm create the rag query and allow it to use it several times
+use unambiguous language
+limit message size

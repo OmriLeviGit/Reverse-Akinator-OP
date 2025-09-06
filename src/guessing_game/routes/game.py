@@ -15,7 +15,7 @@ from guessing_game.schemas.game_schemas import (
     GameQuestionResponse, GameQuestionRequest,
     GameGuessResponse, GameGuessRequest,
     GameRevealResponse, GameRevealRequest,
-    GameStatusResponse, GameStatusRequest
+    GameStatusResponse, GameStatusRequest, ChatMessage
 )
 
 router = APIRouter(prefix="/api/game", tags=["game"])
@@ -59,8 +59,11 @@ def validate_game_session_route(request: GameStatusRequest,
     """Validate if game session is still active and return messages"""
     try:
         validate_game_session(session_mgr, game_mgr, request.game_id)
-        messages = game_mgr.get_chat_messages(request.game_id)
-        return GameStatusResponse(isValidGame=True, messages=messages)
+        all_messages = game_mgr.get_chat_messages(request.game_id)
+
+        chat_messages = [ChatMessage(id=msg["id"], text=msg["text"], isUser=msg["is_user"]) for msg in all_messages]
+
+        return GameStatusResponse(isValidGame=True, messages=chat_messages)
     except HTTPException:
         return GameStatusResponse(isValidGame=False)
 
@@ -77,7 +80,6 @@ def ask_question_route(request: GameQuestionRequest,
 
         return GameQuestionResponse(
             answer=answer,
-            questionsAsked=game_mgr.get_questions_asked(session_mgr.get_current_game_id())
         )
 
     except ValueError as e:

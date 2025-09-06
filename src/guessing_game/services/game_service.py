@@ -151,7 +151,7 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
 
         # Use session ID for rate limiting
         session_id = id(session_mgr.request.session)  # Get unique session identifier
-        response = llm.query(updated_prompt, user_id=str(session_id))
+        response = llm.ask_game_question(updated_prompt, user_id=str(session_id))
 
         # Now add both question and response to memory
         game_mgr.add_user_question(game_id, question)
@@ -189,11 +189,11 @@ def make_guess(character_name: str, session_mgr: SessionManager, game_mgr: GameM
         target_character = game_mgr.get_target_character(game_id)
         is_correct = character_name.lower() == target_character.name.lower()
 
-        # Add guess messages to UI (not LLM context)
+        # Add guess messages to UI
         game_mgr.add_ui_message(game_id, f"I guess it's {character_name}!", True)
 
         # GameManager handles guess recording and counter increment
-        game_mgr.add_guess(game_id, character_name, is_correct)
+        game_mgr.add_guess(game_id)
 
         if is_correct:
             # Get data before cleaning up game
