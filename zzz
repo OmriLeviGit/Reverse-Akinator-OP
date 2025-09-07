@@ -5,11 +5,18 @@ adding metadata to the vector db:
 - attempt to get the first main arc a character appeared
 - add a tag to each paragraph (which arc does this info belong to if it occurred in a specific arc)
 
-spoiler attempts:
+
 - check how well it works if messages are not bound to a single character
 
 ---
 create a test suite
-make the llm create the rag query and allow it to use it several times
+prompt the llm to create the chroma query
 use unambiguous language
 limit message size
+enforce alphanumeric
+
+basic attributes (citizen, animal, is captain, species) adherence is bad
+zoro hachi good example to check
+fix back up
+
+maybe add the reasoning to the chat's context so it would be able to follow a chain of throughts

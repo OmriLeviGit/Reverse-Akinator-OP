@@ -153,11 +153,15 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
         session_id = id(session_mgr.request.session)  # Get unique session identifier
         response = llm.ask_game_question(updated_prompt, user_id=str(session_id))
 
+        print(f"LLM response: {response}")
+
+        answer = response.get('answer')
+
         # Now add both question and response to memory
         game_mgr.add_user_question(game_id, question)
-        game_mgr.add_assistant_response(game_id, response)
+        game_mgr.add_assistant_response(game_id, answer)
         
-        return response
+        return answer
 
     except Exception as e:
         raise ValueError(f"Error processing question: {str(e)}")
