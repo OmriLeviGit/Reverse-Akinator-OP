@@ -74,7 +74,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             ref={textareaRef}
             value={inputMessage}
             onChange={(e) => {
-              setInputMessage(e.target.value);
+              const filteredValue = e.target.value.replace(/[^a-zA-Z0-9\s.,!?;:()\-'"]/g, "");
+              setInputMessage(filteredValue);
               setTimeout(() => {
                 if (textareaRef.current) {
                   textareaRef.current.style.height = "auto";
@@ -92,6 +93,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             className="flex-1 min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none overflow-y-auto text-sm sm:text-base"
             style={{ fontSize: "16px" }}
             rows={1}
+            maxLength={200}
           />
           <Button
             onClick={handleSendMessage}

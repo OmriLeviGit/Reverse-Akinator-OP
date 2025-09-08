@@ -17,8 +17,8 @@ WORKDIR /app
 # Install system dependencies and uv
 RUN apt-get update && apt-get install -y \
     git \
-    cron \
     curl \
+    sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -48,13 +48,8 @@ COPY --from=frontend-build /app/client/dist ./client/dist
 COPY scripts/ ./scripts/
 RUN chmod +x /app/scripts/backup-db.sh
 
-# Set up cron job
-RUN echo "0 2 * * * cd /app && /app/scripts/backup-db.sh >> /var/log/backup.log 2>&1" | crontab -
-
 ENV PYTHONPATH=/app/src
 
 EXPOSE 3000
 
-# Package is already installed via uv sync
-
-CMD service cron start && python -m guessing_game.app
+CMD python -m guessing_game.app

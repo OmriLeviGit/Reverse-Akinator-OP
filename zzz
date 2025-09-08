@@ -1,22 +1,19 @@
 manual:
 - ignore all characters with a certain section (geography, Inhabitants)
 
+---
 adding metadata to the vector db:
 - attempt to get the first main arc a character appeared
 - add a tag to each paragraph (which arc does this info belong to if it occurred in a specific arc)
 
-
+---
+rag and chroma:
+- prompt the llm to create the chroma query
 - check how well it works if messages are not bound to a single character
+- add the reasoning to the chat's context so it would be able to follow a chain of thoughts
 
 ---
-create a test suite
-prompt the llm to create the chroma query
-use unambiguous language
-limit message size
-enforce alphanumeric
-
-basic attributes (citizen, animal, is captain, species) adherence is bad
-zoro hachi good example to check
-fix back up
-
-maybe add the reasoning to the chat's context so it would be able to follow a chain of throughts
+logic:
+- create a test suite
+- make search use epithet and alias
+- basic attributes (citizen, animal, is captain, species) adherence is bad
