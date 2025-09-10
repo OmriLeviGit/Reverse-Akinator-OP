@@ -66,13 +66,13 @@ Examples:
 </family_rules>
 
 <classification_rules>
-There are 5 main classes: Pirates, Marines, Revolutionary army, actual animals, Citizens.
+There are 5 main classes: Pirates, Marines, Revolutionary army, actual animals, Civilians.
 
-"Citizen" = any character not in the other groups.
-**IMPORTANT: When uncertain about a character's affiliation, default to "Citizen".
+"Civilian" = any character not in the other groups.
+**IMPORTANT: When uncertain about a character's affiliation, default to "Civilian".
 
 Special classification guidelines:
-- Royalty/government workers = Citizens (unless also in other groups)
+- Royalty/government workers = Civilians (unless also in other groups)
 - Cipher Pol (CP) groups (CP0, CP1, CP2... CP9) are considered Marines
 - Minks are not considered animals
 - Former affiliations count: former pirates are still pirates, former marines are still marines
@@ -80,7 +80,7 @@ Special classification guidelines:
 
 Examples:
 - Silvers Rayleigh: Former pirate → is a pirate
-- Aisa: Is a Shandian which are not human, but is not one of the groups above → is a citizen.
+- Aisa: Is a Shandian which are not human, but is not one of the groups above → is a civilian.
 - Vergo: Pirate and undercover marine (former) → Answer yes both for marine and pirate.
 </classification_rules>
 
