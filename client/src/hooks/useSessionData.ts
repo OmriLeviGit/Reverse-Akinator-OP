@@ -57,9 +57,6 @@ export const useSessionData = () => {
       setAvailableArcs(response.availableArcs);
       sessionService.saveSessionData(response.sessionData);
       sessionService.saveAvailableArcs(response.availableArcs);
-
-      // Invalidate characters cache so they refetch with new arc limit
-      queryClient.invalidateQueries({ queryKey: ["allCharacters"] });
     } catch (error) {
       console.error("Failed to update global arc limit:", error);
     }

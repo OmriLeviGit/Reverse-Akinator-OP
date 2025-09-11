@@ -60,7 +60,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const { characters, charactersLoaded } = useCharacters();
+  const sessionArcLimit = sessionData?.globalArcLimit || null;
+  const { characters, charactersLoaded } = useCharacters(sessionArcLimit);
 
   return (
     <AppContext.Provider

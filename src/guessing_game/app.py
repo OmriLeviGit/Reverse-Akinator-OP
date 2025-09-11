@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
         print("Game functionality will not work. Please start Redis server to enable game features.")
 
     print("Preloading embedding model...")
-    get_embedding_model()
+    # get_embedding_model()
     print("Embedding model loaded")
     yield
 

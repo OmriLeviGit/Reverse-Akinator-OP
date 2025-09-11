@@ -153,7 +153,7 @@ def ask_question(question: str, session_mgr: SessionManager, game_mgr: GameManag
         session_id = id(session_mgr.request.session)  # Get unique session identifier
         response = llm.ask_game_question(updated_prompt, user_id=str(session_id))
 
-        print(f"LLM response: {response}")
+        print(f"User question: {question} \nLLM response: {response}")
 
         answer = response.get('answer')
 
