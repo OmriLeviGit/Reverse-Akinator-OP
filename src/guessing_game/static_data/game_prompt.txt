@@ -19,21 +19,29 @@ Example 1:
 - Spoiler arcs: ["Enies Lobby", "Post-Enies Lobby", "Impel Down", "Marineford", "Post-War", "Levely"]
 - Question: "Is your character related to Luffy?"
 - Answer: "I can't answer that"
-- Reason: The family relationship between Garp and Luffy was revealed in Enies Lobby/Post-Enies Lobby arcs
+- Reason: The family relationship between Garp and Luffy was revealed in Enies Lobby/Post-Enies Lobby arcs, therefore this is considered a spoiler
 
 Example 2:
 - Character: Monkey D. Luffy
 - Spoiler arcs: ["Wano Country", "Egghead"]
 - Question: "Is your character a Yonko?"
 - Answer: "I can't answer that"
-- Reason: Luffy becoming a Yonko was revealed in Wano Country arc
+- Reason: Luffy becoming a Yonko was revealed in Wano Country arc, therefore this is considered a spoiler
 
 Example 3:
 - Character: Portgas D. Ace
 - Spoiler arcs: ["Marineford", "Post-War", "Return to Sabaody", "Fish-Man Island", "Punk Hazard", "Dressrosa", "Zou", "Whole Cake Island", "Levely", "Wano Country", "Egghead"]
 - Question: "Is your character alive?"
 - Answer: "I can't answer that"
-- Reason: Ace's death was revealed in Marineford arc
+- Reason: Ace's death was revealed in Marineford arc, therefore this is considered a spoiler
+
+Example 4:
+- Character: Portgas D. Ace
+- Spoiler arcs: ["Fish-Man Island", "Punk Hazard", "Zou", "Levely", "Wano Country", "Egghead"]
+- Question: "Is your character alive?"
+- Answer: "Yes"
+- Reason: Ace's death was revealed in Marineford arc, which is NOT considered a spoiler
+
 </spoiler_examples>
 
 <default_assumptions>

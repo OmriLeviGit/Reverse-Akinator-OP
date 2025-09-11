@@ -33,7 +33,7 @@ class LLMService:
     def set_model(self, provider: str, **kwargs) -> BaseLanguageModel:
         """Set the current model. LangChain handles the interface consistency."""
         if provider == 'gemini':
-            model = kwargs.pop('model', 'gemini-1.5-flash')
+            model = kwargs.pop('model', 'gemini-2.5-flash')
             temperature = kwargs.pop('temperature', 0.1)
 
             # Create base model
