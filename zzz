@@ -15,8 +15,6 @@ rag and chroma:
 ---
 logic:
 - make search use epithet and alias
-- rate limits, recaptcha
 
 performance:
 - create a test suite
-- basic attributes (citizen, animal, is captain, species) adherence is bad

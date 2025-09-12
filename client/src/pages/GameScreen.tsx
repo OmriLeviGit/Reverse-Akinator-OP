@@ -34,7 +34,6 @@ const GameScreen: React.FC = () => {
 
   const gameCharacters = currentGameSession?.characterPool || [];
 
-
   // Initial validation
   useEffect(() => {
     const validate = async () => {
@@ -75,47 +74,46 @@ const GameScreen: React.FC = () => {
   }
 
   return (
-    <>
-      <div className="container mx-auto px-6 py-4 max-w-7xl">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Character Guessing Game</h1>
-          </div>
+    <div className="container mx-auto px-6 pt-4 pb-12 max-w-8xl h-full flex flex-col">
+      {/* Title Section */}
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Character Guessing Game</h1>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 pb-4 sm:pb-8 max-w-7xl">
-        {messageError && (
-          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-            <p className="text-destructive text-sm">{messageError}</p>
-          </div>
-        )}
+      {/* Error Message */}
+      {messageError && (
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md flex-shrink-0">
+          <p className="text-destructive text-sm">{messageError}</p>
+        </div>
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 lg:gap-6">
-          {/* Chat Area */}
-          <div className="flex flex-col h-[calc(100vh-12rem)] sm:h-[calc(100vh-16rem)] max-h-[600px] sm:max-h-[700px] min-h-[300px] sm:min-h-[400px]">
-            <ChatArea
-              messages={messages}
-              inputMessage={inputMessage}
-              setInputMessage={setInputMessage}
-              isProcessingChat={isProcessingChat}
-              isProcessingGuess={isProcessingGuess}
-              handleSendMessage={handleSendMessage}
-              textareaRef={textareaRef}
-              messagesEndRef={messagesEndRef}
-            />
-          </div>
+      {/* Main Content Area */}
+      <div className="grid grid-cols-10 gap-6 flex-1 min-h-0 h-0">
+        {/* Chat Area - Takes 70% of the width */}
+        <div className="col-span-7 flex flex-col">
+          <ChatArea
+            messages={messages}
+            inputMessage={inputMessage}
+            setInputMessage={setInputMessage}
+            isProcessingChat={isProcessingChat}
+            isProcessingGuess={isProcessingGuess}
+            handleSendMessage={handleSendMessage}
+            textareaRef={textareaRef}
+            messagesEndRef={messagesEndRef}
+          />
+        </div>
 
-          {/* Character Sidebar */}
-          <div className="h-[300px] lg:h-[calc(100vh-16rem)] max-h-[600px] lg:max-h-[700px] min-h-[300px] lg:min-h-[400px]">
-            <CharacterSidebar
-              gameCharacters={gameCharacters}
-              onCharacterSelect={(name) => handleCharacterSelect(name, isProcessingChat)}
-            />
-          </div>
+        {/* Sidebar - Takes 30% of the width */}
+        <div className="col-span-3 flex flex-col overflow-hidden">
+          <CharacterSidebar
+            gameCharacters={gameCharacters}
+            onCharacterSelect={(name) => handleCharacterSelect(name, isProcessingChat)}
+          />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

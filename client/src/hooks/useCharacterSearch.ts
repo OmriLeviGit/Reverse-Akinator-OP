@@ -35,8 +35,13 @@ export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} 
     }
 
     // Check if search term starts with '/' for affiliations search
-    const isAffiliationsSearch = searchTerm.startsWith('/');
+    const isAffiliationsSearch = searchTerm.startsWith("/");
     const actualSearchTerm = isAffiliationsSearch ? searchTerm.slice(1) : searchTerm;
+
+    // If actual search term is empty (e.g., just "/"), return all characters
+    if (!actualSearchTerm.trim()) {
+      return characters;
+    }
 
     // Add normalized versions of searchable fields to each character
     const charactersWithNormalized = characters.map((character) => ({
@@ -46,9 +51,9 @@ export const useCharacterSearch = ({ characters, searchTerm, searchOptions = {} 
     }));
 
     // Consistent default options for ALL uses
-    const defaultKeys = isAffiliationsSearch 
-      ? ["affiliations", "normalizedAffiliations"] // Search affiliations when starting with '/'
-      : ["name", "normalizedName"]; // Search names by default
+    const defaultKeys = isAffiliationsSearch
+      ? ["name", "normalizedName", "affiliations", "normalizedAffiliations"] // Search BOTH names and affiliations when starting with '/'
+      : ["name", "normalizedName"]; // Search names only by default
 
     const defaultOptions = {
       keys: defaultKeys,

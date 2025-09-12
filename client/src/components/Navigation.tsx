@@ -34,8 +34,8 @@ const Navigation = ({ globalArcLimit, onMaxArcChange, availableArcs }: Navigatio
                 variant="nav"
                 className={
                   location.pathname === "/"
-                    ? "text-foreground hover:brightness-110 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-['']"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-foreground hover:brightness-110 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-[''] after:opacity-100"
+                    : "text-muted-foreground hover:text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-[''] after:opacity-0"
                 }
               >
                 Home
@@ -46,8 +46,8 @@ const Navigation = ({ globalArcLimit, onMaxArcChange, availableArcs }: Navigatio
                 variant="nav"
                 className={
                   location.pathname === "/character-management"
-                    ? "text-foreground hover:brightness-110 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-['']"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-foreground hover:brightness-110 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-[''] after:opacity-100"
+                    : "text-muted-foreground hover:text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[3px] after:bg-primary after:content-[''] after:opacity-0"
                 }
               >
                 Character Management

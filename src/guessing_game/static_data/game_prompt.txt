@@ -48,7 +48,10 @@ Example 4:
 - "the crew" without any specific context = Straw Hat Pirates
 - "good/bad" = alignment relative to the Straw Hats
 - Treat most messages as questions, even without question marks
-- If a character doesn't have a devil fruit mentioned, assume they don't have one
+- When information is not specifically mentioned in the character profile or context, assume the answer is "No". Examples:
+  * No devil fruit mentioned -> assume they don't have one
+  * No mention of luffy -> assume they haven't met
+  * No mention of specific abilities, titles, or relationships -> assume they don't have them
 </default_assumptions>
 
 <family_rules>

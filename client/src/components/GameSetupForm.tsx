@@ -187,16 +187,6 @@ const GameSetupForm = ({
         >
           {isStartingGame ? "Starting Game..." : "Start Game"}
         </Button>
-
-        {/* Character loading status */}
-        {!charactersLoaded && (
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <p className="text-muted-foreground text-sm">Loading character data in background...</p>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
