@@ -1,7 +1,3 @@
-manual:
-- ignore all characters with a certain section (geography, Inhabitants)
-
----
 adding metadata to the vector db:
 - attempt to get the first main arc a character appeared
 - add a tag to each paragraph (which arc does this info belong to if it occurred in a specific arc)

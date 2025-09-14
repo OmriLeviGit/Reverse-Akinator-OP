@@ -1,51 +1,70 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Arc } from "@/types";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { UserPreferences } from "@/types/userPreferences";
 
 interface GameSetupFormProps {
   globalArcLimit: string;
   availableArcs: Arc[];
-  selectedDifficulty: "easy" | "medium" | "hard";
-  onDifficultyChange: (difficulty: "easy" | "medium" | "hard") => void;
-  includeUnrated: boolean;
-  onIncludeUnratedChange: (include: boolean) => void;
-  selectedArc: string;
-  onArcChange: (arc: string) => void;
-  fillerPercentage: number;
-  onFillerPercentageChange: (value: number) => void;
-  includeNonTVFillers: boolean;
-  onIncludeNonTVFillersChange: (include: boolean) => void;
-  onStart: () => void;
+  onStart: (preferences: UserPreferences) => void;
   isStartingGame: boolean;
   charactersLoaded: boolean;
   isLoading: boolean;
 }
+
 const GameSetupForm = ({
   globalArcLimit,
   availableArcs,
-  selectedDifficulty,
-  onDifficultyChange,
-  includeUnrated,
-  onIncludeUnratedChange,
-  selectedArc,
-  onArcChange,
-  fillerPercentage,
-  onFillerPercentageChange,
-  includeNonTVFillers,
-  onIncludeNonTVFillersChange,
   onStart,
   isStartingGame,
   charactersLoaded,
   isLoading,
 }: GameSetupFormProps) => {
-  const [fillerSliderValue, setFillerSliderValue] = useState([fillerPercentage]);
+  const { preferences, updatePreferences } = useUserPreferences();
 
+  // Helper function to determine which arc is earlier
+  const getEarlierArc = (arc1: string, arc2: string): string => {
+    // If either arc is "All", return the other one (or "All" if both are "All")
+    if (arc1 === "All" && arc2 === "All") return "All";
+    if (arc1 === "All") return arc2;
+    if (arc2 === "All") return arc1;
+
+    // Find indices in the original availableArcs array (earlier arcs have lower indices)
+    const index1 = availableArcs.findIndex((arc) => arc.name === arc1);
+    const index2 = availableArcs.findIndex((arc) => arc.name === arc2);
+
+    // If either arc is not found, return the found one or fallback
+    if (index1 === -1 && index2 === -1) return globalArcLimit; // fallback
+    if (index1 === -1) return arc2;
+    if (index2 === -1) return arc1;
+
+    // Return the arc with the lower index (earlier in the series)
+    return index1 <= index2 ? arc1 : arc2;
+  };
+
+  // Handle arc selection with spoiler protection when globalArcLimit changes
   useEffect(() => {
-    setFillerSliderValue([fillerPercentage]);
-  }, [fillerPercentage]);
+    if (availableArcs.length === 0 || !globalArcLimit) {
+      return; // Wait for required data
+    }
+
+    // Apply spoiler protection to current preferredArc
+    const safeArc = getEarlierArc(preferences.preferredArc, globalArcLimit);
+
+    // Only update if the safe arc is different from current preference
+    if (safeArc !== preferences.preferredArc) {
+      console.log("🔍 Arc spoiler check in form:", {
+        currentPreferredArc: preferences.preferredArc,
+        globalArcLimit,
+        safeArc,
+      });
+      updatePreferences({ preferredArc: safeArc });
+    }
+  }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences]);
 
   // Filter arcs based on globalArcLimit (spoiler protection)
   const getFilteredArcs = () => {
@@ -66,12 +85,22 @@ const GameSetupForm = ({
   const filteredArcs = getFilteredArcs();
 
   const handleFillerSliderChange = (value: number[]) => {
-    setFillerSliderValue(value);
-    onFillerPercentageChange(value[0]);
+    const newValue = value[0];
+
+    // Auto-disable non-TV fillers when percentage is 0
+    if (newValue === 0) {
+      updatePreferences({
+        fillerPercentage: newValue,
+        includeNonTVFillers: false,
+      });
+    } else {
+      updatePreferences({ fillerPercentage: newValue });
+    }
   };
 
   const handleStartGame = () => {
-    onStart();
+    // Call the parent's onStart with current preferences
+    onStart(preferences);
   };
 
   return (
@@ -88,8 +117,8 @@ const GameSetupForm = ({
             ].map((level) => (
               <Button
                 key={level.id}
-                variant={selectedDifficulty === level.id ? "default" : "secondary"}
-                onClick={() => onDifficultyChange(level.id as "easy" | "medium" | "hard")}
+                variant={preferences.difficulty === level.id ? "default" : "secondary"}
+                onClick={() => updatePreferences({ difficulty: level.id as "easy" | "medium" | "hard" })}
                 className="h-16 font-medium transition-all flex flex-col justify-center items-center py-2"
               >
                 <span className="capitalize font-semibold leading-none">{level.label}</span>
@@ -102,8 +131,8 @@ const GameSetupForm = ({
             <input
               type="checkbox"
               id="unrated"
-              checked={includeUnrated}
-              onChange={(e) => onIncludeUnratedChange(e.target.checked)}
+              checked={preferences.includeUnrated}
+              onChange={(e) => updatePreferences({ includeUnrated: e.target.checked })}
               className=""
             />
             <label htmlFor="unrated" className="text-sm text-foreground cursor-pointer">
@@ -115,7 +144,10 @@ const GameSetupForm = ({
         {/* Arc Selection */}
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-foreground">Character Arc Limit</h3>
-          <Select value={selectedArc || ""} onValueChange={onArcChange}>
+          <Select
+            value={preferences.preferredArc || ""}
+            onValueChange={(arc) => updatePreferences({ preferredArc: arc })}
+          >
             <SelectTrigger className="bg-input hover:bg-input hover:brightness-125 border-border text-foreground">
               <SelectValue placeholder="Select an arc" />
             </SelectTrigger>
@@ -146,10 +178,10 @@ const GameSetupForm = ({
             <div className="space-y-5">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Probability</span>
-                <span className="text-sm font-medium text-foreground">{fillerSliderValue[0]}%</span>
+                <span className="text-sm font-medium text-foreground">{preferences.fillerPercentage}%</span>
               </div>
               <Slider
-                value={fillerSliderValue}
+                value={[preferences.fillerPercentage]}
                 onValueChange={handleFillerSliderChange}
                 min={0}
                 max={100}
@@ -162,15 +194,15 @@ const GameSetupForm = ({
               <input
                 type="checkbox"
                 id="non-tv"
-                checked={includeNonTVFillers}
-                onChange={(e) => onIncludeNonTVFillersChange(e.target.checked)}
-                disabled={fillerPercentage === 0}
+                checked={preferences.includeNonTVFillers}
+                onChange={(e) => updatePreferences({ includeNonTVFillers: e.target.checked })}
+                disabled={preferences.fillerPercentage === 0}
                 className=""
               />
               <label
                 htmlFor="non-tv"
                 className={`text-sm cursor-pointer ${
-                  fillerPercentage === 0 ? "text-muted-foreground" : "text-foreground"
+                  preferences.fillerPercentage === 0 ? "text-muted-foreground" : "text-foreground"
                 }`}
               >
                 Include Non-TV Content (Movies, Games, etc.)

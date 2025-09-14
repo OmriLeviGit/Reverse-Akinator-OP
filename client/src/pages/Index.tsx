@@ -1,61 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GameSetupForm from "../components/GameSetupForm";
 import { useAppContext } from "../contexts/AppContext";
 import { useGameSession } from "../hooks/useGameSession";
-import { useUserPreferences } from "../hooks/useUserPreferences";
+import { UserPreferences } from "../types/userPreferences";
 import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isStartingGame, setIsStartingGame] = useState(false);
 
-  const { sessionData, availableArcs, isLoading, charactersLoaded, updateGlobalArcLimit, globalArcLimit } =
-    useAppContext();
+  const { sessionData, availableArcs, isLoading, charactersLoaded, globalArcLimit } = useAppContext();
 
   const { startGame } = useGameSession();
-  const { preferences, updatePreferences } = useUserPreferences();
-
-  // Helper function to determine which arc is earlier
-  const getEarlierArc = (arc1: string, arc2: string): string => {
-    // If either arc is "All", return the other one (or "All" if both are "All")
-    if (arc1 === "All" && arc2 === "All") return "All";
-    if (arc1 === "All") return arc2;
-    if (arc2 === "All") return arc1;
-
-    // Find indices in the original availableArcs array (earlier arcs have lower indices)
-    const index1 = availableArcs.findIndex((arc) => arc.name === arc1);
-    const index2 = availableArcs.findIndex((arc) => arc.name === arc2);
-
-    // If either arc is not found, return the found one or fallback
-    if (index1 === -1 && index2 === -1) return globalArcLimit; // fallback
-    if (index1 === -1) return arc2;
-    if (index2 === -1) return arc1;
-
-    // Return the arc with the lower index (earlier in the series)
-    return index1 <= index2 ? arc1 : arc2;
-  };
-
-  // Handle arc selection with spoiler protection when globalArcLimit changes
-  useEffect(() => {
-    if (availableArcs.length === 0 || !globalArcLimit) {
-      return; // Wait for required data
-    }
-
-    // Apply spoiler protection to current preferredArc
-    const currentPreferredArc = preferences.preferredArc || globalArcLimit;
-    const safeArc = getEarlierArc(currentPreferredArc, globalArcLimit);
-
-    // Only update if the safe arc is different from current preference
-    if (safeArc !== preferences.preferredArc) {
-      console.log("🔍 Arc spoiler check:", {
-        currentPreferredArc,
-        globalArcLimit,
-        safeArc,
-      });
-      updatePreferences({ preferredArc: safeArc });
-    }
-  }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences]);
 
   // Show loading screen ONLY until essential data is loaded
   if (isLoading || !sessionData || availableArcs.length === 0) {
@@ -74,36 +31,7 @@ const Index = () => {
     );
   }
 
-
-  // Game setup handlers that update localStorage preferences
-  const handleDifficultyChange = (difficulty: "easy" | "medium" | "hard") => {
-    updatePreferences({ difficulty });
-  };
-
-  const handleIncludeUnratedChange = (includeUnrated: boolean) => {
-    updatePreferences({ includeUnrated });
-  };
-
-  const handleArcChange = (arc: string) => {
-    updatePreferences({ preferredArc: arc });
-  };
-
-  const handleFillerPercentageChange = (value: number) => {
-    if (value === 0) {
-      updatePreferences({
-        fillerPercentage: value,
-        includeNonTVFillers: false,
-      });
-    } else {
-      updatePreferences({ fillerPercentage: value });
-    }
-  };
-
-  const handleIncludeNonTVFillersChange = (include: boolean) => {
-    updatePreferences({ includeNonTVFillers: include });
-  };
-
-  const handleStart = async () => {
+  const handleStart = async (preferences: UserPreferences) => {
     if (!charactersLoaded) {
       console.log("⏳ Characters still loading, please wait...");
       toast.warning("Please wait for characters to finish loading...");
@@ -151,16 +79,6 @@ const Index = () => {
           <GameSetupForm
             globalArcLimit={globalArcLimit}
             availableArcs={availableArcs}
-            selectedDifficulty={preferences.difficulty}
-            onDifficultyChange={handleDifficultyChange}
-            includeUnrated={preferences.includeUnrated}
-            onIncludeUnratedChange={handleIncludeUnratedChange}
-            selectedArc={preferences.preferredArc}
-            onArcChange={handleArcChange}
-            fillerPercentage={preferences.fillerPercentage}
-            onFillerPercentageChange={handleFillerPercentageChange}
-            includeNonTVFillers={preferences.includeNonTVFillers}
-            onIncludeNonTVFillersChange={handleIncludeNonTVFillersChange}
             onStart={handleStart}
             isStartingGame={isStartingGame}
             charactersLoaded={charactersLoaded}

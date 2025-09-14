@@ -26,18 +26,17 @@ const savePreferencesToStorage = (preferences: UserPreferences) => {
 export const useUserPreferences = () => {
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     const loaded = loadPreferencesFromStorage();
-    console.log("🚀 useUserPreferences initializing:", loaded);
+    console.log("useUserPreferences initializing:", loaded);
     return loaded;
   });
 
-  const updatePreferences = useCallback(
-    (newPreferences: Partial<UserPreferences>) => {
-      const updatedPreferences = { ...preferences, ...newPreferences };
-      setPreferences(updatedPreferences);
+  const updatePreferences = useCallback((newPreferences: Partial<UserPreferences>) => {
+    setPreferences((prevPreferences) => {
+      const updatedPreferences = { ...prevPreferences, ...newPreferences };
       savePreferencesToStorage(updatedPreferences);
-    },
-    [preferences]
-  );
+      return updatedPreferences;
+    });
+  }, []);
 
   return {
     preferences,

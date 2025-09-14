@@ -1,4 +1,3 @@
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -52,11 +51,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <GameProvider>
-          <AppContent />
-        </GameProvider>
-      </TooltipProvider>
+      <GameProvider>
+        <AppContent />
+      </GameProvider>
     </QueryClientProvider>
   );
 };
