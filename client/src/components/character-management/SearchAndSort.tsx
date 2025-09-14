@@ -10,12 +10,12 @@ interface SearchAndSortProps {
   onSortChange: (value: SortOption) => void;
 }
 
-export const SearchAndSort: React.FC<SearchAndSortProps> = ({
+export const SearchAndSort = ({
   searchTerm,
   sortOption,
   onSearchChange,
   onSortChange,
-}) => {
+}: SearchAndSortProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">

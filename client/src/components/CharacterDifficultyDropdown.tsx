@@ -9,11 +9,11 @@ interface CharacterDifficultyDropdownProps {
   size?: "default" | "small";
 }
 
-const CharacterDifficultyDropdown: React.FC<CharacterDifficultyDropdownProps> = ({
+const CharacterDifficultyDropdown = ({
   character,
   onRatingChange,
   size = "default",
-}) => {
+}: CharacterDifficultyDropdownProps) => {
   const isSmall = size === "small";
 
   return (

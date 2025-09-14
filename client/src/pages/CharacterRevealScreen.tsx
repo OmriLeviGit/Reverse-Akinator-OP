@@ -21,7 +21,7 @@ interface RevealData {
   wasCorrectGuess?: boolean;
 }
 
-const CharacterRevealScreen: React.FC = () => {
+const CharacterRevealScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { startGame } = useGameSession();

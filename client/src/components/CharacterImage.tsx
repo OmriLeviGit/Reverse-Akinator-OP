@@ -8,12 +8,12 @@ interface CharacterImageProps {
   maxWidth?: number;
 }
 
-export const CharacterImage: React.FC<CharacterImageProps> = ({
+export const CharacterImage = ({
   character,
   size = "small",
   className = "",
   maxWidth,
-}) => {
+}: CharacterImageProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [usingFallback, setUsingFallback] = useState(false);

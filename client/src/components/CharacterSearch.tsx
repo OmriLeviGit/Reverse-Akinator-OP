@@ -11,11 +11,11 @@ interface CharacterSearchProps {
   onClose: () => void;
 }
 
-const CharacterSearch: React.FC<CharacterSearchProps> = ({
+const CharacterSearch = ({
   characters, // Use the prop
   onCharacterSelect,
   onClose,
-}) => {
+}: CharacterSearchProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 

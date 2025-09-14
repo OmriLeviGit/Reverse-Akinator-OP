@@ -11,11 +11,11 @@ interface CharacterIgnoreButtonProps {
   variant?: "full" | "compact";
 }
 
-const CharacterIgnoreButton: React.FC<CharacterIgnoreButtonProps> = ({
+const CharacterIgnoreButton = ({
   character,
   onIgnoreToggle,
   variant = "full",
-}) => {
+}: CharacterIgnoreButtonProps) => {
   const isCompact = variant === "compact";
 
   return (

@@ -23,7 +23,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const GameProvider = ({ children }: { children: ReactNode }) => {
   const { sessionData, availableArcs, isLoading, updateGlobalArcLimit, refreshInitialData } = useSessionData();
 
   const [globalArcLimit, setGlobalArcLimit] = useState<string>(() => {

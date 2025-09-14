@@ -6,7 +6,7 @@ import { useGameGuess } from "../hooks/useGameGuess";
 import { ChatArea } from "../components/game/ChatArea";
 import { CharacterSidebar } from "../components/game/CharacterSidebar";
 
-const GameScreen: React.FC = () => {
+const GameScreen = () => {
   const { sessionData, availableArcs, updateGlobalArcLimit } = useAppContext();
 
   // Use the combined useGameSession hook that includes chat

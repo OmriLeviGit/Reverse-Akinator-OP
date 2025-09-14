@@ -15,14 +15,14 @@ interface CharacterListProps {
   totalCharacters: number;
 }
 
-export const CharacterList: React.FC<CharacterListProps> = ({
+export const CharacterList = ({
   characters,
   isLoading,
   searchTerm,
   onSearchChange,
   onCharacterSelect,
   totalCharacters,
-}) => {
+}: CharacterListProps) => {
   return (
     <TooltipProvider>
       <div className="h-full flex flex-col">

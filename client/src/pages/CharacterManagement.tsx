@@ -6,7 +6,7 @@ import { CharacterFilters } from "../components/character-management/CharacterFi
 import { VirtualizedCharacterGrid } from "../components/character-management/VirtualizedCharacterGrid";
 import { IgnoreFilter, ContentFilter, RatingFilter, SortOption } from "../types/characterFilters";
 
-const CharacterManagement: React.FC = () => {
+const CharacterManagement = () => {
   const { characters, isLoading, sessionData, availableArcs, updateGlobalArcLimit, globalArcLimit } = useAppContext();
   const { setCharacterRating, toggleIgnoreCharacter } = useCharacterRatings();
 

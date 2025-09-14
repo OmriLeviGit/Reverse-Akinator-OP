@@ -17,7 +17,7 @@ interface ChatAreaProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({
+export const ChatArea = ({
   messages,
   inputMessage,
   setInputMessage,
@@ -26,7 +26,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   handleSendMessage,
   textareaRef,
   messagesEndRef,
-}) => {
+}: ChatAreaProps) => {
   return (
     <Card className="flex-1 flex flex-col border-border/40 shadow-sm overflow-hidden">
       {/* Messages Area */}

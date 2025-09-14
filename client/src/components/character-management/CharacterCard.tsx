@@ -10,7 +10,7 @@ interface CharacterCardProps {
   onIgnoreToggle: (characterId: string) => void;
 }
 
-export const CharacterCard: React.FC<CharacterCardProps> = ({ character, onRatingChange, onIgnoreToggle }) => {
+export const CharacterCard = ({ character, onRatingChange, onIgnoreToggle }: CharacterCardProps) => {
   const getFillerStatusDisplay = (status: string) => {
     switch (status) {
       case "Canon":

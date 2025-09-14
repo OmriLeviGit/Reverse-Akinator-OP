@@ -25,7 +25,7 @@ interface CharacterSidebarProps {
   onCharacterSelect: (characterName: string) => void;
 }
 
-export const CharacterSidebar: React.FC<CharacterSidebarProps> = ({ gameCharacters, onCharacterSelect }) => {
+export const CharacterSidebar = ({ gameCharacters, onCharacterSelect }: CharacterSidebarProps) => {
   const navigate = useNavigate();
   const { revealCharacter } = useGameSession();
   const [characterSearchTerm, setCharacterSearchTerm] = React.useState("");

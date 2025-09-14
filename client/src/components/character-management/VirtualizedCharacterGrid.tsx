@@ -10,12 +10,12 @@ interface VirtualizedCharacterGridProps {
   itemsPerPage?: number;
 }
 
-export const VirtualizedCharacterGrid: React.FC<VirtualizedCharacterGridProps> = ({
+export const VirtualizedCharacterGrid = ({
   characters,
   onRatingChange,
   onIgnoreToggle,
   itemsPerPage = 20,
-}) => {
+}: VirtualizedCharacterGridProps) => {
   const [visibleCharacters, setVisibleCharacters] = useState<BasicCharacter[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);

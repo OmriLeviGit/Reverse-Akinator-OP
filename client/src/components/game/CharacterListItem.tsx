@@ -10,7 +10,7 @@ interface CharacterListItemProps {
   disabled?: boolean;
 }
 
-export const CharacterListItem: React.FC<CharacterListItemProps> = ({ character, onSelect, disabled = false }) => {
+export const CharacterListItem = ({ character, onSelect, disabled = false }: CharacterListItemProps) => {
   const [isHovering, setIsHovering] = React.useState(false);
   const [previewPosition, setPreviewPosition] = React.useState({ x: 0, y: 0 });
   const [forceHide, setForceHide] = React.useState(false);

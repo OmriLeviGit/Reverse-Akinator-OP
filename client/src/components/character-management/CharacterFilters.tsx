@@ -22,7 +22,7 @@ interface CharacterFiltersProps {
   totalCount: number;
 }
 
-export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
+export const CharacterFilters = ({
   searchTerm,
   onSearchChange,
   ignoreFilter,
@@ -37,7 +37,7 @@ export const CharacterFilters: React.FC<CharacterFiltersProps> = ({
   onSortOptionChange,
   filteredCount,
   totalCount,
-}) => {
+}: CharacterFiltersProps) => {
   // Check if non-TV content should be disabled
   const isNonTVContentDisabled = contentFilter === "canon-only";
 

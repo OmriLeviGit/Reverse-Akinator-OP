@@ -1,5 +1,6 @@
+import { SessionData } from "@/types";
 import { cookieUtils } from "../utils/cookies";
-import { SessionData, UserPreferences } from "../types";
+import { UserPreferences } from "@/types/userPreferences";
 
 export const sessionService = {
   loadSavedPreferences: (): UserPreferences => {
