@@ -75,6 +75,13 @@ if os.path.exists("client/dist"):
     app.mount("/img", StaticFiles(directory="client/dist/img"), name="images")
 
 
+@app.get("/favicon.ico")
+def favicon():
+    if os.path.exists("client/dist/favicon.ico"):
+        return FileResponse("client/dist/favicon.ico")
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+
 @app.get("/")
 def serve_frontend():
     if os.path.exists("client/dist/index.html"):
