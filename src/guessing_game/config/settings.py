@@ -5,7 +5,7 @@ from pathlib import Path
 # Project paths - for src/guessing_game structure
 BASE_DIR = Path(__file__).parent.parent  # src/guessing_game/
 SRC_DIR = BASE_DIR.parent                # src/
-PROJECT_ROOT = SRC_DIR.parent            # guess_game/ (project root)
+PROJECT_ROOT = SRC_DIR.parent            # guessing_game/ (project root)
 
 # Data directories
 DATA_DIR = BASE_DIR / "data"

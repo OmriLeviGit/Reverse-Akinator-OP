@@ -1,6 +1,5 @@
 adding metadata to the vector db:
-- attempt to get the first main arc a character appeared
-- add a tag to each paragraph (which arc does this info belong to if it occurred in a specific arc)
+- attempt to get the first *main* arc a character appeared, isntead first actual appearance (for the anti spoiler mechanism)
 
 ---
 rag and chroma:
@@ -13,4 +12,4 @@ logic:
 - make search use epithet and alias
 
 performance:
-- create a test suite
+- create a test suite for prompts

@@ -16,7 +16,7 @@ from pathlib import Path
 
 # Get paths relative to bootstrap tools directory
 BOOTSTRAP_DIR = Path(__file__).parent  # scripts/bootstrap_tools/
-PROJECT_ROOT = BOOTSTRAP_DIR.parent.parent  # guess_game/
+PROJECT_ROOT = BOOTSTRAP_DIR.parent.parent  # guessing_game/
 
 # Add src to path so we can import from the main app
 src_path = PROJECT_ROOT / "src"

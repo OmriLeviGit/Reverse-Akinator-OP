@@ -33,6 +33,10 @@ class LLMService:
     def set_model(self, provider: str, **kwargs) -> BaseLanguageModel:
         """Set the current model. LangChain handles the interface consistency."""
         if provider == 'gemini':
+            if not os.getenv('GEMINI_API_KEY'):
+                print("WARNING: GEMINI_API_KEY is not set. LLM functionality will not work.")
+                return None
+
             model = kwargs.pop('model', 'gemini-2.5-flash')
             temperature = kwargs.pop('temperature', 0.1)
 
@@ -57,6 +61,9 @@ class LLMService:
         Raw LLM generation - returns exactly what the model outputs.
         Use for general text generation, descriptions, fun facts, etc.
         """
+        if not os.getenv('GEMINI_API_KEY'):
+            raise RuntimeError("API key is required. Please set GEMINI_API_KEY environment variable.")
+
         if not self._current_model:
             raise RuntimeError("No model set. Call set_model() first.")
 
@@ -80,8 +87,10 @@ class LLMService:
         """
         Game-specific method that uses structured output via function calling.
         Returns dict with 'reasoning' and 'answer' fields.
-        Much more reliable than JSON parsing - 99%+ success rate.
         """
+        if not os.getenv('GEMINI_API_KEY'):
+            raise RuntimeError("API key is required. Please set GEMINI_API_KEY environment variable.")
+
         if not self._game_model:
             raise RuntimeError("No model set. Call set_model() first.")
 

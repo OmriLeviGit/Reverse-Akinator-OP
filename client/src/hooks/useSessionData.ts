@@ -5,7 +5,6 @@ import { sessionService } from "../services/sessionService";
 import { SessionData, Arc } from "../types";
 
 export const useSessionData = () => {
-  const queryClient = useQueryClient();
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [availableArcs, setAvailableArcs] = useState<Arc[]>([]);
 
