@@ -34,6 +34,10 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 # Game settings
 GAME_TTL = 3600  # 1 hour TTL for games
 
+# LLM settings
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "gemini")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
+
 # Environment
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

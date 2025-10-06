@@ -6,9 +6,8 @@ from langchain_core.tools import tool
 from typing import Literal
 
 import time
-import os
+import os, sys
 from collections import defaultdict, deque
-
 
 class LLMService:
     def __init__(self):
@@ -30,14 +29,13 @@ class LLMService:
 
         return game_answer
 
-    def set_model(self, provider: str, **kwargs) -> BaseLanguageModel:
+    def set_model(self, provider: str, model: str, **kwargs) -> BaseLanguageModel | None:
         """Set the current model. LangChain handles the interface consistency."""
         if provider == 'gemini':
             if not os.getenv('GEMINI_API_KEY'):
                 print("WARNING: GEMINI_API_KEY is not set. LLM functionality will not work.")
                 return None
 
-            model = kwargs.pop('model', 'gemini-2.5-flash')
             temperature = kwargs.pop('temperature', 0.1)
 
             # Create base model
@@ -72,7 +70,6 @@ class LLMService:
             violation_count = self._violations[user_id]
             if violation_count >= 3:
                 print(f"CRITICAL: User {user_id} exceeded rate limit 3 times. Shutting down server.")
-                import sys
                 sys.exit(1)
             raise RuntimeError(
                 f"Rate limit exceeded ({violation_count}/3 violations). Server will shutdown after 3 violations.")
@@ -99,14 +96,13 @@ class LLMService:
             violation_count = self._violations[user_id]
             if violation_count >= 3:
                 print(f"CRITICAL: User {user_id} exceeded rate limit 3 times. Shutting down server.")
-                import sys
                 sys.exit(1)
             raise RuntimeError(
                 f"Rate limit exceeded ({violation_count}/3 violations). Server will shutdown after 3 violations.")
 
         try:
             # Add instruction to use the tool
-
+            start_time = time.time()
             response = self._game_model.invoke(
                 prompt,
                 tool_config={
@@ -115,6 +111,8 @@ class LLMService:
                     }
                 }
             )
+            elapsed_time = time.time() - start_time
+            print(f"LLM response time: {elapsed_time:.3f} seconds")
 
             # Extract the function call result
             if hasattr(response, 'tool_calls') and response.tool_calls:

@@ -47,18 +47,9 @@ export const ChatArea = ({
             <div className="flex justify-start">
               <div className="bg-muted text-muted-foreground rounded-lg px-3 sm:px-4 py-2">
                 <div className="flex items-center justify-center space-x-1">
-                  <div
-                    className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"
-                    style={{ animationDelay: "0s", animationDuration: "1s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"
-                    style={{ animationDelay: "0.2s", animationDuration: "1s" }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"
-                    style={{ animationDelay: "0.4s", animationDuration: "1s" }}
-                  ></div>
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0s] [animation-duration:1s]"></div>
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.2s] [animation-duration:1s]"></div>
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.4s] [animation-duration:1s]"></div>
                 </div>
               </div>
             </div>
@@ -90,8 +81,7 @@ export const ChatArea = ({
                 handleSendMessage();
               }
             }}
-            className="flex-1 min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none overflow-y-auto text-sm sm:text-base"
-            style={{ fontSize: "16px" }}
+            className="flex-1 min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none overflow-y-auto text-sm sm:text-base [font-size:16px]"
             rows={1}
             maxLength={200}
           />
