@@ -67,7 +67,6 @@ export const gameApi = {
     const response = await api.post("/game/reveal", { gameId });
     return response.data;
   },
-
 };
 
 // Character Data API
@@ -89,9 +88,9 @@ export const characterApi = {
   },
 
   toggleIgnoreCharacter: async (characterId: string) => {
-    console.log("req", "/characters/toggle-ignore", { characterId });
+    // console.log("req", "/characters/toggle-ignore", { characterId });
     const response = await api.post("/characters/toggle-ignore", { characterId });
-    console.log(characterId, response);
+    // console.log(characterId, response);
     return response.data;
   },
 

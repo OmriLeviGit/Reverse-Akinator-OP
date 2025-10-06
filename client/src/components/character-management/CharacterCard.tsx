@@ -40,7 +40,7 @@ export const CharacterCard = ({ character, onRatingChange, onIgnoreToggle }: Cha
 
   return (
     <div
-      className={`bg-card rounded-xl p-4 border border-border transition-all duration-200 ${
+      className={`bg-card rounded-xl p-4 border border-border transition-opacity duration-100 ${
         character.isIgnored ? "opacity-60" : ""
       }`}
     >
@@ -48,35 +48,20 @@ export const CharacterCard = ({ character, onRatingChange, onIgnoreToggle }: Cha
       <div className="text-center mb-3">
         {/* Character Name - Clickable - Now supports 2 lines */}
         {character.wikiLink ? (
-          <a href={character.wikiLink} target="_blank" rel="noopener noreferrer" className="block">
-            <h3
-              className="text-lg font-bold text-foreground mb-1 transition-colors leading-tight"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                minHeight: "2.5rem",
-                lineHeight: "1.25rem",
-              }}
-              title={character.name}
-            >
+          <a
+            href={character.wikiLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+            title={`View ${character.name} on wiki`}
+            aria-label={`View ${character.name} on wiki`}
+          >
+            <h3 className="text-lg font-bold text-foreground mb-1 transition-colors leading-tight line-clamp-2 min-h-[2.5rem]">
               {character.name}
             </h3>
           </a>
         ) : (
-          <h3
-            className="text-lg font-bold text-foreground mb-1 leading-tight"
-            style={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              minHeight: "2.5rem",
-              lineHeight: "1.25rem",
-            }}
-            title={character.name}
-          >
+          <h3 className="text-lg font-bold text-foreground mb-1 leading-tight line-clamp-2 min-h-[2.5rem]">
             {character.name}
           </h3>
         )}
@@ -89,6 +74,8 @@ export const CharacterCard = ({ character, onRatingChange, onIgnoreToggle }: Cha
               target="_blank"
               rel="noopener noreferrer"
               className="block hover:opacity-80 transition-opacity"
+              title={`View ${character.name} on wiki`}
+              aria-label={`View ${character.name} image on wiki`}
             >
               <CharacterImage character={character} size="medium" />
             </a>
