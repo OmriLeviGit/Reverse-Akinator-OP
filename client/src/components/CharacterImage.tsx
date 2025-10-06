@@ -68,10 +68,9 @@ export const CharacterImage = ({
     }
   };
 
-  // Calculate responsive dimensions for large images
-  const getImageStyle = (): React.CSSProperties => {
+  const getImageDimensions = (): { width: string; height: string } | null => {
     if (size !== "large" || !imageDimensions || !containerRef.current) {
-      return {};
+      return null;
     }
 
     const container = containerRef.current;
@@ -79,28 +78,20 @@ export const CharacterImage = ({
     const { width: naturalWidth, height: naturalHeight } = imageDimensions;
     const aspectRatio = naturalWidth / naturalHeight;
 
-    // Use maxWidth if provided, otherwise fall back to container width
     const effectiveMaxWidth = maxWidth || container.clientWidth;
-
-    // Calculate width based on natural aspect ratio and container height
     const calculatedWidth = containerHeight * aspectRatio;
 
-    // If calculated width exceeds max width, constrain by width and calculate corresponding height
     if (calculatedWidth > effectiveMaxWidth) {
       const constrainedHeight = effectiveMaxWidth / aspectRatio;
       return {
         width: `${effectiveMaxWidth}px`,
         height: `${constrainedHeight}px`,
-        objectFit: "cover" as const,
-        objectPosition: "center top",
       };
     }
 
     return {
       width: `${calculatedWidth}px`,
       height: "100%",
-      objectFit: "cover" as const,
-      objectPosition: "center top",
     };
   };
 
@@ -134,13 +125,17 @@ export const CharacterImage = ({
       {/* Actual image */}
       <img
         ref={imgRef}
-        key={`${character.id}-${usingFallback}`} // Force re-render when switching to fallback
+        key={`${character.id}-${usingFallback}`}
         src={currentImagePath}
         alt={character.name}
         className={`${
-          size === "large" ? "rounded-lg" : "w-full h-full object-cover rounded-lg"
+          size === "large" ? "rounded-lg object-cover object-[center_top]" : "w-full h-full object-cover rounded-lg"
         } transition-opacity duration-200 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-        style={size === "large" ? getImageStyle() : undefined}
+        style={
+          size === "large" && getImageDimensions()
+            ? { width: getImageDimensions()!.width, height: getImageDimensions()!.height }
+            : undefined
+        }
         onLoad={handleImageLoad}
         onError={handleImageError}
       />

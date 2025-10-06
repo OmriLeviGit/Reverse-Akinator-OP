@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import { useCharacterRatings } from "@/hooks/useCharacterRatings";
 import { FullCharacter } from "../types/character";
 import { toast } from "sonner";
 import CharacterIgnoreButton from "@/components/CharacterIgnoreButton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RevealData {
   character: FullCharacter;
@@ -32,37 +31,49 @@ const CharacterRevealScreen = () => {
 
   // Get data directly from navigation state
   const revealData = location.state as RevealData | null;
-
-  // Handle the case where data might be null
-  if (!revealData?.character) {
-    useEffect(() => {
-      navigate("/");
-    }, [navigate]);
-    return null;
-  }
-
-  const { character: originalCharacter, questionsAsked, guessesMade, wasCorrectGuess } = revealData;
+  const originalCharacter = revealData?.character;
+  const questionsAsked = revealData?.questionsAsked;
+  const guessesMade = revealData?.guessesMade;
+  const wasCorrectGuess = revealData?.wasCorrectGuess;
 
   // Merge original full character data with live ratings/ignore status
-  const liveCharacterData = getCharacterById(originalCharacter.id);
-  const [character, setCharacter] = useState<FullCharacter>(() => ({
-    ...originalCharacter,
-    ...(liveCharacterData && {
-      difficulty: liveCharacterData.difficulty,
-      isIgnored: liveCharacterData.isIgnored,
-    }),
-  }));
+  const liveCharacterData = originalCharacter ? getCharacterById(originalCharacter.id) : null;
+  const [character, setCharacter] = useState<FullCharacter | null>(() =>
+    originalCharacter
+      ? {
+          ...originalCharacter,
+          ...(liveCharacterData && {
+            difficulty: liveCharacterData.difficulty,
+            isIgnored: liveCharacterData.isIgnored,
+          }),
+        }
+      : null
+  );
 
   // Update character when live data changes
   useEffect(() => {
-    setCharacter({
-      ...originalCharacter,
-      ...(liveCharacterData && {
-        difficulty: liveCharacterData.difficulty,
-        isIgnored: liveCharacterData.isIgnored,
-      }),
-    });
+    if (originalCharacter) {
+      setCharacter({
+        ...originalCharacter,
+        ...(liveCharacterData && {
+          difficulty: liveCharacterData.difficulty,
+          isIgnored: liveCharacterData.isIgnored,
+        }),
+      });
+    }
   }, [originalCharacter, liveCharacterData]);
+
+  // Redirect if no character data
+  useEffect(() => {
+    if (!originalCharacter) {
+      navigate("/");
+    }
+  }, [originalCharacter, navigate]);
+
+  // Handle the case where data might be null
+  if (!character) {
+    return null;
+  }
 
   const handleRatingChange = (characterId: string, difficulty: string | null) => {
     const difficultyValue = difficulty || "";
@@ -87,8 +98,16 @@ const CharacterRevealScreen = () => {
 
       await startGame(gameSettings);
       navigate("/game");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || "Failed to start new game";
+    } catch (error: unknown) {
+      let errorMessage = "Failed to start new game";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { data?: { detail?: string } }; message?: string };
+        errorMessage = axiosError.response?.data?.detail || axiosError.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       toast.error(errorMessage);
       navigate("/");
     } finally {

@@ -22,10 +22,12 @@ class ArcService:
             if arc.name == "All":
                 arc_list = session.query(DBArc).all()
             else:
-                arc_list = session.query(DBArc).filter(
-                    DBArc.last_chapter <= arc.chapter,
-                    DBArc.last_episode <= arc.episode
-                ).all()
+                query = session.query(DBArc)
+                if arc.chapter is not None:
+                    query = query.filter(DBArc.last_chapter <= arc.chapter)
+                if arc.episode is not None:
+                    query = query.filter(DBArc.last_episode <= arc.episode)
+                arc_list = query.all()
             return [db_arc.to_pydantic() for db_arc in arc_list]
 
     def get_forbidden_arcs(self, global_arc_limit: Arc) -> list[Arc]:

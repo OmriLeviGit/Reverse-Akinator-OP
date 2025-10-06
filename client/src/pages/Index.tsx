@@ -55,8 +55,16 @@ const Index = () => {
       console.log("✅ Game started successfully:", gameSession);
 
       navigate("/game");
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.detail || error.message || "Something went wrong. Please try again.";
+    } catch (error: unknown) {
+      let errorMessage = "Something went wrong. Please try again.";
+
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { data?: { detail?: string } }; message?: string };
+        errorMessage = axiosError.response?.data?.detail || axiosError.message || errorMessage;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       toast.error(errorMessage);
     } finally {
       setIsStartingGame(false);

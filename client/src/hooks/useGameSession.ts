@@ -4,6 +4,7 @@ import { useAppContext } from "../contexts/AppContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback, useRef, useEffect } from "react";
+import { GameSettings } from "@/types";
 
 export interface Message {
   id: string;
@@ -104,7 +105,7 @@ export const useGameSession = () => {
     }
   }, [currentGameSession?.gameId, handleInvalidSession, navigate]);
 
-  const startGame = async (settings: any) => {
+  const startGame = async (settings: GameSettings) => {
     try {
       const response = await gameApi.startGame(settings);
       const gameSession = {
@@ -148,19 +149,22 @@ export const useGameSession = () => {
     try {
       const response = await gameApi.askQuestion(currentGameSession.gameId, question);
       return response.answer;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to ask question:", error);
 
       // Check for session validation errors
-      if (error.response?.status === 400) {
-        const errorMessage = error.response?.data?.detail || "";
-        if (
-          errorMessage.includes("No active game") ||
-          errorMessage.includes("Game ID mismatch") ||
-          errorMessage.includes("Game data not found")
-        ) {
-          handleInvalidSession();
-          return "";
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { status?: number; data?: { detail?: string } } };
+        if (axiosError.response?.status === 400) {
+          const errorMessage = axiosError.response?.data?.detail || "";
+          if (
+            errorMessage.includes("No active game") ||
+            errorMessage.includes("Game ID mismatch") ||
+            errorMessage.includes("Game data not found")
+          ) {
+            handleInvalidSession();
+            return "";
+          }
         }
       }
 
@@ -177,19 +181,22 @@ export const useGameSession = () => {
     try {
       const response = await gameApi.makeGuess(currentGameSession.gameId, characterName);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to make guess:", error);
 
       // Check for session validation errors
-      if (error.response?.status === 400) {
-        const errorMessage = error.response?.data?.detail || "";
-        if (
-          errorMessage.includes("No active game") ||
-          errorMessage.includes("Game ID mismatch") ||
-          errorMessage.includes("Game data not found")
-        ) {
-          handleInvalidSession();
-          return { isCorrect: false };
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { status?: number; data?: { detail?: string } } };
+        if (axiosError.response?.status === 400) {
+          const errorMessage = axiosError.response?.data?.detail || "";
+          if (
+            errorMessage.includes("No active game") ||
+            errorMessage.includes("Game ID mismatch") ||
+            errorMessage.includes("Game data not found")
+          ) {
+            handleInvalidSession();
+            return { isCorrect: false };
+          }
         }
       }
 
@@ -207,19 +214,22 @@ export const useGameSession = () => {
       const response = await gameApi.revealCharacter(currentGameSession.gameId);
       setCurrentGameSession(null); // Clear session after reveal
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to reveal character:", error);
 
       // Check for session validation errors
-      if (error.response?.status === 400) {
-        const errorMessage = error.response?.data?.detail || "";
-        if (
-          errorMessage.includes("No active game") ||
-          errorMessage.includes("Game ID mismatch") ||
-          errorMessage.includes("Game data not found")
-        ) {
-          handleInvalidSession();
-          return null;
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { status?: number; data?: { detail?: string } } };
+        if (axiosError.response?.status === 400) {
+          const errorMessage = axiosError.response?.data?.detail || "";
+          if (
+            errorMessage.includes("No active game") ||
+            errorMessage.includes("Game ID mismatch") ||
+            errorMessage.includes("Game data not found")
+          ) {
+            handleInvalidSession();
+            return null;
+          }
         }
       }
 
@@ -242,11 +252,12 @@ export const useGameSession = () => {
       const answer = await askQuestion(cleanedMessage);
 
       if (answer === "") {
+        setIsProcessingChat(false);
         return; // Session invalid, handled by useGameSession
       }
 
       await waitForMinimumDelay(userMessageTime);
-      
+
       // Add AI response directly
       addMessage(answer, false);
 

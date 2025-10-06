@@ -43,7 +43,7 @@ const AppContent = () => {
         </Routes>
       </Layout>
       <GlobalSpoilerModal />
-      <Toaster position="top-right" />
+      <Toaster position="top-right" duration={2000} />
     </BrowserRouter>
   );
 };

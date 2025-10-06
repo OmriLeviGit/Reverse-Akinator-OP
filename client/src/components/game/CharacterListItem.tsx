@@ -16,7 +16,7 @@ export const CharacterListItem = ({ character, onSelect, disabled = false }: Cha
   const [forceHide, setForceHide] = React.useState(false);
   const triggerRef = React.useRef<HTMLDivElement>(null);
   const hideTimeoutRef = React.useRef<NodeJS.Timeout>();
-  
+
   const debouncedHovering = useDebounce(isHovering, 500);
   const showPreview = debouncedHovering && !forceHide;
 
@@ -57,24 +57,24 @@ export const CharacterListItem = ({ character, onSelect, disabled = false }: Cha
   };
 
   const handleMouseLeave = (e: React.MouseEvent) => {
-    // Stop hovering immediately (debounce will handle hiding)
-    setIsHovering(false);
-    
     // Small delay to allow moving to preview content
     hideTimeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
       setForceHide(true);
     }, 200);
   };
 
   const handlePreviewMouseEnter = () => {
-    // Clear force hide timeout when hovering preview
+    // Clear timeout and keep hovering when mouse enters preview
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);
     }
+    setIsHovering(true);
     setForceHide(false);
   };
 
   const handlePreviewMouseLeave = () => {
+    setIsHovering(false);
     setForceHide(true);
   };
 
@@ -120,12 +120,8 @@ export const CharacterListItem = ({ character, onSelect, disabled = false }: Cha
 
       {showPreview && (
         <div
-          className="fixed z-50 pointer-events-auto"
-          style={{
-            left: previewPosition.x,
-            top: previewPosition.y,
-            transform: "translateY(-50%)",
-          }}
+          className="fixed z-50 pointer-events-auto -translate-y-1/2"
+          style={{ left: `${previewPosition.x}px`, top: `${previewPosition.y}px` }}
           onMouseEnter={handlePreviewMouseEnter}
           onMouseLeave={handlePreviewMouseLeave}
         >
@@ -140,10 +136,7 @@ export const CharacterListItem = ({ character, onSelect, disabled = false }: Cha
               >
                 <CharacterImage character={character} size="medium" />
                 <div className="absolute bottom-0 left-0 right-0 bg-black/10 backdrop-blur-sm px-2 py-1 rounded-b-lg">
-                  <p
-                    className="text-sm font-semibold text-white text-center break-words"
-                    style={{ textShadow: "0 0 1px black, 0 0 1px black" }}
-                  >
+                  <p className="text-sm font-semibold text-white text-center break-words [text-shadow:_0_0_1px_black,_0_0_1px_black]">
                     {character.name}
                   </p>
                 </div>
@@ -152,10 +145,7 @@ export const CharacterListItem = ({ character, onSelect, disabled = false }: Cha
               <div className="relative rounded-lg overflow-hidden">
                 <CharacterImage character={character} size="medium" />
                 <div className="absolute bottom-0 left-0 right-0 bg-black/10 backdrop-blur-sm px-2 py-1 rounded-b-lg">
-                  <p
-                    className="text-sm font-semibold text-white text-center break-words"
-                    style={{ textShadow: "0 0 1px black, 0 0 1px black" }}
-                  >
+                  <p className="text-sm font-semibold text-white text-center break-words [text-shadow:_0_0_1px_black,_0_0_1px_black]">
                     {character.name}
                   </p>
                 </div>

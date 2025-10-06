@@ -11,3 +11,11 @@ export interface GameReveal {
   questionsAsked: number;
   guessesMade: number;
 }
+
+export interface GameSettings {
+  arcSelection: string;
+  fillerPercentage: number;
+  includeNonTVFillers: boolean;
+  difficultyLevel: string;
+  includeUnrated: boolean;
+}

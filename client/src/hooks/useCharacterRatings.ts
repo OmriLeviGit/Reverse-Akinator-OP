@@ -1,6 +1,15 @@
 import { characterApi } from "@/services/api";
 import { BasicCharacter } from "@/types/character";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, QueryKey } from "@tanstack/react-query";
+
+interface CharactersQueryData {
+  characters: BasicCharacter[];
+}
+
+interface PreviousDataEntry {
+  queryKey: QueryKey;
+  data: unknown;
+}
 
 export const useCharacterRatings = () => {
   const queryClient = useQueryClient();
@@ -10,18 +19,19 @@ export const useCharacterRatings = () => {
       characterApi.rateCharacter(characterId, difficulty),
     onMutate: async ({ characterId, difficulty }) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
-      const previousData: any[] = [];
+      const previousData: PreviousDataEntry[] = [];
 
       // Update all matching query keys
       queryClient.getQueryCache().findAll({ queryKey: ["allCharacters"] }).forEach(query => {
         const oldData = queryClient.getQueryData(query.queryKey);
         previousData.push({ queryKey: query.queryKey, data: oldData });
 
-        queryClient.setQueryData(query.queryKey, (old: any) => {
-          if (!old || !old.characters) return old;
+        queryClient.setQueryData(query.queryKey, (old: unknown) => {
+          if (!old || typeof old !== "object" || !("characters" in old)) return old;
+          const typedOld = old as CharactersQueryData;
           return {
-            ...old,
-            characters: old.characters.map((char: BasicCharacter) =>
+            ...typedOld,
+            characters: typedOld.characters.map((char: BasicCharacter) =>
               char.id === characterId ? { ...char, difficulty } : char
             ),
           };
@@ -43,18 +53,19 @@ export const useCharacterRatings = () => {
     mutationFn: characterApi.toggleIgnoreCharacter,
     onMutate: async (characterId: string) => {
       await queryClient.cancelQueries({ queryKey: ["allCharacters"] });
-      const previousData: any[] = [];
+      const previousData: PreviousDataEntry[] = [];
 
       // Update all matching query keys
       queryClient.getQueryCache().findAll({ queryKey: ["allCharacters"] }).forEach(query => {
         const oldData = queryClient.getQueryData(query.queryKey);
         previousData.push({ queryKey: query.queryKey, data: oldData });
 
-        queryClient.setQueryData(query.queryKey, (old: any) => {
-          if (!old || !old.characters) return old;
+        queryClient.setQueryData(query.queryKey, (old: unknown) => {
+          if (!old || typeof old !== "object" || !("characters" in old)) return old;
+          const typedOld = old as CharactersQueryData;
           return {
-            ...old,
-            characters: old.characters.map((char: BasicCharacter) =>
+            ...typedOld,
+            characters: typedOld.characters.map((char: BasicCharacter) =>
               char.id === characterId ? { ...char, isIgnored: !char.isIgnored } : char
             ),
           };
@@ -85,9 +96,10 @@ export const useCharacterRatings = () => {
       // Find the first matching query and get the character from it
       const queries = queryClient.getQueryCache().findAll({ queryKey: ["allCharacters"] });
       for (const query of queries) {
-        const data = queryClient.getQueryData(query.queryKey) as any;
-        if (data?.characters) {
-          const character = data.characters.find((char: BasicCharacter) => char.id === characterId);
+        const data = queryClient.getQueryData(query.queryKey);
+        if (data && typeof data === "object" && "characters" in data) {
+          const typedData = data as CharactersQueryData;
+          const character = typedData.characters.find((char: BasicCharacter) => char.id === characterId);
           if (character) return character;
         }
       }

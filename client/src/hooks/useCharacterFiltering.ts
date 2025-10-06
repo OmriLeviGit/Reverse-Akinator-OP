@@ -71,15 +71,7 @@ export const useCharacterFiltering = ({
     }
 
     return filtered;
-  }, [
-    allCharacters,
-    ignoreFilter,
-    contentFilter,
-    ratingFilter,
-    includeNonTVContent,
-    ignoredCharacters,
-    characterRatings,
-  ]);
+  }, [allCharacters, ignoreFilter, contentFilter, ratingFilter, includeNonTVContent, characterRatings]);
 
   // Apply search using the extracted hook (uses 0.2 threshold by default)
   const searchedCharacters = useCharacterSearch({

@@ -1,4 +1,4 @@
-import { SessionData } from "@/types";
+import { SessionData, Arc } from "@/types";
 import { cookieUtils } from "../utils/cookies";
 import { UserPreferences } from "@/types/userPreferences";
 
@@ -27,7 +27,7 @@ export const sessionService = {
     cookieUtils.setCookie("sessionData", JSON.stringify(sessionData));
   },
 
-  saveAvailableArcs: (arcs: any[]) => {
+  saveAvailableArcs: (arcs: Arc[]) => {
     cookieUtils.setCookie("availableArcs", JSON.stringify(arcs));
   },
 
@@ -43,7 +43,7 @@ export const sessionService = {
     return null;
   },
 
-  loadAvailableArcsFromCookie: (): any[] => {
+  loadAvailableArcsFromCookie: (): Arc[] => {
     const savedArcs = cookieUtils.getCookie("availableArcs");
     if (savedArcs) {
       try {

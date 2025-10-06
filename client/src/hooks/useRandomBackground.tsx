@@ -96,16 +96,7 @@ export const useRandomBackground = () => {
     return {
       isLoading: true,
       LoadingComponent: (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-            backgroundColor: "#000",
-            color: "white",
-          }}
-        >
+        <div className="flex justify-center items-center h-screen bg-black text-white">
           Loading...
         </div>
       ),
@@ -125,9 +116,9 @@ function rgbToHsl(r: number, g: number, b: number) {
   b /= 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  let h = 0,
-    s = 0,
-    l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);

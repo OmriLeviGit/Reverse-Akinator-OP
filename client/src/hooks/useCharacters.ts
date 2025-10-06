@@ -18,8 +18,7 @@ export const useCharacters = (sessionArcLimit: string | null) => {
   const charactersLoaded = !isLoadingCharacters && allCharacters.length > 0;
 
   useEffect(() => {
-    if (isLoadingCharacters) {
-    } else if (allCharacters.length > 0) {
+    if (!isLoadingCharacters && allCharacters.length > 0) {
       console.log(
         `✅ Characters loaded: ${allCharacters.length} characters available (up to arc: ${
           charactersData?.arc || "unknown"

@@ -103,6 +103,7 @@ class LLMService:
         try:
             # Add instruction to use the tool
             start_time = time.time()
+            print("Asking LLM")
             response = self._game_model.invoke(
                 prompt,
                 tool_config={

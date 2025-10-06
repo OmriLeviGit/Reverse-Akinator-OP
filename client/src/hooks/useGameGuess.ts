@@ -1,5 +1,4 @@
-// src/hooks/useGameGuess.ts
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameSession } from "./useGameSession";
 
@@ -10,7 +9,6 @@ export const useGameGuess = (addMessage: (text: string, isUser: boolean) => void
   const [isProcessingGuess, setIsProcessingGuess] = useState(false);
   const [pendingGuess, setPendingGuess] = useState<string | null>(null);
 
-  // Helper for minimum delay
   const waitForMinimumDelay = async (userMessageTime: number) => {
     const elapsed = Date.now() - userMessageTime;
     const duration = 1000;
@@ -19,7 +17,7 @@ export const useGameGuess = (addMessage: (text: string, isUser: boolean) => void
     }
   };
 
-  const executeGuess = async (characterName: string) => {
+  const executeGuess = useCallback(async (characterName: string) => {
     setIsProcessingGuess(true);
     const userGuessTime = Date.now();
 
@@ -57,7 +55,7 @@ export const useGameGuess = (addMessage: (text: string, isUser: boolean) => void
     } finally {
       setIsProcessingGuess(false);
     }
-  };
+  }, [addMessage, makeGuess, navigate]);
 
   const handleCharacterSelect = (characterName: string, isProcessingChat: boolean) => {
     if (isProcessingGuess) return;
@@ -70,13 +68,12 @@ export const useGameGuess = (addMessage: (text: string, isUser: boolean) => void
     executeGuess(characterName);
   };
 
-  // Handle pending guess when chat finishes
   useEffect(() => {
     if (pendingGuess) {
       executeGuess(pendingGuess);
       setPendingGuess(null);
     }
-  }, [pendingGuess]);
+  }, [pendingGuess, executeGuess]);
 
   return {
     isProcessingGuess,

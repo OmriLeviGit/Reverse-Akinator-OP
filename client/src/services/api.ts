@@ -1,5 +1,6 @@
 // src/services/api.ts
 import axios from "axios";
+import { GameSettings } from "@/types";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -35,13 +36,7 @@ export const sessionApi = {
 
 // Game Management API
 export const gameApi = {
-  startGame: async (settings: {
-    arcSelection: string;
-    fillerPercentage: number;
-    includeNonTVFillers: boolean;
-    difficultyLevel: string;
-    includeUnrated: boolean;
-  }) => {
+  startGame: async (settings: GameSettings) => {
     console.log("🎮 Starting game with settings:", settings);
     const response = await api.post("/game/start", settings);
     console.log("🎮 Game start response:", response.data);

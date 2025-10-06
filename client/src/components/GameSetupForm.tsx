@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,24 +27,27 @@ const GameSetupForm = ({
   const { preferences, updatePreferences } = useUserPreferences();
 
   // Helper function to determine which arc is earlier
-  const getEarlierArc = (arc1: string, arc2: string): string => {
-    // If either arc is "All", return the other one (or "All" if both are "All")
-    if (arc1 === "All" && arc2 === "All") return "All";
-    if (arc1 === "All") return arc2;
-    if (arc2 === "All") return arc1;
+  const getEarlierArc = useCallback(
+    (arc1: string, arc2: string): string => {
+      // If either arc is "All", return the other one (or "All" if both are "All")
+      if (arc1 === "All" && arc2 === "All") return "All";
+      if (arc1 === "All") return arc2;
+      if (arc2 === "All") return arc1;
 
-    // Find indices in the original availableArcs array (earlier arcs have lower indices)
-    const index1 = availableArcs.findIndex((arc) => arc.name === arc1);
-    const index2 = availableArcs.findIndex((arc) => arc.name === arc2);
+      // Find indices in the original availableArcs array (earlier arcs have lower indices)
+      const index1 = availableArcs.findIndex((arc) => arc.name === arc1);
+      const index2 = availableArcs.findIndex((arc) => arc.name === arc2);
 
-    // If either arc is not found, return the found one or fallback
-    if (index1 === -1 && index2 === -1) return globalArcLimit; // fallback
-    if (index1 === -1) return arc2;
-    if (index2 === -1) return arc1;
+      // If either arc is not found, return the found one or fallback
+      if (index1 === -1 && index2 === -1) return globalArcLimit; // fallback
+      if (index1 === -1) return arc2;
+      if (index2 === -1) return arc1;
 
-    // Return the arc with the lower index (earlier in the series)
-    return index1 <= index2 ? arc1 : arc2;
-  };
+      // Return the arc with the lower index (earlier in the series)
+      return index1 <= index2 ? arc1 : arc2;
+    },
+    [availableArcs, globalArcLimit]
+  );
 
   // Handle arc selection with spoiler protection when globalArcLimit changes
   useEffect(() => {
@@ -64,7 +67,7 @@ const GameSetupForm = ({
       });
       updatePreferences({ preferredArc: safeArc });
     }
-  }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences]);
+  }, [globalArcLimit, availableArcs, preferences.preferredArc, updatePreferences, getEarlierArc]);
 
   // Filter arcs based on globalArcLimit (spoiler protection)
   const getFilteredArcs = () => {
