@@ -10,7 +10,12 @@ from guessing_game.models.db_character import DBCharacter
 # Add the server directory to the Python path
 sys.path.append(str(Path(__file__).parent.parent.parent.parent))
 
-from ..bootstrap_settings import CHARACTER_CSV_PATH, LARGE_AVATARS_DIR
+from ..bootstrap_settings import (
+    CHARACTER_CSV_PATH,
+    LARGE_AVATARS_DIR,
+    DELAY_BETWEEN_CHARACTERS,
+    DELAY_BETWEEN_REQUESTS
+)
 from guessing_game.config.vector_db import initialize_collection
 
 # Import our new modules
@@ -30,7 +35,7 @@ class CharacterProcessor:
     Handles rate limiting, 403 error blocking, and provides retry logic with statistics tracking.
     """
 
-    def __init__(self, delay_between_characters=1.0, delay_between_requests=0.1):
+    def __init__(self, delay_between_characters=None, delay_between_requests=None):
         """
         Initialize the character processor
 
@@ -38,8 +43,8 @@ class CharacterProcessor:
             delay_between_characters (float): Seconds to wait between processing characters
             delay_between_requests (float): Seconds to wait between individual web requests
         """
-        self.delay_between_characters = delay_between_characters
-        self.delay_between_requests = delay_between_requests
+        self.delay_between_characters = delay_between_characters or DELAY_BETWEEN_CHARACTERS
+        self.delay_between_requests = delay_between_requests or DELAY_BETWEEN_REQUESTS
 
         # Initialize vector database
         print("Initializing vector database connection...")
@@ -449,11 +454,8 @@ def main():
     START_FROM = None  # Set to character ID to resume from a specific character
     LIMIT = 5  # Set to None to process all characters, or a number to limit for testing
 
-    # Create processor
-    processor = CharacterProcessor(
-        delay_between_characters=2.0,  # 2 second delay between characters
-        delay_between_requests=0.1  # 0.1 second delay between requests
-    )
+    # Create processor with settings from bootstrap_settings.py
+    processor = CharacterProcessor()
 
     # Process characters
     try:

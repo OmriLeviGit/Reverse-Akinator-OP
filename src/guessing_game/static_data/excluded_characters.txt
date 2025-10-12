@@ -1,0 +1,33 @@
+# Completely stops these characters from reaching the client as an anti-spoiler mechanism
+Imu
+Bjorn
+joyboy
+Rocks_D._Xebec
+Monkey_D._Garp
+
+# gorosei
+Marcus_Mars
+Topman_Warcury
+Ethanbaron_V._Nusjuro
+Shepherd_Ju_Peter
+Figarland_Garling
+Jaygarcia_Saturn
+
+# black beard
+Marshall_D._Teach
+Shiryu
+Jesus_Burgess
+Vasco_Shot
+Sanjuan_Wolf
+Doc_Q
+Laffitte
+Avalo_Pizarro
+Catarina_Devon
+Van_Augur
+Stronger
+Kuzan
+
+# other
+zunesha
+Shanks
+vegapunk

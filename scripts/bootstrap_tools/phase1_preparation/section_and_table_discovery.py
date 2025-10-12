@@ -300,7 +300,7 @@ def discover_sections(character_csv_path=CHARACTER_CSV_PATH):
                 f.write(f"{count:4d} ({percentage:5.1f}%) - {clean_unicode_text(str(stat))}\n")
 
         if character_section_map:
-            f.write("\nCHARACTER SECTIONS (H2 + Subpage Names):\n")
+            f.write("\nAll CHARACTER SECTIONS (Paragraph headings + Subpages):\n")
             f.write("-" * 40 + "\n")
             for character_id, sections in character_section_map.items():
                 clean_sections = [re.sub(r'[\u200b-\u200f\u2028-\u202f\u205f-\u206f\ufeff]', '', section) for section in sections]

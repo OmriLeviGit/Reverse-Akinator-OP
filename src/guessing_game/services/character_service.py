@@ -1,6 +1,7 @@
 # server/services/character_service.py
 from sqlalchemy import or_, func
 from guessing_game.config.database import get_db_session
+from guessing_game.config.settings import EXCLUDED_CHARACTERS_PATH
 from guessing_game.models.db_character import DBCharacter
 from guessing_game.models.db_arc import DBArc
 from guessing_game.schemas.character_schemas import FullCharacter, BasicCharacter
@@ -8,38 +9,12 @@ from guessing_game.schemas.arc_schemas import Arc
 
 class CharacterService:
     def __init__(self):
-        self.excluded_character_ids = [
-            "Imu",
-            "Bjorn",
-            "joyboy",
-            "Rocks_D._Xebec",
-            "Monkey_D._Garp",
+        self.excluded_character_ids = self._load_excluded_characters()
 
-            # gorosei
-            "Marcus_Mars",
-            "Topman_Warcury",
-            "Ethanbaron_V._Nusjuro",
-            "Shepherd_Ju_Peter",
-            "Figarland_Garling",
-            "Jaygarcia_Saturn",
-
-            # black beard
-            "Marshall_D._Teach",
-            "Shiryu",
-            "Jesus_Burgess",
-            "Vasco_Shot",
-            "Sanjuan_Wolf",
-            "Doc_Q",
-            "Laffitte",
-            "Avalo_Pizarro",
-            "Catarina_Devon",
-            "Van_Augur",
-
-            # other
-            "zunesha",
-            "Shanks",
-            "vegapunk"
-        ]
+    def _load_excluded_characters(self) -> list[str]:
+        """Load excluded character IDs from the text file"""
+        with open(EXCLUDED_CHARACTERS_PATH, 'r', encoding='utf-8') as f:
+            return [line.strip() for line in f if line.strip() and not line.strip().startswith('#')]
 
     def _build_base_query(self, session, arc: Arc | None = None, difficulty_range: list[str] | None = None,
                           include_unrated: bool = False, include_ignored: bool = True):

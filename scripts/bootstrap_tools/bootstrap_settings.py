@@ -117,6 +117,11 @@ WHITELISTED_STATISTICS = [
     ('size', 'statistics'),
 ]
 
+# Rate limiting settings
+# Note: The wikia allows frequent requests, but image downloads have stricter rate limits
+DELAY_BETWEEN_CHARACTERS = 1.0  # Seconds to wait between processing characters
+DELAY_BETWEEN_REQUESTS = 0.1    # Seconds to wait between individual web requests
+
 
 # Utility functions
 def clean_unicode_text(text):

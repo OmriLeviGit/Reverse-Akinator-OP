@@ -19,6 +19,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATABASE_PATH}")
 # Data files
 ARCS_JSON_PATH = STATIC_DATA_DIR / "arcs.json"
 GAME_PROMPT_PATH = STATIC_DATA_DIR / "game_prompt.txt"
+EXCLUDED_CHARACTERS_PATH = STATIC_DATA_DIR / "excluded_characters.txt"
 
 # Embedding settings
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"

@@ -1,45 +1,106 @@
 # Bootstrap Tools
 
-Unified pipeline for bootstrapping the One Piece character guessing game database and assets. This system processes character data from the One Piece wiki, extracts comprehensive information, and stores it across multiple databases and formats.
+Automated system for populating the character database from the One Piece wikia:
 
-## Quick Start
-
-```bash
-# Check current system status
-python bootstrap_orchestrator.py --status
-
-# Phase 1: Initial setup and preparation
-python bootstrap_orchestrator.py --phase=1
-
-# Phase 2: Process characters (test with 5 characters first)
-python bootstrap_orchestrator.py --phase=2 --limit=5
-
-# Phase 2: Process all characters (after configuration)
-python bootstrap_orchestrator.py --phase=2
-
-# Resume from specific character if interrupted
-python bootstrap_orchestrator.py --phase=2 --start-from="CHARACTER_ID"
-```
+- Scrapes character data from the One Piece wikia
+- Initializes SQL and vector databases
+- Downloads and processes character avatars
+- Generates AI-powered descriptions and fun facts
+- Stores all data in SQL and vector databases
 
 ## System Overview
 
-The bootstrap system operates in two main phases:
+The bootstrap system consists of two separate phases that must be run independently and sequentially:
 
-### Phase 1: Preparation
-- Scrapes character lists from One Piece wiki
-- Creates character CSV with IDs and wiki URLs
-- Initializes SQL and vector databases
-- Optionally discovers available wiki sections and statistics
-- Requires manual configuration of section/statistic whitelists
+### Phase 1: Preparation and Discovery
 
-### Phase 2: Character Processing
-- Processes each character in a single pass
-- Scrapes structured data, narrative content, and images
-- Stores data in SQL database with full character information
-- Creates vector embeddings for semantic search
-- Downloads and processes avatar images (large and small versions)
-- Generates AI-powered descriptions and fun facts
+This phase sets up the database infrastructure and creates a list of all characters. Then, it scrapes character wiki pages to discover what sections (page tabs, paragraph headings) and table rows exist across all characters, without extracting the actual paragraph text or table data for each character.
+
+**What it does:**
+- Scrapes the character list from One Piece wiki
+- Creates `character_data.csv` with character IDs and wiki URLs
+- Initializes SQL and vector databases (empty at this point)
+- Discovers available section names and table row names across all character pages
+- Generates `data/discovery_results.txt` containing all discovered names
+
+> **Why discovery instead of direct extraction?**
+>
+> The wikia structure is very inconsistent, which makes it difficult to scrape effectively. Additionally, there's a lot of irrelevant information on wikia pages that isn't useful for the game and could create noise for RAG queries.
+> The discovery step allows you to see all sections and table rows, and choose the ones that are actually needed for the knowledge base creation.
+
+#### What Gets Discovered
+
+The discovery process identifies two types of data across all character pages:
+
+**Sections**
+
+Sections are found throughout the character wiki page and consist of:
+
+- **Page sections**: Tab headings at the top of the page (e.g., "Introduction", "Gallery", "History")
+
+  <img src="assets/page_sections.png" alt="Page Sections" width="60%">
+
+
+
+- **Paragraph headings**: Top-level items in the table of contents
+
+  <img src="assets/table_of_contents.png" alt="Table of Contents" width="30%">
+
+Each section contains paragraph content beneath it. When a section is whitelisted, all its paragraphs are extracted and added to the vector database as documents for RAG queries.
+
+<img src="assets/section_with_paragraph.png" alt="Section with Paragraph" width="50%">
+
+**Tables**
+
+The infobox is located directly under the character image and contains multiple tables such as "statistics", "portrayal", "devil fruit", etc. Each table has rows with specific data fields.
+
+When a table row is whitelisted, the data is extracted and stored as structured data in the SQL database. Each entry requires specifying both the row name and table name to extract from.
+
+<img src="assets/infobox_statistics.png" alt="Infobox Statistics" width="30%">
+
+
+#### Action Required After Phase 1
+
+Review `data/discovery_results.txt` and manually configure `bootstrap_settings.py` with your choices (case-insensitive):
+
+**WHITELISTED_SECTIONS** - Section names whose paragraph content you want to extract
+
+Example configuration:
+```python
+WHITELISTED_SECTIONS = [
+    'Abilities',
+    'Appearance',
+    'History',
+    'Personality',
+    # Add sections based on discovery_results.txt
+]
+```
+
+**WHITELISTED_STATISTICS** - Specific table rows to extract from infobox tables
+
+
+Example configuration:
+```python
+WHITELISTED_STATISTICS = [
+    ('age', 'statistics'),
+    ('height', 'statistics'),
+    ('bounty', 'statistics'),
+    # Add statistics based on discovery_results.txt
+]
+```
+
+### Phase 2: Data Extraction
+
+This phase extracts the actual content based on your configuration.
+
+**What it does:**
+- For each whitelisted section: Extracts paragraph content and stores it as documents in the vector database
+- For each whitelisted statistic: Extracts structured table data and stores it in the SQL database
+- Downloads and processes character avatar images (large and small versions)
+- Generates AI-powered descriptions and fun facts for each character
 - Extracts and stores character affiliations
+
+All character processing happens in a single pass with built-in rate limiting and error recovery.
 
 ## Directory Structure
 
@@ -62,55 +123,15 @@ bootstrap_tools/
 └── README.md                     # This file
 ```
 
-## Configuration
+## Processing Settings
 
-### Required Manual Configuration
+Note: The wikia allows frequent requests, but image downloads have stricter rate limits.
 
-After running Phase 1 with section discovery, you must update `bootstrap_settings.py`:
-
-**WHITELISTED_SECTIONS**: List of wiki page sections to extract
-```python
-WHITELISTED_SECTIONS = [
-    'Abilities',
-    'Appearance', 
-    'History',
-    'Personality',
-    # Add sections based on discovery_results.txt
-]
-```
-
-**WHITELISTED_STATISTICS**: List of infobox statistics to extract
-```python
-WHITELISTED_STATISTICS = [
-    ('age', 'statistics'),
-    ('height', 'statistics'),
-    ('bounty', 'statistics'),
-    # Add statistics based on discovery_results.txt
-]
-```
-
-### Processing Settings
-
-Modify `character_processor.py` for performance tuning:
-- `delay_between_characters`: Delay between character processing (default: 0.5-1.5 seconds)
-- `delay_between_requests`: Delay between individual web requests (default: 0.1 seconds)
+Modify `bootstrap_settings.py` to adjust rate limiting:
+- `DELAY_BETWEEN_CHARACTERS`: Base delay between character processing (default: 1.0 seconds, with random ±0.5s variation for 0.5-1.5s range)
+- `DELAY_BETWEEN_REQUESTS`: Delay between individual web requests (default: 0.1 seconds)
 
 ## Usage Examples
-
-### Development and Testing
-```bash
-# Test with limited characters
-python bootstrap_orchestrator.py --phase=2 --limit=10
-
-# Resume interrupted processing
-python bootstrap_orchestrator.py --phase=2 --start-from="Monkey_D._Luffy"
-
-# Skip CSV generation if already exists
-python bootstrap_orchestrator.py --phase=1 --skip-csv
-
-# Check system status anytime
-python bootstrap_orchestrator.py --status
-```
 
 ### Production Workflow
 ```bash
@@ -121,6 +142,21 @@ python bootstrap_orchestrator.py --phase=1
 
 # 3. Process all characters
 python bootstrap_orchestrator.py --phase=2
+```
+
+### Development and Testing
+```bash
+# Check current system status
+python bootstrap_orchestrator.py --status
+
+# Test with limited characters
+python bootstrap_orchestrator.py --phase=2 --limit=5
+
+# Resume interrupted processing
+python bootstrap_orchestrator.py --phase=2 --start-from="CHARACTER_ID"
+
+# Skip CSV generation if it already exists
+python bootstrap_orchestrator.py --phase=1 --skip-csv
 ```
 
 ## Error Handling and Recovery
@@ -159,11 +195,6 @@ For ~2500 characters:
 - Phase 1 (with discovery): 1-1.5 hours
 - Phase 2 (full processing): 3 hours
 - Total system setup: 4-5 hours
-
-### Optimization
-- Use `--limit` for testing to avoid full processing during development
-- Adjust delay settings in character_processor.py for faster processing
-- Monitor progress through automatic status updates every 10 characters
 
 ## Monitoring and Status
 

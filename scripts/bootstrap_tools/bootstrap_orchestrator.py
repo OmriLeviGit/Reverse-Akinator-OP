@@ -109,11 +109,8 @@ class BootstrapOrchestrator:
         """
         phase2_start = time.time()
         try:
-            # Create character processor
-            processor = CharacterProcessor(
-                delay_between_characters=1.0,  # Be respectful to the wiki
-                delay_between_requests=0.1
-            )
+            # Create character processor with settings from bootstrap_settings.py
+            processor = CharacterProcessor()
             
             # Process characters
             results = processor.process_all_characters(

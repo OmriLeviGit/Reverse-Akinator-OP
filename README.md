@@ -1,52 +1,47 @@
-I haven't got the chance to create a more comprehensive README yet, but this should be enough for now :)
-
-This is a game that some friends and I used to play, where one chooses a character from the anime One Piece and others have to ask yes/no questions in an attempt to find the character.
-While I don't watch anime anymore, I figured that implementing this game using an LLM as the challenger would give me a good excuse to mess around with some technologies I found interesting.
-
-#### Some notes:
-There are some choices that I would not have made in a serious production settings obviously, for example:
-- All services are managed in a single container
-- The SQLite DB is automatically backed up directly to Git (LFS) using a bash script, as the DB is small and makes taking backing up snapshots (for free) simple in case my machine goes down.  
-- There are no real rate limits in place, as there is no real need for most of them, and for the LLM interactions - the API key is connected to a free limited account. 
-
-The app is hosted on my home-lab ([link](https://strawhat_guessing_game.omrilevi.space)), and one of my friends actually plays it on a daily basis.
-
-> Due to Git LFS rate limits, my hosting machine's CI/CD can't actually pull from GitHub for the next two weeks. As a result, the app is few commits behind, and misses some bug fixes and tweaks.
-
----
-
 # Reverse Akinator
 
-A reverse Akinator-style guessing game where the app selects a random One Piece character and players ask yes/no questions to identify who it is. Players must deduce the character through strategic questioning with AI-powered responses.
+A reverse-[Akinator](https://en.akinator.com/) style guessing game where players ask yes/no questions to identify a randomly selected character from the anime One-Piece. A RAG backed LLM answers the questions based on character knowledge.
+
+**[Live Demo](https://strawhat_guessing_game.omrilevi.space)**
+
+## Background
+
+This project originated from a guessing game my friends and I used to play. While I don't watch anime anymore, I saw it as an opportunity to explore LLM integration, vector embeddings, and self-hosted deployment, resulting in a production application that one of my friends plays daily.
+
+## Project Goals
+
+Some architectural choices prioritize simplicity and zero-cost self-hosting over typical production patterns. Examples include:
+
+- **Single-container deployment** - Everything runs in a single Docker container, with the same server handling both API and static frontend serving
+- **Git LFS database backups** - Automated SQLite snapshots via bash script committed to Git; provides a simple zero-cost cloud backup solution that is viable at this scale
+- **Minimal LLM rate limiting** - Low traffic volume and free-tier API quotas provide natural rate limiting at personal scale
 
 ## Features
 
-- Random character selection from comprehensive One Piece database
-- AI-powered yes/no question answering system
-- Strategic guessing mechanics with attempt tracking
-- Modern React 18 frontend with TypeScript
-- FastAPI backend with Redis session management
-- Automated character database population from One Piece wiki
-- Vector embeddings for semantic character search
-- Docker deployment support
+- **Character management** - Filter, search, and sort through the character database
+- **Character ratings and exclusions** - Rate difficulty and ignore characters to customize game pools
+- **Arc-based filtering** - Limit character selection to specific story arcs with filler content control
+- **Spoiler control** - Avoid spoilers from later arcs in the ongoing series
+- **Dynamic theming** - Randomized backgrounds with adaptive color schemes on each load
+- **Session persistence** - Continue games across browser sessions
 
 ## Tech Stack
 
 ### Backend
 - **FastAPI** - Modern Python web framework
 - **Redis** - Session and game state management
+- **SQLite** - Relational database for character data
 - **SQLAlchemy** - Database ORM
 - **LangChain** - AI integration framework
 - **ChromaDB** - Vector database for embeddings
 - **Pydantic** - Data validation and serialization
 
 ### Frontend
-- **React 18** - UI framework
+- **React** - UI framework
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
 - **shadcn/ui** - UI component library
 - **Tailwind CSS** - Styling
-- **TanStack Query** - API state management
 
 ## Getting Started
 
@@ -55,7 +50,7 @@ A reverse Akinator-style guessing game where the app selects a random One Piece 
 - [uv](https://astral.sh/uv) - Fast Python package manager
 - Node.js 20+
 - Redis (for development) or Docker
-- Google AI API key (for question answering)
+- Google AI API key
 
 ### Development Setup
 
@@ -102,24 +97,16 @@ The application will be available at `http://localhost:3000`
 
 ## Database Setup
 
-The character database is populated using an automated bootstrap system that scrapes and processes One Piece wiki data. cd See [`scripts/bootstrap_tools/README.md`](scripts/bootstrap_tools/README.md) for detailed documentation.
+The character database is populated using an automated two-phase bootstrap system. The process involves discovering available data from the wikia, configuring what to extract, then processing all characters.
 
-**Quick start:**
-```bash
-cd scripts
-# Phase 1: Initial setup and preparation
-uv run python -m bootstrap_tools.bootstrap_orchestrator --phase=1
+See [`scripts/bootstrap_tools/README.md`](scripts/bootstrap_tools/README.md) for complete setup instructions.
 
-# Phase 2: Process all characters (after configuration)
-uv run python -m bootstrap_tools.bootstrap_orchestrator --phase=2
-```
+## Future Goals
 
-The bootstrap system:
-- Scrapes character data from One Piece wiki
-- Downloads and processes character avatars
-- Generates AI-powered descriptions and fun facts
-- Creates vector embeddings for semantic search
-- Stores structured data in SQL and vector databases
+- **Rate limiting & CAPTCHA** - Add proper API rate limiting for production use
+- **Enhanced spoiler control** - The current version is rather naive and subject to the LLM's subjectivity
+- **Knowledge graphs for RAG** - Improve AI responses with structured character relationships
+- **User authentication** - Add per-user data storage for ratings and character exclusion (currently shared globally by design)
 
 ## Project Structure
 

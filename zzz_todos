@@ -1,15 +1,23 @@
-adding metadata to the vector db:
-- attempt to get the first *main* arc a character appeared, isntead first actual appearance (for the anti spoiler mechanism)
+adding metadata to the vector db (for the anti spoiler mechanism):
+- attempt to get the first *main* arc for a character, rather than the first actual appearance
 
 ---
 rag and chroma:
-- prompt the llm to create the chroma query
+- prompt the llm to create the chroma query (check the latency on that as well)
 - check how well it works if messages are not bound to a single character
 - add the reasoning to the chat's context so it would be able to follow a chain of thoughts
+- add a graph knowledge
 
 ---
-logic:
-- make search use epithet and alias
+in-code:
+- make search use epithet and alias.
+- move the structured data from chroma to sqlite. split the discovery and the database set up into 2 separate steps in the bootstrapping script
+- change the word "ignore" to "exclude"
 
+---
+utility:
+- create a script that rates all character with non colored (anime) image a certain way
+
+---
 performance:
-- create a test suite for prompts
+- create a test suite for prompts (currently not added as this burns through the daily limit anyways)
