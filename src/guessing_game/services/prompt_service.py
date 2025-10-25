@@ -149,8 +149,7 @@ class PromptService:
         # Map common question patterns to search terms
         question_mappings = {
             # Strength/Power questions
-            r'strong|powerful|strength': 'physical strength combat ability fighting power battle',
-            r'devil fruit|powers|abilities': 'devil fruit powers abilities special skills',
+            r'strong|powerful|strength': 'physical strength combat ability fighting power battle devil fruit',
 
             # Relationship questions
             r'family|relative|parent|child|kid|brother|sister|sibling': 'family parents children siblings relatives blood relation',
@@ -162,10 +161,10 @@ class PromptService:
             r'hair|color': 'hair color appearance physical features',
 
             # Personality
-            r'good|evil|bad|moral': 'personality morality character behavior alignment ethics',
+            r'good|evil|bad': 'personality morality character behavior alignment ethics strawhat',
 
             # Role/Status
-            r'captain|leader': 'captain leader commander authority position role',
+            r'captain': 'captain crew commander authority position role',
             r'citizen': 'occupation job civilian family',
         }
 

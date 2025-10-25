@@ -1,0 +1,36 @@
+Graph Construction:
+To build the knowledge graph, iterate over each character's documents and use an LLM with structured output (tool/function calling) to extract all relationships and their target characters.
+For consistency, enforce that extracted character names are mapped to their character_id format. This requires a lookup step to resolve character names to their correct IDs.
+No separate NER step is needed since the LLM handles entity extraction directly.
+
+---
+
+Query System Architecture:
+The system processes user questions through a multi-stage pipeline.
+First, classify the question type (simple attribute, relationship-related, multi-hop with persistence between queries for follow-up questions).
+Can implement using a question classifier class
+
+Possible classification implementations:
+- Compare the query embedding against pre-computed template question embeddings stored in RAM
+- Use a local LLM to classify
+- Use NER/classification models (probably won't pursue)
+
+Based on the classification, route to the appropriate handler.
+
+Handlers:
+For simple attribute questions, current version should work:
+- Optionally expand the query to emphasize related concepts (e.g., "strong" becomes "strong, powerful, combat skilled")
+- Embed the expanded query and search the vector DB filtered by chosen character_id, retrieving the top X most relevant chunks
+
+For relationship questions:
+- Extract the relationship type using keyword matching or LLM extraction
+- Query the graph DB to retrieve related character IDs matching that relationship
+- Embed the original question without expansion, then search the vector DB filtering by both the main character and all related characters, retrieving top X chunks per character
+    - Use embedding distance scores to dynamically allocate: more chunks for fewer high-relevance characters vs. fewer chunks across more characters
+
+For multi-hop questions (requires defining properly):
+- Retrieve entities mentioned in previous conversation turn
+- Query vector DB filtered by those entity IDs
+- Retrieve top X chunks for context
+
+Finally, pass all retrieved context chunks to the LLM to generate the final answer.
