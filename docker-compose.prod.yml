@@ -1,10 +1,14 @@
+# Production Docker Compose configuration
+# Use this file on Dokploy or other deployment platforms
+# Deploy with: docker-compose -f docker-compose.prod.yml up
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       - redis
     environment:
@@ -12,8 +16,8 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
 
