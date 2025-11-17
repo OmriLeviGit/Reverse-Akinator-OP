@@ -13,6 +13,7 @@ in-code:
 - make search use epithet and alias.
 - move the structured data from chroma to sqlite. split the discovery and the database set up into 2 separate steps in the bootstrapping script
 - change the word "ignore" to "exclude"
+- show the chat history with the llm with the reasoning in the post game
 
 ---
 utility:

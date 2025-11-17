@@ -1,4 +1,4 @@
-Graph Construction:
+Graph Construction (Neo4j/NetworkX?):
 To build the knowledge graph, iterate over each character's documents and use an LLM with structured output (tool/function calling) to extract all relationships and their target characters.
 For consistency, enforce that extracted character names are mapped to their character_id format. This requires a lookup step to resolve character names to their correct IDs.
 No separate NER step is needed since the LLM handles entity extraction directly.
@@ -29,8 +29,11 @@ For relationship questions:
     - Use embedding distance scores to dynamically allocate: more chunks for fewer high-relevance characters vs. fewer chunks across more characters
 
 For multi-hop questions (requires defining properly):
-- Retrieve entities mentioned in previous conversation turn
-- Query vector DB filtered by those entity IDs
-- Retrieve top X chunks for context
+- Pretty complicated for the scope of this project, probably won't implement unless I have time
 
 Finally, pass all retrieved context chunks to the LLM to generate the final answer.
+
+---
+- note that the edges may be directional (A is teacher of B ≠ B is teacher of A)
+- how to handle ambiguity if more than one character fits the description? can prune, only X characters for example, or at the very list be explicit in the reasoning so that follow up questions will work
+
